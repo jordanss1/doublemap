@@ -1,0 +1,32 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: .
+          target: /usr/share/nginx/html/
+          action: sync
+        - path: ./conf.d/
+          target: /etc/nginx/conf.d/
+          action: rebuild
+    volumes:
+      - ./libs/css/input.css:/usr/share/nginx/html/libs/css/input.css:ro  # Bind mount input.css as read-only
+      - ./libs/css/output.css:/usr/share/nginx/html/libs/css/output.css 
+
+  api:
+    build:
+      context: ./libs/php
+      dockerfile: Dockerfile
+    ports:
+      - 9000:9000
+    develop:
+      watch:
+        - path: .
+          target: /var/www/html/
+          action: sync
