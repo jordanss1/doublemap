@@ -3,16 +3,249 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="libs/css/styles.css" />
-    <link rel="stylesheet" href="libs/css/output.css" />
-    <title>Document</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="stylesheet" href="./libs/css/styles.css" />
+    <link rel="stylesheet" href="./libs/css/output.css" />
+    <link rel="stylesheet" href="./libs/css/leaflet.css" />
+    <link href="libs/css/assets/css/fontawesome.css" rel="stylesheet" />
+    <link href="libs/css/assets/css/regular.css" rel="stylesheet" />
+    <link href="libs/css/assets/css/solid.css" rel="stylesheet" />
+    <link href="libs/css/assets/css/brands.css" rel="stylesheet" />
+    <title>Around the Globe</title>
   </head>
   <body>
-    <main>
-      <h1 class="text-4xl text-gray-700">Hi!</h1>
-    </main>
+    <main class="min-h-screen">
+      <div class="visible" id="preloader"></div>
+      <span id="select-container" class="w-full h-8">
+        <select
+          id="country-select"
+          class="fixed px-1 top-2 bottom-0 h-6 right-2/4 translate-x-2/4 shadow-sm"
+        >
+          
+        </select>
+      </span>
 
+      <div id="map" class="h-full"></div>
+
+      <!-- example modal layout -->
+
+      <div id="modal" class="hidden" data-bs-backdrop="false" tabindex="-1">
+        <div class="">
+          <div class="">
+            <div class="">
+              <h5 class="">Overview</h5>
+              <button
+                type=""
+                class=""
+                data-bs-dismiss=""
+                aria-label=""
+              ></button>
+            </div>
+            <div class="y">
+              <table class="">
+                <tr>
+                  <td class="">
+                    <i class="fa-solid fa-street-view fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-heart fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-car fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-book fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-bath fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-anchor fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-money-bill fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-wifi fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-globe fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-bicycle fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-landmark fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-tree fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-bookmark fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-fire fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-key fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-newspaper fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-rocket fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-wheelchair fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+                <tr>
+                  <td class="text-center">
+                    <i class="fa-solid fa-monument fa-xl"></i>
+                  </td>
+
+                  <td>Attribute</td>
+
+                  <td class="text-end">value</td>
+                </tr>
+              </table>
+            </div>
+            <div class="">
+              <button type="button" class="" data-bs-dismiss="modal">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script src="./libs/js/leaflet.js"></script>
     <script src="./libs/js/jquery.js"></script>
+    <script src="./config.js"></script>
     <script src="./libs/js/script.js"></script>
   </body>
 </html>

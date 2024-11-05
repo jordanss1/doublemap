@@ -1,0 +1,38 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Draw the globe -->
+    <circle cx="100" cy="100" r="50" fill="#4da6ff" stroke="#003366" stroke-width="4"/>
+
+    <!-- Add meridians and parallels -->
+    <path d="M50,100 A50,50 0 1,1 150,100" fill="none" stroke="#003366" stroke-width="1.5"/>
+    <path d="M100,50 A50,50 0 0,1 100,150" fill="none" stroke="#003366" stroke-width="1.5"/>
+    <path d="M85,50 A50,50 0 0,1 85,150" fill="none" stroke="#003366" stroke-width="0.5"/>
+    <path d="M115,50 A50,50 0 0,1 115,150" fill="none" stroke="#003366" stroke-width="0.5"/>
+    <path d="M100,100 A50,50 0 0,0 50,100" fill="none" stroke="#003366" stroke-width="0.5"/>
+    <path d="M100,100 A50,50 0 0,1 150,100" fill="none" stroke="#003366" stroke-width="0.5"/>
+
+    <!-- Draw larger and more detailed landmasses -->
+    <!-- North America -->
+    <path d="M85,70 C80,60 95,55 105,65 C100,75 90,80 85,70 Z" fill="#3cb371"/>
+    <!-- South America -->
+    <path d="M105,90 C110,90 115,100 110,110 C105,115 100,105 105,90 Z" fill="#3cb371"/>
+    <!-- Europe -->
+    <path d="M80,90 C75,85 70,90 75,95 C78,98 82,93 80,90 Z" fill="#3cb371"/>
+    <!-- Africa -->
+    <path d="M105,110 C110,115 108,125 100,122 C95,117 102,110 105,110 Z" fill="#3cb371"/>
+    <!-- Asia -->
+    <path d="M130,80 C140,85 145,90 140,100 C130,95 125,85 130,80 Z" fill="#3cb371"/>
+    <!-- Australia -->
+    <path d="M135,130 C140,130 138,135 135,135 C132,135 130,132 135,130 Z" fill="#3cb371"/>
+
+    <!-- Draw wind swooshes -->
+    <path d="M30,60 C50,30 150,30 170,60" fill="none" stroke="#b3daff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M25,120 C60,90 140,90 175,120" fill="none" stroke="#b3daff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M40,140 C70,160 130,160 160,140" fill="none" stroke="#b3daff" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Smiley face -->
+    <!-- Eyes -->
+    <circle cx="85" cy="85" r="4" fill="#003366"/>
+    <circle cx="115" cy="86" r="4" fill="#003366"/>
+    <!-- Mouth -->
+    <path d="M75,120 Q100,140 125,120" fill="none" stroke="#003366" stroke-width="2" stroke-linecap="round"/>
+</svg>
