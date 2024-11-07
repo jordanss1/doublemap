@@ -16,16 +16,22 @@
   <body>
     <main class="min-h-screen">
       <div class="visible" id="preloader"></div>
-      <span id="select-container" class="w-full h-8">
+      <div
+        id="error-modal"
+        class="fixed hidden z-50 rounded-md top-1/2 left-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 px-1 border-slate-300 border"
+      >
+        <div class="w-full h-full flex items-center justify-center">
+          <h5>Error</h5>
+        </div>
+      </div>
+      <span id="select-container" class="z-20 relative h-8">
         <select
           id="country-select"
-          class="fixed px-1 top-2 bottom-0 h-6 right-2/4 translate-x-2/4 shadow-sm"
-        >
-          
-        </select>
+          class="fixed z-20 px-1 top-3 bottom-0 h-6 text-lg text-ellipsis right-2/4 translate-x-2/4 shadow-sm"
+        ></select>
       </span>
 
-      <div id="map" class="h-full"></div>
+      <div id="map" class="h-screen z-10"></div>
 
       <!-- example modal layout -->
 
