@@ -1,9 +1,6 @@
 FROM php:8.3-fpm
 
 ARG MODE
-ARG USERNAME
-
-RUN echo ${USERNAME}
 
 RUN groupadd -g 101 php-fpm \
     && useradd --no-log-init -u 101 -g 101 php-fpm \
@@ -31,5 +28,6 @@ RUN composer require vlucas/phpdotenv
 RUN if ["$MODE" = "development"]; then composer install --dev --prefer-dist; \
    else composer install --no-dev --prefer-dist; fi
 
+COPY php.ini /usr/local/etc/php/
 
 COPY --chown=php-fpm . /var/www/html/

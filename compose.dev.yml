@@ -4,8 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        JAWG_TOKEN: ${JAWG_TOKEN}
-        MODE: development 
+        MODE: development
     ports:
       - 8080:8080
     depends_on:
@@ -18,9 +17,6 @@ services:
         - path: ./conf.d/
           target: /etc/nginx/conf.d/
           action: rebuild
-    volumes:
-      - ./libs/css/input.css:/usr/share/nginx/html/libs/css/input.css:ro # Bind mount input.css as read-only
-      - ./libs/css/output.css:/usr/share/nginx/html/libs/css/output.css
     env_file:
       - ./.env
 
@@ -28,9 +24,11 @@ services:
     build:
       context: ./libs/php
       dockerfile: Dockerfile
-      args: 
+      args:
         USERNAME: ${USERNAME}
-        MODE: development 
+        IPINFO_TOKEN: ${IPINFO_TOKEN}
+        JAWG_TOKEN: ${JAWG_TOKEN}
+        MODE: development
     ports:
       - 9000:9000
     develop:

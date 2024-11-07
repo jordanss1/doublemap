@@ -1,6 +1,24 @@
 <?php
 
-    function fetchApiCall ($url, $name, $xml = false) {
+    function decodeResponse ($response, $dataType = 'json') {
+        if ($dataType === "xml") {
+            $xmlObject = simplexml_load_string($response);
+            
+            if (!$xmlObject) throw new Exception("Error parsing XML");
+
+            return json_decode(json_encode($xmlObject), true);
+        } else {
+            $decodedResponse = json_decode($response, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception("Problem decoding JSON " . json_last_error_msg());
+            }
+
+            return $decodedResponse;
+        } 
+    }
+
+    function fetchApiCall ($url, $endOnError, $apiReturnType = 'json') {
         $ch = null;
 
         try {
@@ -15,24 +33,54 @@
             
             if (!$response) throw new Error("Problem retrieving data: " . curl_error($ch));
 
-            $decodedResponse = null;
-
-            if ($xml && $xmlObject = simplexml_load_string($response)) {
-                $decodedResponse = json_decode(json_encode($xmlObject), true);
-            } else {
-                if ($xml && !$xmlObject) throw new Exception("Error parsing XML");
-
-                $decodedResponse = json_decode($response, true);
-
-                if (!isset($decodedResponse) || json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception("Problem decoding JSON " . json_last_error_msg());
-                }
-            }
+            $decodedResponse = decodeResponse($response, $apiReturnType);
 
             return $decodedResponse;
         } catch (Exception $e) {
-            return ["error" => $e->getMessage(), "details" => "Error making request to $name API"];
+            $parsedUrl = parse_url($url);
+            $errorResponse = ["error" => $e->getMessage(), "details" => "Error making request to {$parsedUrl['host']} API"];
+
+            if ($endOnError) {
+                http_response_code(500);
+                echo json_encode($errorResponse);
+                exit;
+            }
+
+            return $errorResponse;
         } finally {
             if ($ch !== null) curl_close($ch);
         }
+    }
+
+    function parsePathAndQueryString ($parsedUrl, $queries = true) {
+        $path = explode("/", trim($parsedUrl["path"], "/"))[1];
+        $queriesFormatted = $queries ? [] : null;
+    
+        if (!isset($path) || empty($path)) {
+            http_response_code(400);
+            echo json_encode(["details" => "Invalid path added to url"]);
+            exit;
+        }
+        
+        if ($queries) {
+         $queryStringArray = explode("&", $parsedUrl["query"]);
+
+            if (count($queryStringArray)) {
+                foreach ($queryStringArray as $queryString) {
+                    $newQueryString = explode("=", $queryString);
+        
+                    $emptyKeyOrValue = empty($newQueryString[0]) || empty($newQueryString[1]);
+        
+                    if ($emptyKeyOrValue || count($newQueryString) !== 2) {
+                        http_response_code(400);
+                        echo json_encode(["details" => "Query string param was empty or formatted incorrectly"]);
+                        exit;
+                    }
+        
+                    $queriesFormatted[trim($newQueryString[0])] = trim($newQueryString[1]);
+                }
+            }
+        }
+
+        return [$path, $queriesFormatted];
     }
