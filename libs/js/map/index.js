@@ -1,7 +1,8 @@
-let map = L.map("map", {
+let map = L.map('map', {
   zoomSnap: 0,
   maxBoundsViscosity: 1,
   minZoom: 2.5,
+  zoomControl: false,
 }).setView([51.835778, 0], 2.5);
 
 var worldBounds = L.latLngBounds(L.latLng(-90, -180), L.latLng(90, 180));
@@ -12,36 +13,17 @@ map.setZoom(2.5);
 
 map.fitBounds(worldBounds);
 
-const styles = {
-  Streets: "jawg-streets",
-  Sunny: "jawg-sunny",
-  Terrain: "jawg-terrain",
-  Dark: "jawg-dark",
-  Light: "jawg-light",
-};
-
-let baseLayers = {};
-
-Object.keys(styles).forEach((friendlyName) => {
-  baseLayers[friendlyName] = L.tileLayer(
-    "/api/tileLayer?style={style}&z={z}&x={x}&y={y}",
-    {
-      attribution: "...",
-      minZoom: 0,
-      maxZoom: 22,
-      style: styles[friendlyName], // Dynamically set the style
-      accessToken: "",
-    }
-  );
+map.once('moveend', () => {
+  map.setView([47.73307550971585, 0.2293651266492969], 2.5);
 });
 
-baseLayers["Streets"].addTo(map);
+const controlContainer = document.querySelector('.leaflet-control-container');
+const mapContainer = document.getElementById('map');
 
-L.control.layers(baseLayers).addTo(map);
-
-// map.once("moveend", () => {
-//   map.setView([47.73307550971585, 0.2293651266492969], 2.5);
-// });
+mapContainer.parentNode.insertBefore(
+  controlContainer,
+  mapContainer.nextSibling
+);
 
 // let zoomLevel = map.getZoom();
 // let center = map.getCenter();

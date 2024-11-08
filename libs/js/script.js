@@ -10,19 +10,19 @@ jQuery(() => {
   }
 });
 
-$.ajax({
-  url: "/api/ipinfo",
-  method: "GET",
-  data: "json",
-  success: ({ data }) => {
-    console.log(data);
-  },
-  error: (xhr) => {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  },
-});
+// $.ajax({
+//   url: "/api/ipinfo",
+//   method: "GET",
+//   data: "json",
+//   success: ({ data }) => {
+//     console.log(data);
+//   },
+//   error: (xhr) => {
+//     const res = JSON.parse(xhr.responseText);
+//     console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+//     console.log(`Response Text: ${res.details}`);
+//   },
+// });
 
 $.ajax({
   url: "/api/countries?country=all",
