@@ -1,0 +1,54 @@
+map.on('layergroupadd', (e) => {
+  const disabled = e.id === 'all-countries';
+
+  console.log(disabled);
+
+  $('#all-countries-control')
+    .attr('disabled', disabled)
+    .attr('aria-disabled', disabled);
+});
+
+map.once('moveend', () => {
+  map.setView([47.73307550971585, 0.2293651266492969], 2.5);
+});
+
+map.on('zoomend', () => {
+  currentZoom = map.getZoom();
+  const disabled = currentZoom === 2.5;
+
+  $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
+});
+
+$('#base-layer-control').on('click', () => {
+  const currentLayerState = baseButtonLayerStates.find(
+    ({ stateName }) => stateName === currentBaseLayer
+  );
+
+  currentLayerState.changeLayer();
+});
+
+$('#zoom-in').on('click', () => {
+  map.zoomIn(0.5, { animate: true });
+});
+
+$('#zoom-out').on('click', () => {
+  if (currentZoom === minZoom) return;
+
+  map.zoomOut(0.5, { animate: true });
+});
+
+// map.on("zoom", () => {
+//   zoomLevel = map.getZoom();
+//   console.log("Zoom level changed: " + zoomLevel);
+// });
+
+// map.on("move", () => {
+//   center = map.getCenter();
+//   console.log("Center changed" + center);
+// });
+
+// map.on("moveend", function (e) {
+//   var center = map.getCenter(); // Get the final map center after the move ends
+//   var zoom = map.getZoom(); // Get the final zoom level
+//   console.log("Map finished moving to:", center, "Zoom level:", zoom);
+// });

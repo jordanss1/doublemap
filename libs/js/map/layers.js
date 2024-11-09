@@ -1,15 +1,22 @@
+/// <reference path="../jquery.js" />
+
 const styles = {
-  Streets: "jawg-streets",
-  Sunny: "jawg-sunny",
-  Terrain: "jawg-terrain",
-  Dark: "jawg-dark",
-  Light: "jawg-light",
+  Streets: 'jawg-streets',
+  Sunny: 'jawg-sunny',
+  Terrain: 'jawg-terrain',
+  Dark: 'jawg-dark',
+  Light: 'jawg-light',
 };
 
-let baseLayers = {};
-let buttonLayerStates = [];
+let allCountriesLayer = L.layerGroup();
+let selectedCountriesLayer = L.layerGroup();
 
-Object.keys(styles).forEach((friendlyName) => {
+let baseLayers = {};
+let baseButtonLayerStates = [];
+let currentBaseLayer =
+  JSON.parse(localStorage.getItem('currentBaseLayer')) ?? 'Streets';
+
+Object.keys(styles).forEach((friendlyName, i) => {
   baseLayers[friendlyName] = L.tileLayer(
     `/api/tileLayer?style={style}&z={z}&x={x}&y={y}`,
     {
@@ -21,29 +28,23 @@ Object.keys(styles).forEach((friendlyName) => {
     }
   );
 
-  //   buttonLayerStates.push({
-  //     stateName: friendlyName, // using easy button
-  //     icon: "fa-layer-group",
-  //     title: "Change map type",
-  //     onClick: (control) => {
-  //       const currentIndex = buttonLayerStates.findIndex(
-  //         (ele) => ele.stateName === control._currentState.stateName
-  //       );
-  //       const newIndex =
-  //         buttonLayerStates.length - 1 === currentIndex ? 0 : currentIndex + 1;
+  baseButtonLayerStates.push({
+    stateName: friendlyName,
+    index: i,
+    changeLayer: () => {
+      const newIndex = baseButtonLayerStates.length - 1 === i ? 0 : i + 1;
+      const nextLayer = baseButtonLayerStates[newIndex].stateName;
 
-  //       map.removeLayer(baseLayers[friendlyName]);
-  //       map.addLayer(baseLayers[buttonLayerStates[newIndex].stateName]);
-  //       control.state(buttonLayerStates[newIndex].stateName);
-  //     },
-  //   });
+      map.removeLayer(baseLayers[friendlyName]);
+      map.addLayer(baseLayers[nextLayer]);
+      currentBaseLayer = nextLayer;
+
+      localStorage.setItem(
+        'currentBaseLayer',
+        JSON.stringify(currentBaseLayer)
+      );
+    },
+  });
 });
 
-// const baseLayerToggle = L.easyButton({
-//   id: "base-layers-button",
-//   states: buttonLayerStates,
-// });
-
-// baseLayerToggle.addTo(map);
-
-baseLayers["Streets"].addTo(map);
+baseLayers[currentBaseLayer].addTo(map);

@@ -22,13 +22,13 @@
         $countryResponse;
     
         if ($countryISO !== "all") {
-           $countryResponse = array_filter($countriesArray, function ($countryItem) {
-            global $countryISO;
+           $countryResponse = array_values(array_filter($countriesArray, function ($countryItem) {
+                global $countryISO;
 
-            return $countryItem["properties"]["iso_a2"] === $countryISO;
-            });
+                return $countryItem["properties"]["iso_a2"] === $countryISO;
+            }));
 
-            if (isset($countryResponse[0])) {
+            if (!isset($countryResponse[0])) {
                 http_response_code(400);
                 echo json_encode(["details" => "Country was not found with this ISO code"]);
                 exit;
@@ -42,13 +42,11 @@
             $restCountriesResponse = fetchApiCall($restCountriesUrl, false);
 
             http_response_code(200);
-            echo json_encode(["data" => ["propertiesAndPolygons" => $countryResponse], ["rest countries" => $restCountriesResponse], ["geonames" => $geonamesResponse]]);
+            echo json_encode(["data" => [["propertiesAndPolygons" => $countryResponse[0]], ["rest countries" => $restCountriesResponse], ["geonames" => $geonamesResponse]]]);
             exit;
         }       
 
-        $countryNamesAndISOs = array_map(function ($country) {
-            return $country["properties"];
-        }, $countriesArray);
+
         
         http_response_code(200);
         echo json_encode(["data" => $countriesArray]);
