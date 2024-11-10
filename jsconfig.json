@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": "./",
+    "paths": {
+      "leaflet": ["./types/index.d.ts"]
+    }
+  },
+  "include": ["./**/*"]
+}

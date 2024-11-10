@@ -13,7 +13,42 @@ map.setMaxBounds(worldBounds);
 
 map.fitBounds(worldBounds);
 
+const addAllCountriesToMap = (features) => {
+  allCountriesLayer.clearLayers();
 
+  features.forEach(({ geometry }) =>
+    L.geoJSON(geometry).addTo(allCountriesLayer)
+  );
+
+  if (!map.hasLayer(allCountriesLayer)) {
+    if (map.hasLayer(selectedCountriesLayer)) {
+      map.removeLayer(selectedCountriesLayer);
+      map.fire('layergroupremove', {
+        selectedCountriesLayer,
+        id: 'select-country',
+      });
+    }
+
+    allCountriesLayer.addTo(map);
+    map.fire('layergroupadd', { allCountriesLayer, id: 'all-countries' });
+  }
+};
+
+const addSingleCountryToMap = (country) => {
+  selectedCountriesLayer.clearLayers();
+
+  L.geoJSON(country.geometry).addTo(selectedCountriesLayer);
+
+  if (!map.hasLayer(selectedCountriesLayer)) {
+    if (map.hasLayer(allCountriesLayer)) {
+      map.removeLayer(allCountriesLayer);
+      map.fire('layergroupremove', { allCountriesLayer, id: 'all-countries' });
+    }
+
+    selectedCountriesLayer.addTo(map);
+    map.fire('layergroupadd', { selectedCountriesLayer, id: 'select-country' });
+  }
+};
 
 const minZoom = 2.5;
 let currentZoom = map.getZoom();

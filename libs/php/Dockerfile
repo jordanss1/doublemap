@@ -8,25 +8,14 @@ RUN groupadd -g 101 php-fpm \
 
 USER root
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN apt-get update && \
+    apt-get install -y libzip-dev unzip git zip && \
+    docker-php-ext-install pdo_mysql zip
+
 
 USER php-fpm
 
 WORKDIR /var/www/html   
-
-USER root
-
-RUN apt-get update && apt-get install -y \
-        git \
-        zip \
-        unzip \
-        libzip-dev && \
-    docker-php-ext-install zip
-
-RUN composer require vlucas/phpdotenv
-
-RUN if ["$MODE" = "development"]; then composer install --dev --prefer-dist; \
-   else composer install --no-dev --prefer-dist; fi
 
 COPY php.ini /usr/local/etc/php/
 

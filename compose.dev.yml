@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         MODE: development
+    container_name: web
     ports:
       - 8080:8080
     depends_on:
@@ -28,9 +29,16 @@ services:
         USERNAME: ${USERNAME}
         IPINFO_TOKEN: ${IPINFO_TOKEN}
         JAWG_TOKEN: ${JAWG_TOKEN}
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_USERNAME: ${DB_USERNAME}
+        DB_PASS: ${DB_PASS}
         MODE: development
     ports:
       - 9000:9000
+    container_name: api
+    depends_on:
+      - db
     develop:
       watch:
         - path: ./libs/php
@@ -38,3 +46,21 @@ services:
           action: sync
     env_file:
       - ./.env
+
+  db:
+    image: mysql:latest
+    container_name: db
+    environment:
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_DATABASE: map
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 12345:3606
+    env_file:
+      - ./.env
+
+volumes:
+  db_data:

@@ -24,28 +24,19 @@ $.ajax({
   },
 });
 
+$.ajax({
+  url: '/api/model/map_db/?service=geocoding&api=search-box', //api = search-box or geocoding
+  method: 'PUT',
+  dataType: 'json',
+  success: (results) => console.log(results),
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
+});
+
 let allCountriesGeoJSON = null;
-
-const addAllCountriesToMap = (features) => {
-  allCountriesLayer.clearLayers();
-
-  features.forEach(({ geometry }) =>
-    L.geoJSON(geometry).addTo(allCountriesLayer)
-  );
-
-  if (!map.hasLayer(allCountriesLayer)) {
-    if (map.hasLayer(selectedCountriesLayer)) {
-      map.removeLayer(selectedCountriesLayer);
-      map.fire('layergroupremove', {
-        selectedCountriesLayer,
-        id: 'select-country',
-      });
-    }
-
-    allCountriesLayer.addTo(map);
-    map.fire('layergroupadd', { allCountriesLayer, id: 'all-countries' });
-  }
-};
 
 const loadAllGeoJSON = () => {
   if (allCountriesGeoJSON) {
@@ -92,44 +83,28 @@ const loadAllGeoJSON = () => {
 
 let selectedCountry = null;
 
-const addSingleCountryToMap = (country) => {
-  selectedCountriesLayer.clearLayers();
-
-  L.geoJSON(country.geometry).addTo(selectedCountriesLayer);
-
-  if (!map.hasLayer(selectedCountriesLayer)) {
-    if (map.hasLayer(allCountriesLayer)) {
-      map.removeLayer(allCountriesLayer);
-      map.fire('layergroupremove', { allCountriesLayer, id: 'all-countries' });
-    }
-
-    selectedCountriesLayer.addTo(map);
-    map.fire('layergroupadd', { selectedCountriesLayer, id: 'select-country' });
-  }
-};
-
 $('#country-select').on('click', '#country-option', ({ target }) => {
-  if (
-    map.hasLayer(selectedCountriesLayer) &&
-    selectedCountry.iso_a2 === target.value
-  ) {
-    return;
+  if (selectedCountry && selectedCountry.iso_a2 === target.value) {
+    addSingleCountryToMap(selectedCountry);
+  } else {
+    $.ajax({
+      url: `/api/countries?country=${target.value}`,
+      method: 'GET',
+      dataType: 'json',
+
+      success: ({ data }) => {
+        selectedCountry = data;
+        addSingleCountryToMap(data[0].propertiesAndPolygons);
+      },
+      error: (xhr) => {
+        const res = JSON.parse(xhr.responseText);
+        console.log(
+          `Error Status: ${xhr.status} - Error Message: ${res.error}`
+        );
+        console.log(`Response Text: ${res.details}`);
+      },
+    });
   }
-
-  $.ajax({
-    url: `/api/countries?country=${target.value}`,
-    method: 'GET',
-    dataType: 'json',
-
-    success: ({ data }) => {
-      addSingleCountryToMap(data[0].propertiesAndPolygons);
-    },
-    error: (xhr) => {
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
-    },
-  });
 });
 
 loadAllGeoJSON();

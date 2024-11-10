@@ -65,7 +65,7 @@
         if ($queries) {
          $queryStringArray = explode("&", $parsedUrl["query"]);
 
-            if (count($queryStringArray)) {
+            if (count($queryStringArray) ) {
                 foreach ($queryStringArray as $queryString) {
                     $newQueryString = explode("=", $queryString);
         

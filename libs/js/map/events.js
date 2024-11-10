@@ -1,7 +1,5 @@
 map.on('layergroupadd', (e) => {
-  const disabled = e.id === 'all-countries';
-
-  console.log(disabled);
+  const disabled = e.id === 'all-countries' ? 'true' : 'false';
 
   $('#all-countries-control')
     .attr('disabled', disabled)
@@ -14,9 +12,17 @@ map.once('moveend', () => {
 
 map.on('zoomend', () => {
   currentZoom = map.getZoom();
-  const disabled = currentZoom === 2.5;
+  const disabled = currentZoom === 2.5 ? 'true' : 'false';
 
   $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
+});
+
+$('#all-countries-control').on('click', ({ currentTarget }) => {
+  const disabled = currentTarget.ariaDisabled;
+
+  if (disabled === 'false') {
+    loadAllGeoJSON();
+  }
 });
 
 $('#base-layer-control').on('click', () => {
