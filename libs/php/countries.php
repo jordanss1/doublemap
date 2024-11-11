@@ -38,11 +38,14 @@
             $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['USERNAME']}";
             $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$countryISO";
 
-            $geonamesResponse = fetchApiCall($geonamesUrl, false, 'xml');
+            $geonamesResponse = fetchApiCall($geonamesUrl, false);
             $restCountriesResponse = fetchApiCall($restCountriesUrl, false);
 
+            $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xhr');
+            $decodedRestResponse = decodeResponse($geonamesResponse);
+
             http_response_code(200);
-            echo json_encode(["data" => [["propertiesAndPolygons" => $countryResponse[0]], ["rest countries" => $restCountriesResponse], ["geonames" => $geonamesResponse]]]);
+            echo json_encode(["data" => [["propertiesAndPolygons" => $countryResponse[0]], ["rest countries" => $decodedRestResponse], ["geonames" => $decodedGeonamesResponse]]]);
             exit;
         }       
 

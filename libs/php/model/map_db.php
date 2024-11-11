@@ -1,39 +1,116 @@
 <?php
-        header('Content-Type: application/json');
-        require "./database.php";
-        require "../functions.php";
-        $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
+    header('Content-Type: application/json');
+    require_once __DIR__ . "/database.php";
 
-        [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
+    global $db;
 
+    function stmtErrorCheck ($stmt, $db, $endOnError = true) {
+        if (!$stmt) {
+            if (!$endOnError) return false;
+
+            http_response_code(500);
+            echo json_encode(["error" => $db->errorInfo(), "details" => "Could not execute SQL statement"]);
+            exit;
+        }
+    }
+
+
+    function incrementRequestCount ($api_name) {
         global $db;
-        $service = $queriesFormatted["service"];
-        $api = $queriesFormatted["api"];
 
-        if ($service === "mapbox") {
-                $query = "SELECT * FROM request_counts";
+        $query = "UPDATE request_counts SET requests = requests + 1 WHERE api_name = :api_name";
 
-                $stmt = $db->prepare($query);
+        $stmt = $db->prepare($query);
+
+        stmtErrorCheck($stmt, $db);
+
+        $stmt->bindParam(':api_name', $api_name, PDO::PARAM_STR);
+
+        stmtErrorCheck($stmt->execute(), $db);
         
-                if (!$stmt) {
-                    http_response_code(500);
-                    echo json_encode(["error" => "Invalid SQL statement", "details" => "Could not prepare SQL statement"]);
+        if ($stmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode(["error" => "", "details" => "API request count was not updated"]);
+            exit;
+        }
+
+        return true;
+    }
+
+    function requestLimitsAndShield ($request_object) {
+        ["api_name" => $api_name, "requests" => $requests] = $request_object;
+
+        $limit = null;
+        $rejectRequest = $requests === $limit - 1;  
+        
+        switch ($api_name) {
+            case "mapboxgljs":
+                $limit = 50000;
+
+                if ($rejectRequest) {
+                    http_response_code(429);
+                    echo json_encode(['error' => 'Request limit for mapbox gl reached', 'details' => 'Request limit reached map will not render']);
                     exit;
                 }
+
+                incrementRequestCount($api_name);
+
+                break;
+            default: 
+                http_response_code(429);
+                echo json_encode(['error' => 'Api name could not be found', 'details' => 'Api name not found']);
+                exit;            
+        }
+    }
+
+    function checkRequestCount ($api_name) {
+        global $db;
+
+        $query = "SELECT * FROM request_counts WHERE api_name = :api_name";
+
+        $stmt = $db->prepare($query);
+
+        $stmt->bindParam(':api_name', $api_name, PDO::PARAM_STR);
+
+        stmtErrorCheck($stmt->execute(), $db);
+
         
-                $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-                $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $try = 0;
+
+        if ($results === false) {
+            while ($try <= 5) {
+                $error = stmtErrorCheck($stmt->execute(), $db, false);
+
+                if ($error === false) {
+                    $try++;
+                    continue;
+                }                    
                 
-                if (!$results) {
+                $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if ($results !== false) break;
+
+                $try++;
+
+                if ($try === 5) {
                     http_response_code(500);
                     echo json_encode(["error" => "", "SQL has failed request" => "Error fetching map request details"]);
                     exit;
                 }
-        
-                echo json_encode($results);
+
+                
+                usleep(1000000);
             }
-        
-        
-      
-    
+        }
+
+        if (empty($results)) {
+            http_response_code(404);
+            echo json_encode(["error" => "", "Empty array from DB", "details" => "API will not request from mapbox until request count is known"]);
+            exit;
+        }
+
+        requestLimitsAndShield($results[0]);
+    }
+            

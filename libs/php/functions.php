@@ -18,7 +18,7 @@
         } 
     }
 
-    function fetchApiCall ($url, $endOnError, $apiReturnType = 'json') {
+    function fetchApiCall ($url, $endOnError) {
         $ch = null;
 
         try {
@@ -27,15 +27,13 @@
             if (!$ch) throw new Exception("Error initializing curl session");
 
             curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
             $response = curl_exec($ch);
             
             if (!$response) throw new Error("Problem retrieving data: " . curl_error($ch));
 
-            $decodedResponse = decodeResponse($response, $apiReturnType);
-
-            return $decodedResponse;
+            return $response;
         } catch (Exception $e) {
             $parsedUrl = parse_url($url);
             $errorResponse = ["error" => $e->getMessage(), "details" => "Error making request to {$parsedUrl['host']} API"];

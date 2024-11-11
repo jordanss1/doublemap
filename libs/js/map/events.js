@@ -1,47 +1,47 @@
-map.on('layergroupadd', (e) => {
-  const disabled = e.id === 'all-countries' ? 'true' : 'false';
+// map1.on('layergroupadd', (e) => {
+//   const disabled = e.id === 'all-countries' ? 'true' : 'false';
 
-  $('#all-countries-control')
-    .attr('disabled', disabled)
-    .attr('aria-disabled', disabled);
-});
+//   $('#all-countries-control')
+//     .attr('disabled', disabled)
+//     .attr('aria-disabled', disabled);
+// });
 
-map.once('moveend', () => {
-  map.setView([47.73307550971585, 0.2293651266492969], 2.5);
-});
+// map1.once('moveend', () => {
+//   map1.setView([47.73307550971585, 0.2293651266492969], 2.5);
+// });
 
-map.on('zoomend', () => {
-  currentZoom = map.getZoom();
-  const disabled = currentZoom === 2.5 ? 'true' : 'false';
+// map1.on('zoomend', () => {
+//   currentZoom = map1.getZoom();
+//   const disabled = currentZoom === 2.5 ? 'true' : 'false';
 
-  $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
-});
+//   $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
+// });
 
-$('#all-countries-control').on('click', ({ currentTarget }) => {
-  const disabled = currentTarget.ariaDisabled;
+// $('#all-countries-control').on('click', ({ currentTarget }) => {
+//   const disabled = currentTarget.ariaDisabled;
 
-  if (disabled === 'false') {
-    loadAllGeoJSON();
-  }
-});
+//   if (disabled === 'false') {
+//     loadAllGeoJSON();
+//   }
+// });
 
-$('#base-layer-control').on('click', () => {
-  const currentLayerState = baseButtonLayerStates.find(
-    ({ stateName }) => stateName === currentBaseLayer
-  );
+// $('#base-layer-control').on('click', () => {
+//   const currentLayerState = baseButtonLayerStates.find(
+//     ({ stateName }) => stateName === currentBaseLayer
+//   );
 
-  currentLayerState.changeLayer();
-});
+//   currentLayerState.changeLayer();
+// });
 
-$('#zoom-in').on('click', () => {
-  map.zoomIn(0.5, { animate: true });
-});
+// $('#zoom-in').on('click', () => {
+//   map1.zoomIn(0.5, { animate: true });
+// });
 
-$('#zoom-out').on('click', () => {
-  if (currentZoom === minZoom) return;
+// $('#zoom-out').on('click', () => {
+//   if (currentZoom === minZoom) return;
 
-  map.zoomOut(0.5, { animate: true });
-});
+//   map1.zoomOut(0.5, { animate: true });
+// });
 
 // map.on("zoom", () => {
 //   zoomLevel = map.getZoom();
