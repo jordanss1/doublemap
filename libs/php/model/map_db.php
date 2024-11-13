@@ -41,11 +41,12 @@
         ["api_name" => $api_name, "requests" => $requests] = $request_object;
 
         $limit = null;
-        $rejectRequest = $requests === $limit - 1;  
         
         switch ($api_name) {
             case "mapboxgljs":
                 $limit = 50000;
+                $rejectRequest = $requests >= $limit - 1;  
+
 
                 if ($rejectRequest) {
                     http_response_code(429);
@@ -53,7 +54,6 @@
                     exit;
                 }
 
-                incrementRequestCount($api_name);
 
                 break;
             default: 

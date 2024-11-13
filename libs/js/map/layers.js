@@ -1,50 +1,58 @@
 /// <reference path="../jquery.js" />
 
-// const styles = {
-//   Streets: 'jawg-streets',
-//   Sunny: 'jawg-sunny',
-//   Terrain: 'jawg-terrain',
-//   Dark: 'jawg-dark',
-//   Light: 'jawg-light',
-// };
+let allCountriesLayer = L.layerGroup();
+let selectedCountriesLayer = L.layerGroup();
 
-// let allCountriesLayer = L.layerGroup();
-// let selectedCountriesLayer = L.layerGroup();
+let baseButtonLayerStates = [];
 
-// let baseLayers = {};
-// let baseButtonLayerStates = [];
-// let currentBaseLayer =
-//   JSON.parse(localStorage.getItem('currentBaseLayer')) ?? 'Streets';
+const loadBaseLayers = async () => {
+  const layerPromises = Object.keys(styles).map(async (friendlyName, i) => {
+    return new Promise((resolve, reject) => {
+      if (currentBaseLayer !== friendlyName) {
+        $.ajax({
+          url: `/api/mapboxgljs?style=${styles[friendlyName]}`,
+          method: 'GET',
+          success: (response) => {
+            console.log(response.sprite);
+            baseLayers[friendlyName] = response;
 
-// Object.keys(styles).forEach((friendlyName, i) => {
-//   baseLayers[friendlyName] = L.tileLayer(
-//     `/api/tileLayer?style={style}&z={z}&x={x}&y={y}`,
-//     {
-//       attribution:
-//         '<a href="https://jawg.io?utm_medium=map&utm_source=attribution" title="Tiles Courtesy of Jawg Maps" target="_blank" class="jawg-attrib">&copy; <b>Jawg</b>Maps</a> | <a href="https://www.openstreetmap.org/copyright" title="OpenStreetMap is open data licensed under ODbL" target="_blank" class="osm-attrib">&copy; OSM contributors</a>',
-//       minZoom: 0,
-//       maxZoom: 22,
-//       style: styles[friendlyName], // Dynamically set the style
-//     }
-//   );
+            baseButtonLayerStates.push({
+              stateName: friendlyName,
+              index: i,
+              changeLayer: () => {
+                const newIndex =
+                  baseButtonLayerStates.length - 1 === i ? 0 : i + 1;
+                const nextLayer = baseButtonLayerStates[newIndex].stateName;
 
-//   baseButtonLayerStates.push({
-//     stateName: friendlyName,
-//     index: i,
-//     changeLayer: () => {
-//       const newIndex = baseButtonLayerStates.length - 1 === i ? 0 : i + 1;
-//       const nextLayer = baseButtonLayerStates[newIndex].stateName;
+                map.setStyle(baseLayers[nextLayer]);
+                currentBaseLayer = nextLayer;
 
-//       map1.removeLayer(baseLayers[friendlyName]);
-//       map1.addLayer(baseLayers[nextLayer]);
-//       currentBaseLayer = nextLayer;
+                localStorage.setItem(
+                  'currentBaseLayer',
+                  JSON.stringify(currentBaseLayer)
+                );
+              },
+            });
 
-//       localStorage.setItem(
-//         'currentBaseLayer',
-//         JSON.stringify(currentBaseLayer)
-//       );
-//     },
-//   });
-// });
+            resolve();
+          },
+          error: (xhr) => {
+            console.log(xhr);
+            const res = JSON.parse(xhr.responseText);
+            console.log(
+              `Error Status: ${xhr.status} - Error Message: ${res.error}`
+            );
+            console.log(`Response Text: ${res.details}`);
+            reject(new Error('Failed to load map style'));
+          },
+        });
+      } else {
+        resolve();
+      }
+    });
+  });
 
-// baseLayers[currentBaseLayer].addTo(map1);
+  await Promise.all(layerPromises);
+};
+
+loadBaseLayers();

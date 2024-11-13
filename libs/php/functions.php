@@ -31,7 +31,7 @@
 
             $response = curl_exec($ch);
             
-            if (!$response) throw new Error("Problem retrieving data: " . curl_error($ch));
+            if ($response === false) throw new Error("Problem retrieving data: " . curl_error($ch));
 
             return $response;
         } catch (Exception $e) {

@@ -1,5 +1,34 @@
 /// <reference path="../jquery.js" />
 
+// Initialize the Leaflet map with Mapbox GL JS as the base layer
+let map1 = L.map('map').setView([30, 15], 1); // Leaflet map initialization
+
+L.mapboxGL({
+  accessToken: mapboxgl.accessToken,
+  style: baseLayers[currentBaseLayer], // Set the initial style from baseLayers
+}).addTo(map1); // Add Map1box GL as the base layer to the Leaflet map1
+
+// Add Leaflet controls
+let zoomControl = L.control
+  .zoom({
+    collapsed: false,
+    position: 'topright',
+  })
+  .addTo(map1);
+
+let baseControl = L.control
+  .layers(baseLayers, null, {
+    collapsed: false,
+    position: 'topright',
+  })
+  .addTo(map1);
+
+let allCountriesControl = L.control
+  .layers({ 'All countries': allCountriesLayer }, null, {
+    position: 'topright',
+  })
+  .addTo(map1);
+
 // let zoomControl = L.control
 //   .zoom({
 //     collapsed: false,
@@ -33,7 +62,7 @@
 
 // $(baseControlContainer).closest('.leaflet-control-layers')
 //   .replaceWith(/*html*/ `
-//     <div id="base-layer-control" 
+//     <div id="base-layer-control"
 //       title='Change map type'
 //       role="button"
 //       aria-label="Change map type"

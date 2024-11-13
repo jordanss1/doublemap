@@ -3,8 +3,9 @@
     "noEmit": true,
     "baseUrl": "./",
     "paths": {
-      "leaflet": ["./types/index.d.ts"]
+      "leaflet": ["types/leaflet/index.d.ts"],
+      "mapbox-gl": ["types/mapbox-gl/index.d.ts"]
     }
   },
-  "include": ["./**/*"]
+  "include": ["./**/*", "types/mapbox-gl/index.d.ts"]
 }

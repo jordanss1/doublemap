@@ -1,51 +1,55 @@
 /// <reference path="../jquery.js" />
 
-let mapLoaded = true;
 let map = null;
+let savedBaseLayer = JSON.parse(localStorage.getItem('savedBaseLayer'));
+let currentBaseLayer = '';
+
+const styles = {
+  Standard: 'standard',
+  Streets: 'streets-v12',
+  Outdoors: 'outdoors-v12',
+  Satellite: 'standard-satellite',
+  Dark: 'navigation-night-v1',
+};
+
+let baseLayers = {};
 
 mapboxgl.accessToken = window.config.mapboxToken;
 
 const retrieveMap = async () => {
-  let attempt = 0;
-  const maxRetries = 5;
+  currentBaseLayer = savedBaseLayer ?? 'Standard';
 
-  while (attempt < maxRetries) {
-    try {
-      const response = await $.ajax({
-        url: '/api/mapboxgl',
-        method: 'GET',
-      });
+  await $.ajax({
+    url: `/api/mapboxgljs?style=${styles[currentBaseLayer]}`,
+    method: 'GET',
+    success: (response) => {
+      baseLayers[currentBaseLayer] = response;
 
       map = new mapboxgl.Map({
         container: 'map',
         style: response,
         projection: 'globe',
+        transformRequest: (url, resourceType) => {
+          if (
+            (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
+            url.includes('api.mapbox.com')
+          ) {
+            return {
+              url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
+            };
+          }
+        },
         zoom: 1,
         center: [30, 15],
       });
-
-      break;
-    } catch (xhr) {
-      if (xhr.status === 429) {
-        break;
-      }
-
+    },
+    error: (xhr) => {
       console.log(xhr);
       const res = JSON.parse(xhr.responseText);
       console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
       console.log(`Response Text: ${res.details}`);
-
-      attempt++;
-      console.log(`Retrying... Attempt ${attempt} of ${maxRetries}`);
-
-      if (attempt >= maxRetries) {
-        console.log('Max retry attempts reached.');
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-  }
+    },
+  });
 };
 
 retrieveMap();
