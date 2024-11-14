@@ -19,6 +19,8 @@ Object.keys(styles).map((friendlyName, i) => {
 
           map.setStyle(baseLayers[nextLayer]);
           currentBaseLayer = nextLayer;
+          map.setStyle(baseLayers[nextLayer]);
+          currentBaseLayer = nextLayer;
 
           localStorage.setItem(
             'currentBaseLayer',

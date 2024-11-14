@@ -102,3 +102,4 @@ services:
 
 volumes:
   db_data:
+  vector_data:

@@ -29,7 +29,7 @@ let allCountriesGeoJSON = null;
 const { z, x, y } = getTileCoordinates(map);
 
 console.log(z, x, y);
-  
+
 $.ajax({
   url: `/tiles?z=${z}&x=${x}&y=${y}`,
   method: 'GET',

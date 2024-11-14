@@ -3,6 +3,7 @@
 let currentBaseLayer =
   JSON.parse(localStorage.getItem('savedBaseLayer')) ?? 'Standard';
 
+
 const styles = {
   Standard: 'standard',
   Streets: 'streets-v12',
@@ -80,6 +81,19 @@ const getTileCoordinates = (map) => {
 //         zoom: 1,
 //         center: [30, 15],
 //       });
+
+//       // minZoom = map.getMinZoom();
+
+//       // map.on('load', () => resolve(map));
+//     },
+//     error: (xhr) => {
+//       console.log(xhr);
+//       const res = JSON.parse(xhr.responseText);
+//       console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+//       console.log(`Response Text: ${res.details}`);
+//     },
+//   });
+// };
 
 //       // minZoom = map.getMinZoom();
 
