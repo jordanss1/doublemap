@@ -1,8 +1,15 @@
 /// <reference path="../jquery.js" />
 
 let baseLayers = {};
+let baseLayers = {};
 let baseButtonLayerStates = [];
 
+Object.keys(styles).map((friendlyName, i) => {
+  $.ajax({
+    url: `/api/mapboxgljs?style=${styles[friendlyName]}`,
+    method: 'GET',
+    success: (response) => {
+      baseLayers[friendlyName] = response;
 Object.keys(styles).map((friendlyName, i) => {
   $.ajax({
     url: `/api/mapboxgljs?style=${styles[friendlyName]}`,
@@ -22,6 +29,26 @@ Object.keys(styles).map((friendlyName, i) => {
           map.setStyle(baseLayers[nextLayer]);
           currentBaseLayer = nextLayer;
 
+          localStorage.setItem(
+            'currentBaseLayer',
+            JSON.stringify(currentBaseLayer)
+          );
+        },
+      });
+    },
+    error: (xhr) => {
+      console.log(xhr);
+      const res = JSON.parse(xhr.responseText);
+      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+      console.log(`Response Text: ${res.details}`);
+    },
+  });
+});
+
+const addCountriesLayer = (features) => {
+  map.addLayer({
+    id: 'countries',
+    source: features,
           localStorage.setItem(
             'currentBaseLayer',
             JSON.stringify(currentBaseLayer)
