@@ -1,40 +1,28 @@
 /// <reference path="../jquery.js" />
 
-// Initialize the Leaflet map with Mapbox GL JS as the base layer
-let map1 = L.map('map').setView([30, 15], 1); // Leaflet map initialization
 
-L.mapboxGL({
-  accessToken: mapboxgl.accessToken,
-  style: baseLayers[currentBaseLayer], // Set the initial style from baseLayers
-}).addTo(map1); // Add Map1box GL as the base layer to the Leaflet map1
+// Add Map1box GL as the base layer to the Leaflet map1
 
 // Add Leaflet controls
-let zoomControl = L.control
-  .zoom({
-    collapsed: false,
-    position: 'topright',
-  })
-  .addTo(map1);
-
-let baseControl = L.control
-  .layers(baseLayers, null, {
-    collapsed: false,
-    position: 'topright',
-  })
-  .addTo(map1);
-
-let allCountriesControl = L.control
-  .layers({ 'All countries': allCountriesLayer }, null, {
-    position: 'topright',
-  })
-  .addTo(map1);
-
 // let zoomControl = L.control
 //   .zoom({
 //     collapsed: false,
 //     position: 'topright',
 //   })
-//   .addTo(map);
+//   .addTo(map1);
+
+// let baseControl = L.control
+//   .layers(baseLayers, null, {
+//     collapsed: false,
+//     position: 'topright',
+//   })
+//   .addTo(map1);
+
+// let allCountriesControl = L.control
+//   .layers({ 'All countries': allCountriesLayer }, null, {
+//     position: 'topright',
+//   })
+//   .addTo(map1);
 
 // let baseControl = L.control
 //   .layers(baseLayers, null, {
@@ -49,28 +37,19 @@ let allCountriesControl = L.control
 //   })
 //   .addTo(map);
 
-// // Get the control container
+// Get the control container
 // let baseControlContainer = baseControl.getContainer();
-// let zoomControlContainer = zoomControl.getContainer();
 // let allCountriesContainerControl = allCountriesControl.getContainer();
 
-// const iconDisabledClass =
-//   'text-sm group-aria-disabled:text-white-500 text-slate-800';
+// let zoomControl = L.control
+//   .zoom({
+//     collapsed: false,
+//     position: 'topright',
 
-// const buttonDisabledClass =
-//   'aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50';
+//   })
+//   .addTo(map1);
 
-// $(baseControlContainer).closest('.leaflet-control-layers')
-//   .replaceWith(/*html*/ `
-//     <div id="base-layer-control"
-//       title='Change map type'
-//       role="button"
-//       aria-label="Change map type"
-//       aria-disabled="false"
-//       class="w-8 h-8 cursor-pointer flex bg-white-50 rounded-md pointer-events-auto relative z-[9999]">
-//       <i class="fa-solid fa-layer-group text-slate-800 text-sm m-auto"></i>
-//     </div>
-//   `);
+// let zoomControlContainer = zoomControl.getContainer();
 
 // $(zoomControlContainer).closest('.leaflet-control-zoom').replaceWith(/*html*/ `
 //     <div class="flex flex-col relative pointer-events-auto z-[9999]">
@@ -95,6 +74,18 @@ let allCountriesControl = L.control
 //       >
 //       <i class="fa-solid fa-minus ${iconDisabledClass}"></i>
 //       </a>
+//     </div>
+//   `);
+
+// $(baseControlContainer).closest('.leaflet-control-layers')
+//   .replaceWith(/*html*/ `
+//     <div id="base-layer-control"
+//       title='Change map type'
+//       role="button"
+//       aria-label="Change map type"
+//       aria-disabled="false"
+//       class="w-8 h-8 cursor-pointer flex bg-white-50 rounded-md pointer-events-auto relative z-[9999]">
+//       <i class="fa-solid fa-layer-group text-slate-800 text-sm m-auto"></i>
 //     </div>
 //   `);
 

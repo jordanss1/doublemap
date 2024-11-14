@@ -1,8 +1,8 @@
 <?php
     header('Content-Type: application/json');
 
-    require_once 'errorHandle.php';
-    require_once 'functions.php';
+    require_once './error_handle.php';
+    require_once './functions.php';
     require_once './origin_check.php';
 
 
@@ -13,7 +13,7 @@
     if ($path === "countries") { 
         $countryISO = $queriesFormatted["country"];
 
-        $countriesArray = json_decode(file_get_contents("./countryBorders.geo.json"), true)["features"];
+        $countriesArray = json_decode(file_get_contents("./country_borders.geo.json"), true)["features"];
 
         if ($countriesArray === null || json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(500);
@@ -44,7 +44,7 @@
             $restCountriesResponse = fetchApiCall($restCountriesUrl, false);
 
             $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xhr');
-            $decodedRestResponse = decodeResponse($geonamesResponse);
+            $decodedRestResponse = decodeResponse($restCountriesResponse);
 
             http_response_code(200);
             echo json_encode(["data" => [["propertiesAndPolygons" => $countryResponse[0]], ["rest countries" => $decodedRestResponse], ["geonames" => $decodedGeonamesResponse]]]);

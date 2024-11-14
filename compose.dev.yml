@@ -50,6 +50,16 @@ services:
     env_file:
       - ./.env
 
+  tileserver:
+    build:
+      context: ./tileserver/
+      dockerfile: Dockerfile
+    volumes:
+      - vector_data:/app/
+    ports:
+      - 3000:3000
+    container_name: node
+
   db:
     image: mysql:latest
     container_name: db
@@ -68,3 +78,4 @@ services:
 
 volumes:
   db_data:
+  vector_data:

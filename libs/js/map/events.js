@@ -6,6 +6,53 @@
 //     .attr('aria-disabled', disabled);
 // });
 
+map.on('error', (e) => {
+  if (e.error.url) {
+    let url;
+    if (!e.error.url.startsWith('http')) {
+      url = new URL(e.error.url, 'http://error.com');
+    } else {
+      url = new URL(e.error.url);
+    }
+
+    pathSegments = url.pathname
+      .split('/')
+      .filter((seg) => seg !== '' && seg !== 'api');
+    let queryString = url.search;
+
+    if (pathSegments.find((path) => path === 'mapbox')) {
+      let params = new URLSearchParams(queryString);
+      let style = params.get('style');
+      let initial = params.get('initial');
+
+      if (style === 'standard' && initial) {
+      }
+    }
+  }
+});
+
+map.on('zoom', () => {
+  const zoom = map.getZoom();
+  const disabled = map.getMinZoom() === map.getZoom() ? 'true' : 'false';
+
+  $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
+
+  if (disabled === 'true') {
+    map.stop();
+  }
+});
+
+$('#zoom-in').on('click', () => {
+  let currentZoom = map.getZoom();
+  map.easeTo({ zoom: currentZoom + 0.3 });
+});
+
+$('#zoom-out').on('click', () => {
+  let currentZoom = map.getZoom();
+
+  map.easeTo({ zoom: currentZoom - 0.3 });
+});
+
 // map1.once('moveend', () => {
 //   map1.setView([47.73307550971585, 0.2293651266492969], 2.5);
 // });

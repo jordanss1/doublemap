@@ -26,12 +26,49 @@
           <h5>Error</h5>
         </div>
       </div>
-      <span id="select-container" class="z-20 relative h-8">
-        <select
-          id="country-select"
-          class="fixed z-20 px-1 top-3 bottom-0 h-6 text-lg text-ellipsis right-2/4 translate-x-2/4 shadow-sm"
-        ></select>
-      </span>
+      <div class="absolute h-full w-full pointer-events-none z-[9999]">
+        <section class="top-panel w-full fixed left-0 top-3">
+          <span
+            id="select-container"
+            class="pointer-events-auto fixed right-1/2 h-8"
+          >
+            <select
+              id="country-select"
+              class="px-1 h-6 text-lg text-ellipsis shadow-sm"
+            ></select>
+          </span>
+        </section>
+        <section
+          class="right-panel flex justify-center h-full fixed top-3 right-3"
+        >
+          <div class="pointer-events-auto">
+            <a
+              id="zoom-in"
+              class="w-8 h-8 flex items-center rounded-t-md border-b-2 border-white-300 justify-center bg-white-50 m-auto aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300"
+              title="Zoom in"
+              role="button"
+              aria-label="Zoom in"
+              aria-disabled=""
+            >
+              <i
+                class="fa-solid fa-plus text-slate-800 text-sm group-aria-disabled:text-white-500"
+              ></i>
+            </a>
+            <a
+              id="zoom-out"
+              class="w-8 h-8 flex items-center rounded-b-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+              title="Zoom out"
+              role="button"
+              aria-label="Zoom out"
+              aria-disabled=""
+            >
+              <i
+                class="fa-solid fa-minus text-slate-800 text-sm group-aria-disabled:text-white-500"
+              ></i>
+            </a>
+          </div>
+        </section>
+      </div>
 
       <div id="map" class="h-screen contain-layout"></div>
     </main>

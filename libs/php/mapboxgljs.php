@@ -3,6 +3,7 @@
     session_start();
 
     require_once './functions.php';
+    require_once './error_handle.php';
     require_once './model/map_db.php';
     require_once './origin_check.php';
 

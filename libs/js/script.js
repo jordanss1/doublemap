@@ -26,48 +26,42 @@ jQuery(() => {
 
 let allCountriesGeoJSON = null;
 
-const loadAllGeoJSON = () => {
-  if (allCountriesGeoJSON) {
-    addAllCountriesToMap(allCountriesGeoJSON);
-  } else {
-    $.ajax({
-      url: '/api/countries?country=all',
-      method: 'GET',
-      dataType: 'json',
+$.ajax({
+  url: '/api/countries?country=all',
+  method: 'GET',
+  dataType: 'json',
 
-      success: (results) => {
-        const features = [];
+  success: (results) => {
+    const features = [];
 
-        const sortedCountries = results.data
-          .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
-          .map(({ properties, geometry }) => {
-            const { name, iso_a2 } = properties;
+    const sortedCountries = results.data
+      .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
+      .map(({ properties, geometry }) => {
+        const { name, iso_a2 } = properties;
 
-            features.push({ iso_a2, geometry });
+        features.push({ iso_a2, geometry });
 
-            return { name, iso_a2 };
-          });
+        return { name, iso_a2 };
+      });
 
-        sortedCountries.forEach(({ name, iso_a2 }) => {
-          $('#country-select').append(
-            `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
-          );
-        });
-
-        allCountriesGeoJSON = features;
-
-        addAllCountriesToMap(features);
-      },
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(
-          `Error Status: ${xhr.status} - Error Message: ${res.error}`
-        );
-        console.log(`Response Text: ${res.details}`);
-      },
+    sortedCountries.forEach(({ name, iso_a2 }) => {
+      $('#country-select').append(
+        `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
+      );
     });
-  }
-};
+
+    allCountriesGeoJSON = features;
+
+    map.addLayer({
+      id: 'countriesLayer',
+    });
+  },
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
+});
 
 let selectedCountry = null;
 
@@ -94,5 +88,3 @@ $('#country-select').on('click', '#country-option', ({ target }) => {
     });
   }
 });
-
-loadAllGeoJSON();

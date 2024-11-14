@@ -2,6 +2,7 @@
     header("Content-Type: image/png");
 
     require_once "functions.php";
+    require_once './error_handle.php';
     require_once './origin_check.php';
 
     if (isset($_GET['style'])) {
