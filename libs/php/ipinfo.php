@@ -2,6 +2,7 @@
     header('Content-Type: application/json');
 
     require_once "functions.php";
+    require_once './error_handle.php';
     require_once './origin_check.php';
 
 

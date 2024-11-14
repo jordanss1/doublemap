@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,8 +6,6 @@
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="stylesheet" href="./libs/css/styles.css" />
     <link rel="stylesheet" href="./libs/css/output.css" />
-    <link rel="stylesheet" href="./assets/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="./assets/easy-button/easy-button.css" />
     <link rel="stylesheet" href="./assets/mapboxgljs/mapbox-gl.css" />
     <link href="./assets/font-awesome/css/fontawesome.css" rel="stylesheet" />
     <link href="./assets/font-awesome/css/regular.css" rel="stylesheet" />
@@ -26,17 +24,76 @@
           <h5>Error</h5>
         </div>
       </div>
-      <span id="select-container" class="z-20 relative h-8">
-        <select
-          id="country-select"
-          class="fixed z-20 px-1 top-3 bottom-0 h-6 text-lg text-ellipsis right-2/4 translate-x-2/4 shadow-sm"
-        ></select>
-      </span>
+      <div class="absolute h-full w-full pointer-events-none z-[8000]">
+        <section
+          class="top-panel w-full flex justify-center fixed inset-x-0 top-3"
+        >
+          <span id="select-container" class="pointer-events-auto h-8">
+            <select
+              id="country-select"
+              class="px-1 h-6 text-lg text-ellipsis shadow-sm"
+            ></select>
+          </span>
+        </section>
+        <section
+          class="right-panel flex flex-col justify-center h-full fixed top-3 right-3"
+        >
+          <div class="pointer-events-auto">
+            <a
+              id="zoom-in"
+              class="w-8 h-8 flex items-center rounded-t-md border-b-2 border-white-300 justify-center bg-white-50 m-auto aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300"
+              title="Zoom in"
+              role="button"
+              aria-label="Zoom in"
+              aria-disabled=""
+            >
+              <i
+                class="fa-solid fa-plus text-slate-800 text-sm group-aria-disabled:text-white-500"
+              ></i>
+            </a>
+            <a
+              id="zoom-out"
+              class="w-8 h-8 flex items-center rounded-b-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+              title="Zoom out"
+              role="button"
+              aria-label="Zoom out"
+              aria-disabled=""
+            >
+              <i
+                class="fa-solid fa-minus text-slate-800 text-sm group-aria-disabled:text-white-500"
+              ></i>
+            </a>
+          </div>
+          <div
+            id="style-control"
+            title="Change map type"
+            role="button"
+            aria-label="Change map type"
+            aria-disabled="false"
+            class="w-8 h-8 cursor-pointer flex bg-white-50 rounded-md pointer-events-auto relative"
+          >
+            <i
+              class="fa-solid fa-layer-group text-slate-800 text-sm m-auto"
+            ></i>
+          </div>
+          <div
+            id="countries-control"
+            title="Activate country mode"
+            role="button"
+            aria-label="Activate country mode"
+            aria-disabled=""
+            disabled=""
+            class="w-8 h-8 flex items-center rounded-b-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+          >
+            <i
+              class="fa-solid fa-globe text-slate-800 text-sm group-aria-disabled:text-white-500"
+            ></i>
+          </div>
+        </section>
+      </div>
 
       <div id="map" class="h-screen contain-layout"></div>
     </main>
-    <script src="./assets/leaflet/leaflet.js"></script>
-    <script src="./assets/easy-button/easy-button.js"></script>
     <script src="./libs/js/jquery.js"></script>
     <script src="./assets/mapboxgljs/mapbox-gl.js"></script>
     <script src="./config.js"></script>

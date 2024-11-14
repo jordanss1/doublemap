@@ -26,48 +26,46 @@ jQuery(() => {
 
 let allCountriesGeoJSON = null;
 
-const loadAllGeoJSON = () => {
-  if (allCountriesGeoJSON) {
-    addAllCountriesToMap(allCountriesGeoJSON);
-  } else {
-    $.ajax({
-      url: '/api/countries?country=all',
-      method: 'GET',
-      dataType: 'json',
+const { z, x, y } = getTileCoordinates(map);
 
-      success: (results) => {
-        const features = [];
+console.log(z, x, y);
+  
+$.ajax({
+  url: `/tiles?z=${z}&x=${x}&y=${y}`,
+  method: 'GET',
+  dataType: 'json',
 
-        const sortedCountries = results.data
-          .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
-          .map(({ properties, geometry }) => {
-            const { name, iso_a2 } = properties;
+  success: (results) => {
+    const features = [];
 
-            features.push({ iso_a2, geometry });
+    // const sortedCountries = results.data
+    //   .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
+    //   .map(({ properties, geometry }) => {
+    //     const { name, iso_a2 } = properties;
 
-            return { name, iso_a2 };
-          });
+    //     return { name, iso_a2 };
+    //   });
 
-        sortedCountries.forEach(({ name, iso_a2 }) => {
-          $('#country-select').append(
-            `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
-          );
-        });
+    // sortedCountries.forEach(({ name, iso_a2 }) => {
+    //   $('#country-select').append(
+    //     `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
+    //   );
+    // });
 
-        allCountriesGeoJSON = features;
+    console.log(results);
 
-        addAllCountriesToMap(features);
-      },
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(
-          `Error Status: ${xhr.status} - Error Message: ${res.error}`
-        );
-        console.log(`Response Text: ${res.details}`);
-      },
+    allCountriesGeoJSON = features;
+
+    map.addLayer({
+      id: 'countriesLayer',
     });
-  }
-};
+  },
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
+});
 
 let selectedCountry = null;
 
@@ -94,5 +92,3 @@ $('#country-select').on('click', '#country-option', ({ target }) => {
     });
   }
 });
-
-loadAllGeoJSON();

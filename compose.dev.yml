@@ -12,6 +12,7 @@ services:
       - 8080:8080
     depends_on:
       - api
+      - express
     develop:
       watch:
         - path: .
@@ -49,6 +50,39 @@ services:
           action: sync
     env_file:
       - ./.env
+
+  tileserver:
+    build:
+      context: ./tileserver/
+      dockerfile: Dockerfile
+      args:
+        MODE: development
+    # volumes:
+    #   - ./assets/tileserver-vector/:/app/
+    ports:
+      - 3000:3000
+    container_name: tileserver
+
+  express:
+    build:
+      context: ./express
+      dockerfile: Dockerfile
+      args:
+        MODE: development
+    depends_on:
+      - tileserver
+    ports:
+      - 3001:3001
+    container_name: express
+    develop:
+      watch:
+        - path: .
+          target: /app
+          action: sync
+        - path: ./package.json
+          action: rebuild
+        - path: ./package-lock.json
+          action: rebuild
 
   db:
     image: mysql:latest

@@ -1,0 +1,83 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODE: production
+        MAPBOX_TOKEN_JS: ${MAPBOX_TOKEN_JS}
+        MAPBOX_BUILD_SPRITES: ${MAPBOX_BUILD_SPRITES}
+    container_name: web
+    ports:
+      - 8080:8080
+    depends_on:
+      - api
+    develop:
+      watch:
+        - path: .
+          target: /usr/share/nginx/html/
+          action: sync
+        - path: ./conf.d/
+          target: /etc/nginx/conf.d/
+          action: rebuild
+    env_file:
+      - ./.env
+
+  api:
+    build:
+      context: ./libs/php
+      dockerfile: Dockerfile
+      args:
+        USERNAME: ${USERNAME}
+        IPINFO_TOKEN: ${IPINFO_TOKEN}
+        JAWG_TOKEN: ${JAWG_TOKEN}
+        DB_HOST: ${DB_HOST}
+        DB_PORT: ${DB_PORT}
+        DB_USERNAME: ${DB_USERNAME}
+        DB_PASS: ${DB_PASS}
+        MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
+        MODE: production
+    ports:
+      - 9000:9000
+    container_name: api
+    depends_on:
+      - db
+    develop:
+      watch:
+        - path: ./libs/php
+          target: /var/www/html/
+          action: sync
+    env_file:
+      - ./.env
+
+  tileserver:
+    build:
+      context: ./tileserver/
+      dockerfile: Dockerfile
+      args:
+        - MODE: production
+    volumes:
+      - vector_data:/app/
+    ports:
+      - 3000:3000
+    container_name: node
+
+  db:
+    image: mysql:latest
+    container_name: db
+    environment:
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_DATABASE: map
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf
+    ports:
+      - 12345:3306
+    env_file:
+      - ./.env
+
+volumes:
+  db_data:
+  vector_data:

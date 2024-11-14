@@ -1,8 +1,7 @@
 /// <reference path="../jquery.js" />
 
-let map = null;
-let savedBaseLayer = JSON.parse(localStorage.getItem('savedBaseLayer'));
-let currentBaseLayer = '';
+let currentBaseLayer =
+  JSON.parse(localStorage.getItem('savedBaseLayer')) ?? 'Standard';
 
 const styles = {
   Standard: 'standard',
@@ -12,108 +11,85 @@ const styles = {
   Dark: 'navigation-night-v1',
 };
 
-let baseLayers = {};
-
 mapboxgl.accessToken = window.config.mapboxToken;
 
-const retrieveMap = async () => {
-  currentBaseLayer = savedBaseLayer ?? 'Standard';
+/** @type {mapboxgl.Map} */
+map = new mapboxgl.Map({
+  style: `/api/mapboxgljs?style=${styles[currentBaseLayer]}&initial=true`,
+  projection: 'globe',
+  transformRequest: (url, resourceType) => {
+    if (
+      (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
+      url.includes('api.mapbox.com')
+    ) {
+      return {
+        url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
+      };
+    }
+  },
+  container: 'map',
+  zoom: 1,
+  minZoom: 0.095,
+  center: [30, 15],
+});
 
-  await $.ajax({
-    url: `/api/mapboxgljs?style=${styles[currentBaseLayer]}`,
-    method: 'GET',
-    success: (response) => {
-      baseLayers[currentBaseLayer] = response;
+map.scrollZoom.setWheelZoomRate(0.005);
+map.scrollZoom.setZoomRate(0.005);
 
-      map = new mapboxgl.Map({
-        container: 'map',
-        style: response,
-        projection: 'globe',
-        transformRequest: (url, resourceType) => {
-          if (
-            (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
-            url.includes('api.mapbox.com')
-          ) {
-            return {
-              url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
-            };
-          }
-        },
-        zoom: 1,
-        center: [30, 15],
-      });
-    },
-    error: (xhr) => {
-      console.log(xhr);
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
-    },
-  });
+const getTileCoordinates = (map) => {
+  const zoom = map.getZoom();
+  const center = map.getCenter();
+
+  const tileZoom = Math.floor(zoom);
+  const tileX = Math.floor(((center.lng + 180) / 360) * Math.pow(2, tileZoom));
+  const tileY = Math.floor(
+    ((1 -
+      Math.log(
+        Math.tan((center.lat * Math.PI) / 180) +
+          1 / Math.cos((center.lat * Math.PI) / 180)
+      ) /
+        Math.PI) /
+      2) *
+      Math.pow(2, tileZoom)
+  );
+
+  return { z: tileZoom, x: tileX, y: tileY };
 };
 
-retrieveMap();
+// const mapReady = () => {
+//   $.ajax({
+//     url: `/api/mapboxgljs?style=${styles[currentBaseLayer]}`,
+//     method: 'GET',
+//     success: (response) => {
+//       baseLayers[currentBaseLayer] = response;
 
-// let map1 = L.map('map1', {
-//   zoomSnap: 0,
-//   maxBoundsViscosity: 1,
-//   minZoom: 2.5,
-//   zoomControl: false,
-// }).setView([51.835778, 0], 2.5);
-
-// var worldBounds = L.latLngBounds(L.latLng(-90, -180), L.latLng(90, 180));
-
-// map1.setMaxBounds(worldBounds);
-
-// map1.fitBounds(worldBounds);
-
-// const addAllCountriesToMap = (features) => {
-//   allCountriesLayer.clearLayers();
-
-//   features.forEach(({ geometry }) =>
-//     L.geoJSON(geometry).addTo(allCountriesLayer)
-//   );
-
-//   if (!map1.hasLayer(allCountriesLayer)) {
-//     if (map1.hasLayer(selectedCountriesLayer)) {
-//       map1.removeLayer(selectedCountriesLayer);
-//       map1.fire('layergroupremove', {
-//         selectedCountriesLayer,
-//         id: 'select-country',
+//       map = new mapboxgl.Map({
+//         container: 'map',
+//         style: response,
+//         projection: 'globe',
+//         transformRequest: (url, resourceType) => {
+//           if (
+//             (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
+//             url.includes('api.mapbox.com')
+//           ) {
+//             return {
+//               url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
+//             };
+//           }
+//         },
+//         zoom: 1,
+//         center: [30, 15],
 //       });
-//     }
 
-//     allCountriesLayer.addTo(map1);
-//     map1.fire('layergroupadd', { allCountriesLayer, id: 'all-countries' });
-//   }
+//       // minZoom = map.getMinZoom();
+
+//       // map.on('load', () => resolve(map));
+//     },
+//     error: (xhr) => {
+//       console.log(xhr);
+//       const res = JSON.parse(xhr.responseText);
+//       console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+//       console.log(`Response Text: ${res.details}`);
+//     },
+//   });
 // };
-
-// const addSingleCountryToMap = (country) => {
-//   selectedCountriesLayer.clearLayers();
-
-//   L.geoJSON(country.geometry).addTo(selectedCountriesLayer);
-
-//   if (!map1.hasLayer(selectedCountriesLayer)) {
-//     if (map1.hasLayer(allCountriesLayer)) {
-//       map1.removeLayer(allCountriesLayer);
-//       map1.fire('layergroupremove', { allCountriesLayer, id: 'all-countries' });
-//     }
-
-//     selectedCountriesLayer.addTo(map1);
-//     map1.fire('layergroupadd', {
-//       selectedCountriesLayer,
-//       id: 'select-country',
-//     });
-//   }
-// };
-
-// const minZoom = 2.5;
-// let currentZoom = map1.getZoom();
-
-// const controlContainer = document.querySelector('.leaflet-control-container');
-// const mapContainer = document.getElementById('map1');
-
-// mapContainer.parentNode.insertBefore(
-//   controlContainer,
-//   mapContainer.nextSibling
-// );

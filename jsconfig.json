@@ -1,11 +1,9 @@
 {
   "compilerOptions": {
-    "noEmit": true,
     "baseUrl": "./",
     "paths": {
-      "leaflet": ["types/leaflet/index.d.ts"],
-      "mapbox-gl": ["types/mapbox-gl/index.d.ts"]
+      "mapbox-gl": ["libs/js/map/index.d.ts"]
     }
   },
-  "include": ["./**/*", "types/mapbox-gl/index.d.ts"]
+  "include": ["./**/*", "types"]
 }

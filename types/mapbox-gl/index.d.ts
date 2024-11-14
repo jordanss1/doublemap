@@ -1,4 +1,4 @@
-/// <reference types="geojson" />
+import * as geojson from 'geojson';
 
 export as namespace mapboxgl;
 
