@@ -37,8 +37,6 @@ $.ajax({
 
   success: (results) => {
     const features = [];
-  success: (results) => {
-    const features = [];
 
     // const sortedCountries = results.data
     //   .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
@@ -59,16 +57,6 @@ $.ajax({
     allCountriesGeoJSON = features;
     allCountriesGeoJSON = features;
 
-    map.addLayer({
-      id: 'countriesLayer',
-    });
-  },
-  error: (xhr) => {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  },
-});
     map.addLayer({
       id: 'countriesLayer',
     });
