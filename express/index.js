@@ -15,6 +15,8 @@ app.get('/tiles', async (req, res) => {
   const { z, x, y } = req.query;
   const url = `http://tileserver:3000/data/countries/${z}/${x}/${y}.pbf`;
 
+  console.log(url);
+
   try {
     const { data } = await axios.get(url, { responseType: 'arraybuffer' });
 
@@ -25,10 +27,10 @@ app.get('/tiles', async (req, res) => {
       res
         .status(e.status)
         .send({ error: 'Error retrieving tiles: ' + e.message });
+    } else {
+      console.error('Error fetching tile:', e);
+      res.status(500).send({ error: 'Failed to fetch tile' });
     }
-
-    console.error('Error fetching tile:', error);
-    res.status(500).send({ error: 'Failed to fetch tile' });
   }
 });
 

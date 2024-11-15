@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
+RUN chown node:node -R /app
+
 USER node
 
-CMD ["node", "index.js"]
+CMD ["npm", "run", "dev"]

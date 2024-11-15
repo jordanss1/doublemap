@@ -43,11 +43,17 @@ RUN curl -L https://github.com/felt/tippecanoe/archive/refs/tags/2.69.0.zip -o t
 RUN npm install -g tileserver-gl
 
 
-COPY --chown=node:node ./country_borders.geo.json /app/
+COPY --chown=node:node . /app/
 
 
 RUN if [ "$MODE" = "production" ]; then \
-    tippecanoe -o /app/countries.mbtiles -Z1 -Z8.1 /app/country_borders.geo.json; \
+    tippecanoe -o /app/countries.mbtiles \           
+    -Z1 -Z8 \
+    --drop-densest-as-needed \
+    --simplification=2 \
+    --no-feature-limit \
+    --no-tile-size-limit \
+    /app/country_borders.geo.json; \ 
     fi
 
 
@@ -66,4 +72,4 @@ RUN chown -R node:node /app
 USER node
 
 
-CMD ["tileserver-gl", "--port", "3000", "/app/countries.mbtiles"]
+CMD ["tileserver-gl", "--port", "3000", "--config", "./config.json"]

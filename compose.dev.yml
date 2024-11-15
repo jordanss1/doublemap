@@ -21,6 +21,7 @@ services:
         - path: ./conf.d/
           target: /etc/nginx/conf.d/
           action: rebuild
+    restart: always
     env_file:
       - ./.env
 
@@ -43,6 +44,7 @@ services:
     container_name: api
     depends_on:
       - db
+    restart: always
     develop:
       watch:
         - path: ./libs/php
@@ -57,11 +59,20 @@ services:
       dockerfile: Dockerfile
       args:
         MODE: development
-    # volumes:
-    #   - ./assets/tileserver-vector/:/app/
+    volumes:
+      - ./assets/tileserver-vector/:/app/mbtiles/
+    restart: always
     ports:
       - 3000:3000
     container_name: tileserver
+    develop:
+      watch:
+        - path: ./tileserver
+          target: /app
+          action: sync
+        - path: ./tileserver
+          target: /app
+          action: rebuild
 
   express:
     build:
@@ -73,15 +84,15 @@ services:
       - tileserver
     ports:
       - 3001:3001
+    restart: always
     container_name: express
     develop:
       watch:
-        - path: .
-          target: /app
-          action: sync
-        - path: ./package.json
+        - path: ./express
           action: rebuild
-        - path: ./package-lock.json
+        - path: ./express/package.json
+          action: rebuild
+        - path: ./express/package-lock.json
           action: rebuild
 
   db:
@@ -92,6 +103,7 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_DATABASE: map
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    restart: always
     volumes:
       - db_data:/var/lib/mysql
       - ./my.cnf:/etc/mysql/my.cnf

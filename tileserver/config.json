@@ -1,0 +1,15 @@
+{
+  "options": {
+    "paths": {
+      "root": "/app/mbtiles"
+    }
+  },
+  "data": {
+    "countries": {
+      "mbtiles": "countries.mbtiles"
+    },
+    "test": {
+      "mbtiles": "test.mbtiles"
+    }
+  }
+}

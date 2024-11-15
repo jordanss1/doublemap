@@ -33,8 +33,9 @@ console.log(z, x, y);
 $.ajax({
   url: `/tiles?z=${z}&x=${x}&y=${y}`,
   method: 'GET',
-  dataType: 'json',
-
+  xhrFields: {
+    responseType: 'arraybuffer', // Ensures the response is treated as binary data
+  },
   success: (results) => {
     const features = [];
 
