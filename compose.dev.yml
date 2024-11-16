@@ -12,7 +12,6 @@ services:
       - 8080:8080
     depends_on:
       - api
-      - express
     develop:
       watch:
         - path: .
@@ -59,8 +58,7 @@ services:
       dockerfile: Dockerfile
       args:
         MODE: development
-    volumes:
-      - ./assets/tileserver-vector/:/app/mbtiles/
+
     restart: always
     ports:
       - 3000:3000
@@ -72,27 +70,6 @@ services:
           action: sync
         - path: ./tileserver
           target: /app
-          action: rebuild
-
-  express:
-    build:
-      context: ./express
-      dockerfile: Dockerfile
-      args:
-        MODE: development
-    depends_on:
-      - tileserver
-    ports:
-      - 3001:3001
-    restart: always
-    container_name: express
-    develop:
-      watch:
-        - path: ./express
-          action: rebuild
-        - path: ./express/package.json
-          action: rebuild
-        - path: ./express/package-lock.json
           action: rebuild
 
   db:
@@ -114,4 +91,3 @@ services:
 
 volumes:
   db_data:
-  vector_data:

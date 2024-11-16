@@ -46,15 +46,7 @@ RUN npm install -g tileserver-gl
 COPY --chown=node:node . /app/
 
 
-RUN if [ "$MODE" = "production" ]; then \
-    tippecanoe -o /app/countries.mbtiles \           
-    -Z1 -Z8 \
-    --drop-densest-as-needed \
-    --simplification=2 \
-    --no-feature-limit \
-    --no-tile-size-limit \
-    /app/country_borders.geo.json; \ 
-    fi
+RUN tippecanoe -o /app/countries.mbtiles -Z1 -z5 --drop-densest-as-needed --force ./country_borders.geo.json 
 
 
 RUN ldd /usr/local/lib/node_modules/tileserver-gl/node_modules/@maplibre/maplibre-gl-native/index.node || true

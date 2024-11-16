@@ -20,38 +20,21 @@
             echo json_encode(['details' => "Error retrieving data from server"]);
             exit;
         }
-
-        $countryResponse;
     
-        if ($countryISO !== "all") {
-           $countryResponse = array_values(array_filter($countriesArray, function ($countryItem) {
-                global $countryISO;
-
-                return $countryItem["properties"]["iso_a2"] === $countryISO;
-            }));
-
-            if (!isset($countryResponse[0])) {
-                http_response_code(400);
-                echo json_encode(["details" => "Country was not found with this ISO code"]);
-                exit;
-            }
-
-            $ch = curl_init();
+        if ($countryISO !== "all") {            
             $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['USERNAME']}";
             $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$countryISO";
 
             $geonamesResponse = fetchApiCall($geonamesUrl, false);
             $restCountriesResponse = fetchApiCall($restCountriesUrl, false);
 
-            $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xhr');
+            $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xml');
             $decodedRestResponse = decodeResponse($restCountriesResponse);
 
             http_response_code(200);
-            echo json_encode(["data" => [["propertiesAndPolygons" => $countryResponse[0]], ["rest countries" => $decodedRestResponse], ["geonames" => $decodedGeonamesResponse]]]);
+            echo json_encode(["data" => [["restCountries" => $decodedRestResponse], ["geonames" => $decodedGeonamesResponse]]]);
             exit;
         }       
-
-
         
         http_response_code(200);
         echo json_encode(["data" => $countriesArray]);

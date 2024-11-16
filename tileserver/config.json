@@ -1,15 +1,14 @@
 {
   "options": {
     "paths": {
-      "root": "/app/mbtiles"
+      "root": "/app"
     }
   },
   "data": {
     "countries": {
-      "mbtiles": "countries.mbtiles"
-    },
-    "test": {
-      "mbtiles": "test.mbtiles"
+      "mbtiles": "countries.mbtiles",
+      "minzoom": 1,
+      "maxzoom": 8
     }
   }
 }

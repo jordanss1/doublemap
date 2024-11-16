@@ -14,7 +14,12 @@
         $url = "https://ipinfo.io/json?token={$_ENV['IPINFO_TOKEN']}";
         $response = fetchApiCall($url, true);
         $decodedResponse = decodeResponse($response);
+        
+        if (isset($decodedResponse['error'])) {
+            http_response_code(500);
+            echo json_encode(["data" => $decodedResponse]);
+        }
 
         http_response_code(200);
-        echo json_encode(["data" => $response]);
+        echo json_encode(["data" => $decodedResponse]);
     }

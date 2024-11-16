@@ -18,3 +18,8 @@ $('#style-control').on('click', () => {
 
   state.changeLayer();
 });
+
+$('#country-select').on('click', '#country-option', ({ target }) => {
+  console.log(target);
+  getCountryData(target.value);
+});

@@ -4,17 +4,17 @@
         if ($dataType === "xml") {
             $xmlObject = simplexml_load_string($response);
             
-            if (!$xmlObject) throw new Exception("Error parsing XML");
+            if (!$xmlObject)   return ["error" => "Problem decoding xml", "details" => "Problem retrieving response"];
 
             return json_decode(json_encode($xmlObject), true);
         } else {
             $decodedResponse = json_decode($response, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Problem decoding JSON " . json_last_error_msg());
+                return ["error" => "Problem decoding JSON " . json_last_error_msg(), "details" => "Problem retrieving response"];
             }
 
-            return $decodedResponse;
+            // return $decodedResponse;
         } 
     }
 

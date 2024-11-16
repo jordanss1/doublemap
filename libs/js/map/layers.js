@@ -3,7 +3,6 @@
 let baseLayers = {};
 let baseButtonLayerStates = [];
 
-
 Object.keys(styles).map((friendlyName, i) => {
   $.ajax({
     url: `/api/mapboxgljs?style=${styles[friendlyName]}`,
@@ -13,13 +12,13 @@ Object.keys(styles).map((friendlyName, i) => {
 
       baseButtonLayerStates.push({
         name: friendlyName,
-        index: i,
         changeLayer: () => {
           const newIndex = baseButtonLayerStates.length - 1 === i ? 0 : i + 1;
           const nextLayer = baseButtonLayerStates[newIndex].name;
 
-          map.setStyle(baseLayers[nextLayer]);
-          currentBaseLayer = nextLayer;
+          console.log(this.name);
+          console.log(nextLayer);
+
           map.setStyle(baseLayers[nextLayer]);
           currentBaseLayer = nextLayer;
 
@@ -38,12 +37,3 @@ Object.keys(styles).map((friendlyName, i) => {
     },
   });
 });
-
-
-
-const addCountriesLayer = (features) => {
-  map.addLayer({
-    id: 'countries',
-    source: features,
-  });
-};

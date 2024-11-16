@@ -1,6 +1,5 @@
 {
   "type": "FeatureCollection",
-  "bbox": [-180, -90, 180, 90],
   "features": [
     {
       "type": "Feature",

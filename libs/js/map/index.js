@@ -3,7 +3,6 @@
 let currentBaseLayer =
   JSON.parse(localStorage.getItem('savedBaseLayer')) ?? 'Standard';
 
-
 const styles = {
   Standard: 'standard',
   Streets: 'streets-v12',
@@ -36,26 +35,6 @@ map = new mapboxgl.Map({
 
 map.scrollZoom.setWheelZoomRate(0.005);
 map.scrollZoom.setZoomRate(0.005);
-
-const getTileCoordinates = (map) => {
-  const zoom = map.getZoom();
-  const center = map.getCenter();
-
-  const tileZoom = Math.floor(zoom);
-  const tileX = Math.floor(((center.lng + 180) / 360) * Math.pow(2, tileZoom));
-  const tileY = Math.floor(
-    ((1 -
-      Math.log(
-        Math.tan((center.lat * Math.PI) / 180) +
-          1 / Math.cos((center.lat * Math.PI) / 180)
-      ) /
-        Math.PI) /
-      2) *
-      Math.pow(2, tileZoom)
-  );
-
-  return { z: tileZoom, x: tileX, y: tileY };
-};
 
 // const mapReady = () => {
 //   $.ajax({
