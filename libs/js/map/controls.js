@@ -12,11 +12,17 @@ $('#zoom-out').on('click', () => {
 });
 
 $('#style-control').on('click', () => {
-  const state = baseButtonLayerStates.find(
-    (state) => state.name === currentBaseLayer
+  const currentIndex = baseLayers.findIndex(
+    ({ name }) => name === currentBaseLayer
   );
 
-  state.changeLayer();
+  const newIndex =
+    currentIndex === baseLayers.length - 1 ? 0 : currentIndex + 1;
+
+  map.setStyle(baseLayers[newIndex].style);
+  currentBaseLayer = baseLayers[newIndex].name;
+
+  localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
 });
 
 $('#country-select').on('click', '#country-option', ({ target }) => {

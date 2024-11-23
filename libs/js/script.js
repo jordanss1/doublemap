@@ -62,6 +62,7 @@ function getCountryData(iso_a2) {
         if (countryData.error) {
           return;
         }
+        
         return countryData;
       });
     },

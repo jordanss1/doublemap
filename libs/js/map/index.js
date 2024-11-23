@@ -1,7 +1,7 @@
 /// <reference path="../jquery.js" />
 
 let currentBaseLayer =
-  JSON.parse(localStorage.getItem('savedBaseLayer')) ?? 'Standard';
+  JSON.parse(localStorage.getItem('currentBaseLayer')) ?? 'Standard';
 
 const styles = {
   Standard: 'standard',
@@ -22,67 +22,21 @@ map = new mapboxgl.Map({
       (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
       url.includes('api.mapbox.com')
     ) {
-      return {
-        url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
-      };
+      const baseUrl = `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`;
+      const newUrl =
+        resourceType === 'SpriteImage' ? `${baseUrl}.png` : `${baseUrl}.json`;
+      console.log(
+        `Transforming ${resourceType} request from ${url} to ${newUrl}`
+      );
+      return { url: newUrl };
     }
   },
   container: 'map',
   zoom: 1,
   minZoom: 0.095,
+  maxZoom: 17,
   center: [30, 15],
 });
 
 map.scrollZoom.setWheelZoomRate(0.005);
 map.scrollZoom.setZoomRate(0.005);
-
-// const mapReady = () => {
-//   $.ajax({
-//     url: `/api/mapboxgljs?style=${styles[currentBaseLayer]}`,
-//     method: 'GET',
-//     success: (response) => {
-//       baseLayers[currentBaseLayer] = response;
-
-//       map = new mapboxgl.Map({
-//         container: 'map',
-//         style: response,
-//         projection: 'globe',
-//         transformRequest: (url, resourceType) => {
-//           if (
-//             (resourceType === 'SpriteImage' || resourceType === 'SpriteJSON') &&
-//             url.includes('api.mapbox.com')
-//           ) {
-//             return {
-//               url: `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`,
-//             };
-//           }
-//         },
-//         zoom: 1,
-//         center: [30, 15],
-//       });
-
-//       // minZoom = map.getMinZoom();
-
-//       // map.on('load', () => resolve(map));
-//     },
-//     error: (xhr) => {
-//       console.log(xhr);
-//       const res = JSON.parse(xhr.responseText);
-//       console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-//       console.log(`Response Text: ${res.details}`);
-//     },
-//   });
-// };
-
-//       // minZoom = map.getMinZoom();
-
-//       // map.on('load', () => resolve(map));
-//     },
-//     error: (xhr) => {
-//       console.log(xhr);
-//       const res = JSON.parse(xhr.responseText);
-//       console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-//       console.log(`Response Text: ${res.details}`);
-//     },
-//   });
-// };
