@@ -10,19 +10,20 @@ jQuery(() => {
   }
 });
 
-// $.ajax({
-//   url: '/api/ipinfo',
-//   method: 'GET',
-//   data: 'json',
-//   success: ({ data }) => {
-//     console.log(data);
-//   },
-//   error: (xhr) => {
-//     const res = JSON.parse(xhr.responseText);
-//     console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-//     console.log(`Response Text: ${res.details}`);
-//   },
-// });
+$.ajax({
+  url: '/api/ipinfo',
+  method: 'GET',
+  data: 'json',
+  success: ({ data }) => {
+    console.log(data);
+    userGeo = data;
+  },
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
+});
 
 let allCountriesGeoJSON = null;
 
@@ -45,7 +46,71 @@ $.ajax({
       );
     });
   },
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
 });
+
+$.ajax({
+  url: '/api/mapboxgljs/category?list=true',
+  method: 'GET',
+  dataType: 'json',
+  success: (res) => {
+    categories = res.data;
+  },
+  error: (xhr) => {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  },
+});
+
+function getSearchResults(value) {
+  const latLong = userGeo.loc.split(',');
+  const proximity =
+    latLong.length === 2 ? `${latLong[1].trim()},${latLong[0].trim()}` : 'ip';
+
+  if (value.length) {
+    $.ajax({
+      url: `/api/mapboxgljs/search?q=${value}&proximity=${proximity}`,
+      method: 'GET',
+      dataType: 'json',
+      success: ({ data }) => {
+        $('#search-normal').children().remove();
+
+        if (data.length) {
+          data.forEach(({ properties }, i) => {
+            const name = createFeatureName(properties);
+            $('#search-normal').append(`<div data-value=${i}>${name}</div>`);
+          });
+        }
+      },
+      error: (xhr) => {
+        const res = JSON.parse(xhr.responseText);
+        console.log(
+          `Error Status: ${xhr.status} - Error Message: ${res.error}`
+        );
+        console.log(`Response Text: ${res.details}`);
+      },
+    });
+  }
+}
+
+function createFeatureName(feature) {
+  const { name, context, feature_type } = feature;
+
+  if (feature_type === 'poi') {
+    const { locality, place } = context;
+
+    return `${name}${locality ? `, ${locality.name}` : ''}${
+      place ? `, ${place.name}` : ''
+    }`;
+  } else {
+    return `${feature.place_formatted || feature.name_preferred}`;
+  }
+}
 
 function getCountryData(iso_a2) {
   $.ajax({
@@ -62,7 +127,7 @@ function getCountryData(iso_a2) {
         if (countryData.error) {
           return;
         }
-        
+
         return countryData;
       });
     },

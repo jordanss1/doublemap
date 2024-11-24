@@ -11,11 +11,14 @@ const styles = {
   Dark: 'navigation-night-v1',
 };
 
+let categories;
+let userGeo;
+
 mapboxgl.accessToken = window.config.mapboxToken;
 
 /** @type {mapboxgl.Map} */
 map = new mapboxgl.Map({
-  style: `/api/mapboxgljs?style=${styles[currentBaseLayer]}&initial=true`,
+  style: `/api/mapboxgljs/styles?style=${styles[currentBaseLayer]}&initial=true`,
   projection: 'globe',
   transformRequest: (url, resourceType) => {
     if (
@@ -25,9 +28,6 @@ map = new mapboxgl.Map({
       const baseUrl = `http://localhost:8080/assets/mapboxgljs/${styles[currentBaseLayer]}/sprite`;
       const newUrl =
         resourceType === 'SpriteImage' ? `${baseUrl}.png` : `${baseUrl}.json`;
-      console.log(
-        `Transforming ${resourceType} request from ${url} to ${newUrl}`
-      );
       return { url: newUrl };
     }
   },

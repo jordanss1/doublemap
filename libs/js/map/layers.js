@@ -4,7 +4,7 @@ let baseLayers = [];
 
 Object.keys(styles).map((friendlyName, i) => {
   $.ajax({
-    url: `/api/mapboxgljs?style=${styles[friendlyName]}`,
+    url: `/api/mapboxgljs/styles?style=${styles[friendlyName]}`,
     method: 'GET',
     success: (response) => {
       baseLayers.push({ name: friendlyName, style: response });

@@ -36,6 +36,21 @@
           </span>
         </section>
         <section
+          class="left-panel flex flex-col items-center gap-1 h-full fixed top-3 left-3"
+        >
+          <div class="pointer-events-auto relative">
+            <input type="text" id="search" />
+            <div
+              id="search-popout"
+              class="relative w-full h-20 border-t-2 border-black bg-white-50"
+            >
+              <div class="w-full" id="search-category"></div>
+              <div id="search-normal"></div>
+            </div>
+          </div>
+        </section>
+
+        <section
           class="right-panel flex flex-col items-center gap-1 h-full fixed top-3 right-3"
         >
           <div class="pointer-events-auto">

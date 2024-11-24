@@ -31,12 +31,12 @@ services:
       args:
         USERNAME: ${USERNAME}
         IPINFO_TOKEN: ${IPINFO_TOKEN}
-        JAWG_TOKEN: ${JAWG_TOKEN}
         DB_HOST: ${DB_HOST}
         DB_PORT: ${DB_PORT}
         DB_USERNAME: ${DB_USERNAME}
         DB_PASS: ${DB_PASS}
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
+        MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
         MODE: development
     ports:
       - 9000:9000

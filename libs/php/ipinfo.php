@@ -10,7 +10,7 @@
 
     [$path] = parsePathAndQueryString($parsedUrl, false);
 
-    if ($path === "ipinfo") {
+    if ($path[1] === "ipinfo") {
         $url = "https://ipinfo.io/json?token={$_ENV['IPINFO_TOKEN']}";
         $response = fetchApiCall($url, true);
         $decodedResponse = decodeResponse($response);

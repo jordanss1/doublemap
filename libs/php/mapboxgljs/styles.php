@@ -2,10 +2,10 @@
     header('Content-Type: application/json');
     session_start();
 
-    require_once './functions.php';
-    require_once './error_handle.php';
-    require_once './model/map_db.php';
-    require_once './origin_check.php';
+    require_once dirname(__DIR__) . '/functions.php';
+    require_once dirname(__DIR__) . '/error_handle.php';
+    require_once dirname(__DIR__) . '/model/map_db.php';
+    require_once dirname(__DIR__) . '/origin_check.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 
@@ -17,10 +17,10 @@
 
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
     
-    if ($path === 'mapboxgljs') {
-        $initial = (!isset($_SESSION['mapboxgl_called']) || $_SESSION['mapboxgl_called'] !== true);
+    if ($path[2] === 'styles') {
+        $initialCall = (!isset($_SESSION['mapboxgl_called']) || $_SESSION['mapboxgl_called'] !== true);
 
-        checkRequestCount($path);
+        checkRequestCount('mapboxgljs');
         $style = $queriesFormatted['style'];
 
         $url = "https://api.mapbox.com/styles/v1/mapbox/$style?access_token={$_ENV['MAPBOX_TOKEN_PHP']}";
@@ -31,7 +31,7 @@
             return (isset($response['error']) || empty($response));
         };
 
-        if ($initial && isError($response)) {
+        if ($initialCall && isError($response)) {
             $try = 0;
             global $response;
 
@@ -43,17 +43,20 @@
 
                 if (!isError($response)) break;
 
+
                 if ($try === 5 && isError($response)) {
                     http_response_code(500);
                     echo json_encode(['error' => 'Error retrieving map style', 'details' => 'Failed to retrieve the map style after multiple attempts']);
                     exit;
                 }
+
+                usleep(500000);
             }
         }
 
-        if ($initial) {
+        if ($initialCall) {
             $_SESSION['mapboxgl_called'] = true;
-            incrementRequestCount($path);
+            incrementRequestCount('mapboxgljs');
         }
     
         http_response_code(200);

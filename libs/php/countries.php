@@ -10,7 +10,7 @@
 
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
-    if ($path === "countries") { 
+    if ($path[1] === "countries") { 
         $countryISO = $queriesFormatted["country"];
 
         $countriesArray = json_decode(file_get_contents("./country_borders.geo.json"), true)["features"];

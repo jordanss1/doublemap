@@ -14,7 +14,7 @@
                 return ["error" => "Problem decoding JSON " . json_last_error_msg(), "details" => "Problem retrieving response"];
             }
 
-            // return $decodedResponse;
+            return $decodedResponse;
         } 
     }
 
@@ -51,7 +51,7 @@
     }
 
     function parsePathAndQueryString ($parsedUrl, $queries = true) {
-        $path = explode("/", trim($parsedUrl["path"], "/"))[1];
+        $path = explode("/", trim($parsedUrl["path"], "/"));
         $queriesFormatted = $queries ? [] : null;
     
         if (!isset($path) || empty($path)) {

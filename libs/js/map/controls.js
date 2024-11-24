@@ -25,7 +25,48 @@ $('#style-control').on('click', () => {
   localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
 });
 
+$('#search').on('keydown', (e) => {
+  let value = e.target.value;
+
+  if (e.key === 'Enter' && value.length) {
+    getSearchResults(value);
+  }
+});
+
+$('#search').on('input', (e) => {
+  let value = e.target.value;
+  if (value.length) {
+    categorySearchOption(value);
+  }
+});
+
 $('#country-select').on('click', '#country-option', ({ target }) => {
   console.log(target);
   getCountryData(target.value);
 });
+
+function categorySearchOption(value) {
+  const closestMatch = categories.reduce((bestMatch, current) => {
+    let newValue = value.toLowerCase();
+    let currentName = current.name.toLowerCase();
+
+    if (
+      currentName.indexOf(newValue) !== -1 &&
+      (bestMatch === null ||
+        currentName.indexOf(newValue) <
+          bestMatch.name.toLowerCase().indexOf(newValue))
+    ) {
+      return current;
+    }
+
+    return bestMatch;
+  }, null);
+
+  $('#search-category').children().remove();
+
+  if (closestMatch) {
+    $('#search-category').append(
+      /*html*/ `<div data-value='${closestMatch.canonical_id}'>${closestMatch.name}</div>`
+    );
+  }
+}
