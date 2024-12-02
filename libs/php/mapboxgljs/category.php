@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: application/json');
+    header('Content-Type: application/json');
     session_start();
 
     require_once dirname(__DIR__) . '/functions.php';
@@ -23,7 +23,7 @@ header('Content-Type: application/json');
         if (isset($categoryList) && $categoryList = 'true') {
             $url = "https://api.mapbox.com/search/searchbox/v1/list/category?access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
-            $categoryList = ['Food and Drink', 'Services', 'Shopping', 'Food', 'Health Services', 'Restaurant', 'Grocery', 'Outdoors', 'Park', 'Supermarket', 'Café', 'Bank', 'Hospital', 'Entertainment', 'Coffee', 'Post Office'];
+            $categoryList = ['Food and Drink', 'Services', 'Shopping', 'Food', 'Health Services', 'Restaurant', 'Grocery', 'Outdoors', 'Museum', 'Park', 'Supermarket', 'Café', 'Bank', 'Hospital', 'Entertainment', 'Coffee', 'Post Office'];
 
             $response = fetchApiCall($url, true);
 

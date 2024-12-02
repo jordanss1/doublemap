@@ -15,8 +15,10 @@ $.ajax({
   method: 'GET',
   data: 'json',
   success: ({ data }) => {
-    console.log(data);
     userGeo = data;
+
+    const latLong = userGeo.loc.split(',');
+    map.setCenter([latLong[1], latLong[0]]);
   },
   error: (xhr) => {
     const res = JSON.parse(xhr.responseText);
@@ -82,8 +84,11 @@ function getSearchResults(value) {
 
         if (data.length) {
           data.forEach(({ properties }, i) => {
+            searchResults.push(properties);
             const name = createFeatureName(properties);
-            $('#search-normal').append(`<div data-value=${i}>${name}</div>`);
+            $('#search-normal').append(
+              `<div id='search-normal-item' data-value=${i}>${name}</div>`
+            );
           });
         }
       },
@@ -99,14 +104,14 @@ function getSearchResults(value) {
 }
 
 function createFeatureName(feature) {
-  const { name, context, feature_type } = feature;
+  console.log(feature);
+  const { name, feature_type, full_address } = feature;
 
   if (feature_type === 'poi') {
-    const { locality, place } = context;
-
-    return `${name}${locality ? `, ${locality.name}` : ''}${
-      place ? `, ${place.name}` : ''
-    }`;
+    return `${name}, ${full_address}`;
+    // ${address ? `, ${address.name}` : ''}${locality ? `, ${locality.name}` : ''}${locality ? `, ${locality.name}` : ''}${
+    //   place ? `, ${place.name}` : ''
+    // }`
   } else {
     return `${feature.place_formatted || feature.name_preferred}`;
   }

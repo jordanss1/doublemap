@@ -13,6 +13,7 @@ const styles = {
 
 let categories;
 let userGeo;
+let searchResults = [];
 
 mapboxgl.accessToken = window.config.mapboxToken;
 

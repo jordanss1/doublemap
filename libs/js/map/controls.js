@@ -45,6 +45,39 @@ $('#country-select').on('click', '#country-option', ({ target }) => {
   getCountryData(target.value);
 });
 
+$('#search-normal').on('click', '#search-normal-item', function (e) {
+  const { coordinates, feature_type } = searchResults[$(this).data('value')];
+  const coords = [coordinates.longitude, coordinates.latitude]; // Southwest corner
+
+  const zoom = feature_type === 'poi' ? 16 : 10;
+
+  map.flyTo({
+    center: coords,
+    speed: 3,
+    curve: 1.7,
+    zoom,
+  });
+});
+
+map.on('click', (e) => {
+  const features = map.queryRenderedFeatures(e.point, {
+    layers: ['poi-label'], // This is typically the layer name for POIs in Mapbox styles
+  });
+
+  if (features.length > 0) {
+    const poi = features[0];
+    console.log('POI details:', poi.properties);
+
+    // You can use this data to display a popup or update your UI
+    new mapboxgl.Popup()
+      .setLngLat(e.lngLat)
+      .setHTML(
+        `<h3>${poi.properties.name}</h3><p>Type: ${poi.properties.type}</p>`
+      )
+      .addTo(map);
+  }
+});
+
 function categorySearchOption(value) {
   const closestMatch = categories.reduce((bestMatch, current) => {
     let newValue = value.toLowerCase();

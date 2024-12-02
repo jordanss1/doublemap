@@ -29,10 +29,10 @@ map.on('click', 'africa-amenities', (e) => {
 });
 
 map.on('zoom', () => {
+  const poiSettings = map.getConfigProperty('basemap', 'pointOfInterestLabels');
+  console.log(poiSettings);
   const zoom = map.getZoom();
   const disabled = map.getMinZoom() === map.getZoom() ? 'true' : 'false';
-
-  console.log(zoom);
 
   $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
 
@@ -49,7 +49,18 @@ map.on('zoom', () => {
   }
 });
 
+map.on('move', () => {
+  const zoom = map.getZoom();
+  const bounds = map.getBounds();
+
+  if (zoom > 10) {
+    getMuseumsOverpass(bounds);
+    // setTimeout(() => {});
+  }
+});
+
 map.on('style.load', () => {
+  map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
   const currentStyle = map.getStyle();
 
   if (currentStyle.name === 'Mapbox Navigation Night') {
@@ -176,3 +187,14 @@ map.on('styledata', () => {
     },
   });
 });
+
+function getMuseumsOverpass(bounds) {
+  $.ajax({
+    url: `/api/overpass/pois?type=museum`,
+    method: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    data: JSON.stringify(bounds),
+    success: (res) => console.log(res),
+  });
+}
