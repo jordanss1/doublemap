@@ -11,7 +11,8 @@ $('#zoom-out').on('click', () => {
   map.easeTo({ zoom: currentZoom - 0.3 });
 });
 
-$('#style-control').on('click', () => {
+$('#style-control').on('click', async () => {
+  await getToken();
   const currentIndex = baseLayers.findIndex(
     ({ name }) => name === currentBaseLayer
   );

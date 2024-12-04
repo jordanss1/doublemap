@@ -22,7 +22,7 @@
         }
     
         if ($countryISO !== "all") {            
-            $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['USERNAME']}";
+            $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['GEO_USERNAME']}";
             $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$countryISO";
 
             $geonamesResponse = fetchApiCall($geonamesUrl, false);

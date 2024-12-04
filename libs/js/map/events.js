@@ -1,4 +1,16 @@
-map.on('error', (e) => {
+map.on('error', async (e) => {
+  if (
+    e.error &&
+    (e.error.status === 401 || e.error.message.includes('access token'))
+  ) {
+    await getToken();
+    if (e.source) {
+      map.removeSource(e.source.id);
+      map.addSource(e.source.id, e.source);
+    }
+    map.triggerRepaint();
+  }
+
   if (e.error.url) {
     let url;
 
@@ -24,13 +36,7 @@ map.on('error', (e) => {
   }
 });
 
-map.on('click', 'africa-amenities', (e) => {
-  console.log(e);
-});
-
 map.on('zoom', () => {
-  const poiSettings = map.getConfigProperty('basemap', 'pointOfInterestLabels');
-  console.log(poiSettings);
   const zoom = map.getZoom();
   const disabled = map.getMinZoom() === map.getZoom() ? 'true' : 'false';
 
@@ -49,69 +55,90 @@ map.on('zoom', () => {
   }
 });
 
+let timeout;
+
 map.on('move', () => {
   const zoom = map.getZoom();
   const bounds = map.getBounds();
 
-  if (zoom > 10) {
-    getMuseumsOverpass(bounds);
-    // setTimeout(() => {});
+  clearTimeout(timeout);
+
+  timeout = setTimeout(() => {
+    if (zoom > 10) {
+      getMuseumsOverpass(bounds);
+    }
+  }, 200);
+});
+
+map.on('sourcedata', async (e) => {
+  if (e.isSourceLoaded && e.source.type === 'raster-dem') {
+    await getToken();
   }
 });
 
-map.on('style.load', () => {
-  map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-  const currentStyle = map.getStyle();
+mapPromise.then((map) => {
+  map.on('style.load', async () => {
+    await getToken();
 
-  if (currentStyle.name === 'Mapbox Navigation Night') {
-    map.setFog({
-      color: 'rgb(11, 11, 25)', // Dark blue color for night sky
-      'high-color': 'rgb(36, 92, 223)', // Lighter blue for the upper atmosphere
-      'horizon-blend': 0.02, // Reduced atmosphere thickness
-      'space-color': 'rgb(11, 11, 25)', // Dark blue for space
-      'star-intensity': 0.6, // Increased star brightness
-    });
+    map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
 
-    map.setPaintProperty('water', 'fill-color', [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      0,
-      'rgb(10, 20, 40)', // Dark blue at low zoom levels
-      8,
-      'rgb(20, 40, 80)', // Slightly lighter blue at higher zoom levels
-    ]);
+    const currentStyle = map.getStyle();
 
-    // Add a subtle water sheen effect
-    map.setPaintProperty('water', 'fill-antialias', true);
-    map.setPaintProperty('water', 'fill-opacity', 0.9);
+    console.log(currentStyle);
 
-    map.addLayer(
-      {
-        id: 'water-sheen',
-        type: 'fill',
-        source: 'composite',
-        'source-layer': 'water',
-        layout: {},
-        paint: {
-          'fill-color': 'rgb(100, 100, 255)',
-          'fill-opacity': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            0,
-            0.02,
-            8,
-            0.1,
-          ],
+    if (currentStyle.name === 'Mapbox Navigation Night') {
+      console.log('i');
+      map.setFog({
+        color: 'rgb(11, 11, 25)', // Dark blue color for night sky
+        'high-color': 'rgb(36, 92, 223)', // Lighter blue for the upper atmosphere
+        'horizon-blend': 0.02, // Reduced atmosphere thickness
+        'space-color': 'rgb(11, 11, 25)', // Dark blue for space
+        'star-intensity': 0.6, // Increased star brightness
+      });
+
+      map.setPaintProperty('water', 'fill-color', [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        0,
+        'rgb(10, 20, 40)', // Dark blue at low zoom levels
+        8,
+        'rgb(20, 40, 80)', // Slightly lighter blue at higher zoom levels
+      ]);
+
+      // Add a subtle water sheen effect
+      map.setPaintProperty('water', 'fill-antialias', true);
+      map.setPaintProperty('water', 'fill-opacity', 0.9);
+
+      map.addLayer(
+        {
+          id: 'water-sheen',
+          type: 'fill',
+          source: 'composite',
+          'source-layer': 'water',
+          layout: {},
+          paint: {
+            'fill-color': 'rgb(100, 100, 255)',
+            'fill-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0,
+              0.02,
+              8,
+              0.1,
+            ],
+          },
         },
-      },
-      'water'
-    );
-  }
+        'water'
+      );
+    }
+  });
 });
 
-map.on('styledata', () => {
+map.on('styledata', async () => {
+  await getToken();
+
   if (!map.getSource('modern-countries')) {
     map.addSource('modern-countries', {
       type: 'vector',
