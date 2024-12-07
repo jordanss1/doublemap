@@ -13,7 +13,7 @@
         exit;
     }
 
-    [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
+    [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl, false);
 
     $inputData = file_get_contents('php://input');
 
@@ -38,16 +38,8 @@
 
 
     if ($path[2] === 'pois') {
-        $amenityType = $queriesFormatted['type'];
-        $queryKey = '';
-
-        if ($amenityType === 'museum') {
-            $queryKey = 'tourism';
-        }
-
-        if (isset($amenityType)) {
             $url = 'https://overpass-api.de/api/interpreter?data=';
-            $query = "[out:json];(node[$queryKey=$amenityType]($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
+            $query = "[out:json];(node['tourism'='museum']($sw_lat,$sw_lng,$ne_lat,$ne_lng);node['tourism'='hotel']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
 
             $response = fetchApiCall($url . urlencode($query), true);
 
@@ -59,7 +51,65 @@
                 exit;
             }
 
+            $museumsData = array_filter($decodedResponse['elements'], function($node) {
+                return isset($node['tags']['tourism']) && $node['tags']['tourism'] === 'museum';
+            });
+
+            $hotelsData = array_filter($decodedResponse['elements'], function($node) {
+                return isset($node['tags']['tourism']) && $node['tags']['tourism'] === 'hotel';
+            });
+
+            $centerLat = ($sw_lat + $ne_lat) / 2;
+            $centerLng = ($sw_lng + $ne_lng) / 2;
+
+            function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+                $earthRadius = 6371; 
+            
+                $lat1 = deg2rad($lat1);
+                $lon1 = deg2rad($lon1);
+                $lat2 = deg2rad($lat2);
+                $lon2 = deg2rad($lon2);
+                
+                $dLat = $lat2 - $lat1;
+                $dLon = $lon2 - $lon1;
+            
+                $a = sin($dLat / 2) * sin($dLat / 2) +
+                     cos($lat1) * cos($lat2) *
+                     sin($dLon / 2) * sin($dLon / 2);
+            
+                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+            
+                return $earthRadius * $c; 
+            }
+
+            function normalizeNode ($node)  {
+                global $centerLat;
+                global $centerLng;
+
+                $distance = calculateDistance($centerLat, $centerLng, $node['lat'], $node['lon']);
+
+                $name = $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
+
+                return $distance <= 10 && $name ? 
+                 [
+                    'lat' => $node['lat'],
+                    'lon' => $node['lon'],
+                    'name' => $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null,
+                    'housenumber' => $node['tags']['addr:housenumber'] ?? null,
+                    'street' => $node['tags']['addr:street'] ?? null,
+                    'postcode' => $node['tags']['addr:postcode'] ?? null,
+                    'city' => $node['tags']['addr:city'] ?? null,
+                    'country' => $node['tags']['addr:country'] ?? null,
+                    'type' => $node['tags']['tourism'] ?? null,
+                    'website' => $node['tags']['website'] ?? $node['tags']['contact:website'] ?? null,
+                    'phone' => $node['tags']['phone'] ?? null
+                ] : null;
+            };
+
+            $hotels = array_values(array_filter(array_map('normalizeNode', $hotelsData)));
+            $museums = array_values(array_filter(array_map('normalizeNode', $museumsData)));
+
             http_response_code(200);
-            echo json_encode(['data' => $decodedResponse]);
-        }   
+            echo json_encode(['data' => ['hotels' => $hotels, 'museums' => $museums]]);
+            exit;
     }

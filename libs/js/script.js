@@ -10,21 +10,23 @@ jQuery(() => {
   }
 });
 
-$.ajax({
-  url: '/api/ipinfo',
-  method: 'GET',
-  data: 'json',
-  success: ({ data }) => {
-    userGeo = data;
+mapPromise.then((map) => {
+  $.ajax({
+    url: '/api/ipinfo',
+    method: 'GET',
+    data: 'json',
+    success: ({ data }) => {
+      userGeo = data;
 
-    const latLong = userGeo.loc.split(',');
-    map.setCenter([latLong[1], latLong[0]]);
-  },
-  error: (xhr) => {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  },
+      const latLong = userGeo.loc.split(',');
+      map.setCenter([latLong[1], latLong[0]]);
+    },
+    error: (xhr) => {
+      const res = JSON.parse(xhr.responseText);
+      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+      console.log(`Response Text: ${res.details}`);
+    },
+  });
 });
 
 let allCountriesGeoJSON = null;
@@ -60,6 +62,7 @@ $.ajax({
   method: 'GET',
   dataType: 'json',
   success: (res) => {
+    console.log(res.data);
     categories = res.data;
   },
   error: (xhr) => {

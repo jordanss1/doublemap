@@ -19,6 +19,8 @@
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
     if ($path[2] === 'search') {
+        checkRequestCount('search');
+
         $query = $queriesFormatted['q'];
         $proximity = $queriesFormatted['proximity'];
 
@@ -33,7 +35,16 @@
 
             $response = fetchApiCall($url, true);
 
+            incrementRequestCount('search');
+
             $decodedResponse = decodeResponse($response);
+
+            if (isset($decodedResponse['error'])) {
+                curl_close($ch);                    
+                http_response_code(500);
+                echo json_encode($decodedResponse);
+                exit;
+            }
 
             http_response_code(200);
             echo json_encode(['data' => $decodedResponse['features']]);

@@ -5,8 +5,6 @@ services:
       dockerfile: Dockerfile
       args:
         MODE: development
-        MAPBOX_TOKEN_JS: ${MAPBOX_TOKEN_JS}
-        MAPBOX_BUILD_SPRITES: ${MAPBOX_BUILD_SPRITES}
     container_name: web
     ports:
       - 8080:8080

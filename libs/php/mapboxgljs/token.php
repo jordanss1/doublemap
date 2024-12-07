@@ -22,7 +22,7 @@
         $date->modify('+30 seconds');
         $formattedDate = $date->format('Y-m-d\TH:i:s.000\Z');
 
-        $request_body = ["expires" => $formattedDate, "scopes" => ["fonts:read"]];
+        $request_body = ["expires" => $formattedDate, "scopes" => ["styles:read", "styles:tiles", "fonts:read"]];
 
         $ch = curl_init($url);
 
@@ -41,21 +41,39 @@
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $response = curl_exec($ch);
+     
+        if ($response === false || curl_errno($ch)) {
+            $try = 0;
 
-        if (curl_errno($ch)) {
-            http_response_code(500);
-            echo json_encode(["error" => "Error retrieving token", "Error retrieving token due to {curl_error($ch)}"]);
-            exit;
+            while ($try < 5) {
+                $try++;
+                $endOnError = $try === 5;
+
+                $response = curl_exec($ch);
+
+                if ($response !== false) break;
+
+                if ($try === 5 && ($response === false || curl_errno($ch))) {
+                    curl_close($ch);                    
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Error retrieving map style', 'details' => 'Failed to retrieve the map style after multiple attempts']);
+                    exit;
+                }
+
+                usleep(500000);
+            }
         }
 
         $decodedResponse = decodeResponse($response);
 
         if (isset($decodedResponse['error'])) {
+            curl_close($ch);                    
             http_response_code(500);
             echo json_encode($decodedResponse);
             exit;
         }
 
+        curl_close($ch);                    
         http_response_code(200);
         echo json_encode(['data' => $decodedResponse]);
     }

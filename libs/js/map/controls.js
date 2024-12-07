@@ -1,94 +1,137 @@
 /// <reference path="../jquery.js" />
 
-$('#zoom-in').on('click', () => {
-  let currentZoom = map.getZoom();
-  map.easeTo({ zoom: currentZoom + 0.3 });
-});
-
-$('#zoom-out').on('click', () => {
-  let currentZoom = map.getZoom();
-
-  map.easeTo({ zoom: currentZoom - 0.3 });
-});
-
-$('#style-control').on('click', async () => {
-  await getToken();
-  const currentIndex = baseLayers.findIndex(
-    ({ name }) => name === currentBaseLayer
-  );
-
-  const newIndex =
-    currentIndex === baseLayers.length - 1 ? 0 : currentIndex + 1;
-
-  map.setStyle(baseLayers[newIndex].style);
-  currentBaseLayer = baseLayers[newIndex].name;
-
-  localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
-});
-
-$('#search').on('keydown', (e) => {
-  let value = e.target.value;
-
-  if (e.key === 'Enter' && value.length) {
-    getSearchResults(value);
-  }
-});
-
-$('#search').on('input', (e) => {
-  let value = e.target.value;
-  if (value.length) {
-    categorySearchOption(value);
-  }
-});
-
-$('#country-select').on('click', '#country-option', ({ target }) => {
-  console.log(target);
-  getCountryData(target.value);
-});
-
-$('#search-normal').on('click', '#search-normal-item', function (e) {
-  const { coordinates, feature_type } = searchResults[$(this).data('value')];
-  const coords = [coordinates.longitude, coordinates.latitude]; // Southwest corner
-
-  const zoom = feature_type === 'poi' ? 16 : 10;
-
-  map.flyTo({
-    center: coords,
-    speed: 3,
-    curve: 1.7,
-    zoom,
-  });
-});
-
-map.on('click', (e) => {
-  const features = map.queryRenderedFeatures(e.point, {
-    layers: ['poi-label'], // This is typically the layer name for POIs in Mapbox styles
+mapPromise.then((map) => {
+  $('#zoom-in').on('click', () => {
+    let currentZoom = map.getZoom();
+    map.easeTo({ zoom: currentZoom + 0.3 });
   });
 
-  if (features.length > 0) {
-    const poi = features[0];
-    console.log('POI details:', poi.properties);
+  $('#zoom-out').on('click', () => {
+    let currentZoom = map.getZoom();
 
-    // You can use this data to display a popup or update your UI
-    new mapboxgl.Popup()
-      .setLngLat(e.lngLat)
-      .setHTML(
-        `<h3>${poi.properties.name}</h3><p>Type: ${poi.properties.type}</p>`
-      )
-      .addTo(map);
-  }
+    map.easeTo({ zoom: currentZoom - 0.3 });
+  });
+
+  $('#style-control').on('click', async () => {
+    await getToken();
+
+    const currentIndex = styles.findIndex(
+      (style) => currentBaseLayer === style.name
+    );
+    const nextIndex = currentIndex === styles.length - 1 ? 0 : currentIndex + 1;
+
+    map.setStyle(styles[nextIndex].url, {
+      diff: true,
+      config: { basemap: { showPointOfInterestLabels: false } },
+    });
+
+    currentBaseLayer = styles[nextIndex].name;
+
+    localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
+  });
+
+  $('#search').on('keydown', (e) => {
+    let value = e.target.value;
+
+    if (e.key === 'Enter' && value.length) {
+      getSearchResults(value);
+    }
+  });
+
+  $('#search').on('input', (e) => {
+    let value = e.target.value.trim();
+
+    if (value.length) {
+      const closestMatch = categorySearchOption(value);
+
+      if (closestMatch) {
+        const categoryName = closestMatch.name.toLowerCase();
+        const normalizedText = value
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+
+        $('#search-category').children().remove();
+
+        $('#search-category').append(
+          /*html*/ `<div id='search-category-item' data-value='${closestMatch.canonical_id}'>${closestMatch.name} near</div>`
+        );
+
+        const regex = new RegExp(`^${categoryName}(\\s)`, 'i');
+
+        const areaToSearch = normalizedText
+          .slice(categoryName.length)
+          .split(/\s+/)
+          .filter(Boolean);
+
+        if (normalizedText.length > 0 && areaToSearch[0]) {
+          const prepositions = ['near', 'around', 'in'];
+
+          if (regex.test(normalizedText)) {
+            if (prepositions.includes(areaToSearch[0])) {
+              $('#search-category-item').append(
+                ` ${areaToSearch.slice(1).join(' ')}`
+              );
+            } else {
+              $('#search-category-item').append(` ${areaToSearch.join(' ')}`);
+            }
+          } else {
+            $('#search-category').children().remove();
+          }
+        }
+      } else {
+        $('#search-category').children().remove();
+      }
+    } else {
+      $('#search-category').children().remove();
+    }
+  });
+
+  $('#country-select').on('click', '#country-option', ({ target }) => {
+    getCountryData(target.value);
+  });
+
+  $('#search-category').on('click', '#search-category-item', (e) => {
+    const category = $(this).data('value');
+
+    $.ajax({
+      url: `/api/mapboxgljs/category?category=${category}`,
+      method: 'POST',
+      dataType: 'json',
+      data: {},
+      success: () => {},
+      error: () => {},
+    });
+  });
+
+  $('#search-normal').on('click', '#search-normal-item', function (e) {
+    const { coordinates, feature_type } = searchResults[$(this).data('value')];
+    const coords = [coordinates.longitude, coordinates.latitude]; // Southwest corner
+
+    const zoom = feature_type === 'poi' ? 16 : 10;
+
+    map.flyTo({
+      center: coords,
+      speed: 3,
+      curve: 1.7,
+      zoom,
+    });
+  });
 });
 
 function categorySearchOption(value) {
   const closestMatch = categories.reduce((bestMatch, current) => {
-    let newValue = value.toLowerCase();
-    let currentName = current.name.toLowerCase();
-
+    const newValue = value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    const currentName = current.name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
     if (
-      currentName.indexOf(newValue) !== -1 &&
-      (bestMatch === null ||
-        currentName.indexOf(newValue) <
-          bestMatch.name.toLowerCase().indexOf(newValue))
+      (currentName.includes(newValue) || newValue.includes(currentName)) &&
+      (bestMatch === null || currentName.length > bestMatch.name.length)
     ) {
       return current;
     }
@@ -96,11 +139,5 @@ function categorySearchOption(value) {
     return bestMatch;
   }, null);
 
-  $('#search-category').children().remove();
-
-  if (closestMatch) {
-    $('#search-category').append(
-      /*html*/ `<div data-value='${closestMatch.canonical_id}'>${closestMatch.name}</div>`
-    );
-  }
+  return closestMatch;
 }

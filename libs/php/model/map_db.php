@@ -56,6 +56,19 @@
 
 
                 break;
+            case "search":
+                $limit = 50000;
+                $rejectRequest = $requests >= $limit - 1;  
+
+
+                if ($rejectRequest) {
+                    http_response_code(429);
+                    echo json_encode(['error' => 'Request limit for mapbox gl reached', 'details' => 'Request limit reached map will not render']);
+                    exit;
+                }
+
+
+                break;
             default: 
                 http_response_code(429);
                 echo json_encode(['error' => 'Api name could not be found', 'details' => 'Api name not found']);
@@ -63,7 +76,7 @@
         }
     }
 
-    function checkRequestCount ($api_name) {
+    function    checkRequestCount ($api_name) {
         global $db;
 
         $query = "SELECT * FROM request_counts WHERE api_name = :api_name";
