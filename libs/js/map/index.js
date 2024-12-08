@@ -11,7 +11,7 @@ const styles = [
   { name: 'Dark', url: 'mapbox://styles/mapbox/navigation-night-v1' },
 ];
 
-let categories;
+let categoryList = [];
 let userGeo;
 let searchResults = [];
 
@@ -39,7 +39,7 @@ const getToken = () => {
       success: ({ data }) => {
         mapboxgl.accessToken = data.token;
         tokenCache.token = data.token;
-        tokenCache.expiresAt = Date.now() + 30 * 1000;
+        tokenCache.expiresAt = Date.now() + 60 * 1000;
 
         resolve(data.token);
       },

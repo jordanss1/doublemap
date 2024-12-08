@@ -82,3 +82,89 @@
 
         return [$path, $queriesFormatted];
     }
+
+
+    function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+        $earthRadius = 6371; 
+    
+        $lat1 = deg2rad($lat1);
+        $lon1 = deg2rad($lon1);
+        $lat2 = deg2rad($lat2);
+        $lon2 = deg2rad($lon2);
+        
+        $dLat = $lat2 - $lat1;
+        $dLon = $lon2 - $lon1;
+    
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+                cos($lat1) * cos($lat2) *
+                sin($dLon / 2) * sin($dLon / 2);
+    
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    
+        return $earthRadius * $c; 
+    }
+
+    function normalizeNode ($node, $queryKey)  {
+        $name = $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
+
+        if (!$name || !isset($node['tags'][$queryKey])) {
+            return null;
+        }
+
+        return [
+            'lat' => $node['lat'],
+            'lon' => $node['lon'],
+            'name' => $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null,
+            'housenumber' => $node['tags']['addr:housenumber'] ?? null,
+            'street' => $node['tags']['addr:street'] ?? null,
+            'postcode' => $node['tags']['addr:postcode'] ?? null,
+            'city' => $node['tags']['addr:city'] ?? null,
+            'country' => $node['tags']['addr:country'] ?? null,
+            'type' => $node['tags'][$queryKey] ?? null,
+            'website' => $node['tags']['website'] ?? $node['tags']['contact:website'] ?? null,
+            'phone' => $node['tags']['phone'] ?? null
+         ];
+    };
+
+    function findNearbyNodesAndNormalize ($nodes, $centerLat, $centerLng, $queryKey, $maxNodes = 30) {
+        $targetDistance = 10;
+        $targetCount = 20;
+        $maxCount = $maxNodes;
+        $filteredNodes = [];
+
+        while (true) {
+            $filteredNodes = array_filter($nodes, function ($node) 
+            use ($centerLat, $centerLng, $targetDistance) {
+                $totalDistance = calculateDistance($centerLat, $centerLng, $node['lat'], $node['lon']);
+                return $totalDistance <= $targetDistance;
+            });
+
+            $filteredNodes = array_map(function ($node) use ($queryKey) {
+                return normalizeNode($node, $queryKey);
+            }, $filteredNodes);
+
+            if (count($filteredNodes) < $targetCount) {
+                $targetDistance += 5;
+                continue;
+            }
+
+            $filteredNodes = array_values(array_filter($filteredNodes));
+
+            usort($filteredNodes, function($a, $b) use ($centerLat, $centerLng) {
+                $distanceA = calculateDistance($centerLat, $centerLng, $a['lat'], $a['lon']);
+                $distanceB = calculateDistance($centerLat, $centerLng, $b['lat'], $b['lon']);
+                return $distanceA <=> $distanceB; 
+            });
+
+            if (count($filteredNodes) > $maxCount) {
+                $filteredNodes = array_slice($filteredNodes, 0, $maxCount);
+                break;
+            } 
+
+            if ($targetDistance === 100) {
+                break;
+            }
+        }
+
+        return $filteredNodes;
+    }

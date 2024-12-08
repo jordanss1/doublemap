@@ -13,7 +13,7 @@
         exit;
     }
 
-    [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl, false);
+    [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
     $inputData = file_get_contents('php://input');
 
@@ -36,10 +36,16 @@
     $ne_lat = $bounds['_ne']['lat'];
     $ne_lng = $bounds['_ne']['lng'];
 
+    $centerLat = ($sw_lat + $ne_lat) / 2;
+    $centerLng = ($sw_lng + $ne_lng) / 2;
 
     if ($path[2] === 'pois') {
-            $url = 'https://overpass-api.de/api/interpreter?data=';
-            $query = "[out:json];(node['tourism'='museum']($sw_lat,$sw_lng,$ne_lat,$ne_lng);node['tourism'='hotel']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
+        $category = $queriesFormatted['category'];
+        $url = 'https://overpass-api.de/api/interpreter?data=';
+
+        if ($category === 'default') {
+            $queryKey = 'tourism';
+            $query = "[out:json];(node['$queryKey'='museum']($sw_lat,$sw_lng,$ne_lat,$ne_lng);node['$queryKey'='hotel']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
 
             $response = fetchApiCall($url . urlencode($query), true);
 
@@ -51,65 +57,229 @@
                 exit;
             }
 
-            $museumsData = array_filter($decodedResponse['elements'], function($node) {
-                return isset($node['tags']['tourism']) && $node['tags']['tourism'] === 'museum';
-            });
+            $decodedResponse = $decodedResponse['elements'];
 
-            $hotelsData = array_filter($decodedResponse['elements'], function($node) {
-                return isset($node['tags']['tourism']) && $node['tags']['tourism'] === 'hotel';
-            });
-
-            $centerLat = ($sw_lat + $ne_lat) / 2;
-            $centerLng = ($sw_lng + $ne_lng) / 2;
-
-            function calculateDistance($lat1, $lon1, $lat2, $lon2) {
-                $earthRadius = 6371; 
-            
-                $lat1 = deg2rad($lat1);
-                $lon1 = deg2rad($lon1);
-                $lat2 = deg2rad($lat2);
-                $lon2 = deg2rad($lon2);
-                
-                $dLat = $lat2 - $lat1;
-                $dLon = $lon2 - $lon1;
-            
-                $a = sin($dLat / 2) * sin($dLat / 2) +
-                     cos($lat1) * cos($lat2) *
-                     sin($dLon / 2) * sin($dLon / 2);
-            
-                $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-            
-                return $earthRadius * $c; 
+            if (!isset($decodedResponse) || !count($decodedResponse)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
+                exit;
             }
 
-            function normalizeNode ($node)  {
-                global $centerLat;
-                global $centerLng;
+            $allNodesList = [
+                'museum' => [],
+                'hotel' => [],
+            ];
 
-                $distance = calculateDistance($centerLat, $centerLng, $node['lat'], $node['lon']);
+            foreach ($decodedResponse as $currentNode) {
+                if (isset($currentNode['tags'][$queryKey]) && array_key_exists($currentNode['tags'][$queryKey], $allNodesList)) {
+                    $allNodesList[$currentNode['tags'][$queryKey]][] = $currentNode;
+                }
+            }
 
-                $name = $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
+            $filteredResult = [];
 
-                return $distance <= 10 && $name ? 
-                 [
-                    'lat' => $node['lat'],
-                    'lon' => $node['lon'],
-                    'name' => $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null,
-                    'housenumber' => $node['tags']['addr:housenumber'] ?? null,
-                    'street' => $node['tags']['addr:street'] ?? null,
-                    'postcode' => $node['tags']['addr:postcode'] ?? null,
-                    'city' => $node['tags']['addr:city'] ?? null,
-                    'country' => $node['tags']['addr:country'] ?? null,
-                    'type' => $node['tags']['tourism'] ?? null,
-                    'website' => $node['tags']['website'] ?? $node['tags']['contact:website'] ?? null,
-                    'phone' => $node['tags']['phone'] ?? null
-                ] : null;
-            };
-
-            $hotels = array_values(array_filter(array_map('normalizeNode', $hotelsData)));
-            $museums = array_values(array_filter(array_map('normalizeNode', $museumsData)));
+            foreach ($allNodesList as $nodeList) {
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 20));
+            }
 
             http_response_code(200);
-            echo json_encode(['data' => ['hotels' => $hotels, 'museums' => $museums]]);
+            echo json_encode(['data' => $filteredResult]);
             exit;
+        
+        } else if ($category === 'shopping') {
+            $queryKey = 'shop';
+            $query = "[out:json];(node['$queryKey'='supermarket']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='convenience']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='clothes']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='mall']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
+
+            $response = fetchApiCall($url . urlencode($query), true);
+
+            $decodedResponse = decodeResponse($response);
+
+            if (isset($decodedResponse['error'])) {
+                http_response_code(500);
+                echo json_encode($decodedResponse);
+                exit;
+            }
+
+            $decodedResponse = $decodedResponse['elements'];
+
+            if (!isset($decodedResponse) || !count($decodedResponse)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
+            $allNodesList = [
+                'supermarket' => [],
+                'convenience' => [],
+                'clothes' => [],
+                'mall' => []
+            ];
+
+            foreach ($decodedResponse as $currentNode) {
+                if (isset($currentNode['tags']['shop']) && array_key_exists($currentNode['tags']['shop'], $allNodesList)) {
+                    $allNodesList[$currentNode['tags']['shop']][] = $currentNode;
+                } 
+            }
+
+            $filteredResult = [];
+
+            foreach ($allNodesList as $nodeList) {
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+            }
+
+            http_response_code(200);
+            echo json_encode(['data' => $filteredResult]);
+            exit;
+
+            
+        } else if ($category === 'health_services') {
+            $queryKey = 'amenity';
+            $query = "[out:json];(node['$queryKey'='hospital']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='clinic']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='pharmacy']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+            node['$queryKey'='doctors']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
+
+            $response = fetchApiCall($url . urlencode($query), true);
+
+            $decodedResponse = decodeResponse($response);
+
+            if (isset($decodedResponse['error'])) {
+                http_response_code(500);
+                echo json_encode($decodedResponse);
+                exit;
+            }
+
+            $decodedResponse = $decodedResponse['elements'];
+
+            if (!isset($decodedResponse) || !count($decodedResponse)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
+            $allNodesList = [
+                "hospital" => [],
+                "clinic" => [],
+                "pharmacy" => [],
+                "doctors" => [],
+            ];
+
+            foreach ($decodedResponse as $currentNode) {
+                if (isset($currentNode['tag'][$queryKey]) && array_key_exists($currentNode['tag'][$queryKey], $allNodesList)) {
+                    $allNodesList[$currentNode['tag'][$queryKey]][] = $currentNode;
+                }
+            }
+
+            $filteredResult = [];
+
+            foreach ($allNodesList as $nodeList) {
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+            }
+
+            http_response_code(200);
+            echo json_encode(['data' => $filteredResult]);
+            exit;
+
+
+        } else if ($category === 'food_and_drink') {
+           $query = "[out:json];(
+                node['amenity'='restaurant']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['amenity'='cafe']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['amenity'='fast_food']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['amenity'='pub']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['amenity'='bar']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                );out;";
+
+            $response = fetchApiCall($url . urlencode($query), true);
+
+            $decodedResponse = decodeResponse($response);
+
+            if (isset($decodedResponse['error'])) {
+                http_response_code(500);
+                echo json_encode($decodedResponse);
+                exit;
+            }
+
+            $decodedResponse = $decodedResponse['elements'];
+
+            if (!isset($decodedResponse) || !count($decodedResponse)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
+            $allNodesList = [
+                "restaurant" => [],
+                "cafe" => [],
+                "fast_food" => [],
+                "pub" => [],
+                "bar" => [],
+            ];
+
+            foreach ($decodedResponse as $currentNode) {
+                if (isset($currentNode['tag'][$queryKey]) && array_key_exists($currentNode['tag'][$queryKey], $allNodesList)) {
+                    $allNodesList[$currentNode['tag'][$queryKey]][] = $currentNode;
+                }
+            }
+
+            $filteredResult = [];
+
+            foreach ($allNodesList as $nodeList) {
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 5));
+            }
+
+            http_response_code(200);
+            echo json_encode(['food_and_drink' => $decodedResponse]);
+            exit;
+        }  else {
+            $queryKey = '';
+            $categoriesThatAreAmenities = ['post_office', 'park', 'restaurant', 'cinema', 'bank', 'hospital', 'cafe', 'coffee'];
+            $categoryKey = '=' . "'$category'";
+
+            if ($category === 'supermarket') {
+                $queryKey = 'shop';
+            } 
+
+            if ($category === 'entertainment') {
+                $queryKey = 'leisure';
+                $categoryKey = '';
+            }
+
+            if (in_array($category, $categoriesThatAreAmenities)) {
+                $queryKey = 'amenity';
+            }
+
+            if ($category === 'hotel' || $category === 'museum') {
+                $queryKey = 'tourism';
+            }
+
+            $query = "[out:json];node['$queryKey'$categoryKey]($sw_lat,$sw_lng,$ne_lat,$ne_lng);out;";
+
+            $response = fetchApiCall($url . urlencode($query), true);
+
+            $decodedResponse = decodeResponse($response);
+
+            if (isset($decodedResponse['error'])) {
+                http_response_code(500);
+                echo json_encode($decodedResponse);
+                exit;
+            }
+
+            $decodedResponse = $decodedResponse['elements'];
+
+            if (!isset($decodedResponse) || !count($decodedResponse)) {
+                http_response_code(200);
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
+            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey);
+
+            http_response_code(200);
+            echo json_encode([$category => $decodedResponse]);
+            exit;
+        }        
     }

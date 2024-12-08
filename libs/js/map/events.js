@@ -48,10 +48,10 @@ mapPromise.then((map) => {
     clearTimeout(timeout);
 
     timeout = setTimeout(() => {
-      if (zoom > 10) {
-        getOverpassPois(bounds);
+      if (zoom > 11) {
+        getOverpassPois(bounds, 'default');
       }
-    }, 500);
+    }, 800);
   });
 
   map.on('sourcedata', async (e) => {
@@ -141,24 +141,16 @@ mapPromise.then((map) => {
             5,
             10, // Even thicker line at zoom level 10
           ],
-          'line-blur': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            1,
-            5, 
-            5,
-            8, 
-          ],
+          'line-blur': ['interpolate', ['linear'], ['zoom'], 1, 5, 5, 8],
         },
       });
     }
   });
 });
 
-function getOverpassPois(bounds) {
+function getOverpassPois(bounds, category) {
   $.ajax({
-    url: `/api/overpass/pois`,
+    url: `/api/overpass/pois?category=${category}`,
     method: 'POST',
     contentType: 'application/json',
     dataType: 'json',

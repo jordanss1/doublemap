@@ -63,7 +63,7 @@ $.ajax({
   dataType: 'json',
   success: (res) => {
     console.log(res.data);
-    categories = res.data;
+    categoryList = res.data;
   },
   error: (xhr) => {
     const res = JSON.parse(xhr.responseText);

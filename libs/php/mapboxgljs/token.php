@@ -19,7 +19,7 @@
     if ($path[2] === 'token') {
         $url = "https://api.mapbox.com/tokens/v2/{$_ENV['MAPBOX_USERNAME']}?access_token={$_ENV['MAPBOX_TOKEN_PHP']}";
         $date = new DateTime('now', new DateTimeZone('UTC'));
-        $date->modify('+30 seconds');
+        $date->modify('+60 seconds');
         $formattedDate = $date->format('Y-m-d\TH:i:s.000\Z');
 
         $request_body = ["expires" => $formattedDate, "scopes" => ["styles:read", "styles:tiles", "fonts:read"]];

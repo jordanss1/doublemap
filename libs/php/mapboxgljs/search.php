@@ -9,7 +9,6 @@
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 
-
     if (!$parsedUrl) {
         http_response_code(401);
         echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
@@ -24,13 +23,10 @@
         $query = $queriesFormatted['q'];
         $proximity = $queriesFormatted['proximity'];
 
-        
-
         if (isset($query)) {
             $query = trim(strip_tags($query));
             $query = urlencode($query);
             
-
             $url = "https://api.mapbox.com/search/searchbox/v1/forward?q=$query&limit=10&auto_complete=true&proximity=$proximity&access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
             $response = fetchApiCall($url, true);
