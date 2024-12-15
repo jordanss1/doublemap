@@ -17,9 +17,29 @@ mapPromise.then((map) => {
     data: 'json',
     success: ({ data }) => {
       userGeo = data;
-
       const latLong = userGeo.loc.split(',');
-      map.setCenter([latLong[1], latLong[0]]);
+      const latitude = parseFloat(latLong[0]);
+      const longitude = parseFloat(latLong[1]);
+
+      mostRecentLocation = {
+        latitude,
+        longitude,
+        context: {
+          iso_a2: userGeo.country,
+          region: userGeo.region,
+          place: userGeo.city,
+          neighborhood: null,
+          district: null,
+          name: null,
+        },
+      };
+
+      map.flyTo({
+        center: [longitude, latitude],
+        speed: 0.5,
+        curve: 2,
+        zoom: 3,
+      });
     },
     error: (xhr) => {
       const res = JSON.parse(xhr.responseText);
@@ -73,13 +93,14 @@ $.ajax({
 });
 
 function getSearchResults(value) {
-  const latLong = userGeo.loc.split(',');
   const proximity =
-    latLong.length === 2 ? `${latLong[1].trim()},${latLong[0].trim()}` : 'ip';
+    mostRecentLocation.latitude && mostRecentLocation.longitude
+      ? `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`
+      : 'ip';
 
   if (value.length) {
     $.ajax({
-      url: `/api/mapboxgljs/search?q=${value}&proximity=${proximity}`,
+      url: `/api/mapboxgljs/search?q=${value}&proximity=${proximity}&endpoint=forward`,
       method: 'GET',
       dataType: 'json',
       success: ({ data }) => {
@@ -89,6 +110,7 @@ function getSearchResults(value) {
           data.forEach(({ properties }, i) => {
             searchResults.push(properties);
             const name = createFeatureName(properties);
+
             $('#search-normal').append(
               `<div id='search-normal-item' data-value=${i}>${name}</div>`
             );
@@ -107,16 +129,19 @@ function getSearchResults(value) {
 }
 
 function createFeatureName(feature) {
-  console.log(feature);
-  const { name, feature_type, full_address } = feature;
+  const { name, feature_type, full_address, place_formatted, name_preferred } =
+    feature;
 
   if (feature_type === 'poi') {
     return `${name}, ${full_address}`;
-    // ${address ? `, ${address.name}` : ''}${locality ? `, ${locality.name}` : ''}${locality ? `, ${locality.name}` : ''}${
-    //   place ? `, ${place.name}` : ''
-    // }`
+  } else if (feature_type === 'address') {
+    return full_address;
+  } else if (feature_type === 'street') {
+    return `${name_preferred || name}, ${place_formatted}`;
+  } else if (feature_type === 'country') {
+    return name;
   } else {
-    return `${feature.place_formatted || feature.name_preferred}`;
+    return `${place_formatted || name_preferred}`;
   }
 }
 

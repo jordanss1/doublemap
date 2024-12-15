@@ -48,7 +48,7 @@ mapPromise.then((map) => {
     clearTimeout(timeout);
 
     timeout = setTimeout(() => {
-      if (zoom > 11) {
+      if (zoom > 10) {
         getOverpassPois(bounds, 'default');
       }
     }, 800);
@@ -149,6 +149,7 @@ mapPromise.then((map) => {
 });
 
 function getOverpassPois(bounds, category) {
+  console.log(bounds);
   $.ajax({
     url: `/api/overpass/pois?category=${category}`,
     method: 'POST',

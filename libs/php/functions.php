@@ -18,6 +18,8 @@
         } 
     }
 
+   
+
     function fetchApiCall ($url, $endOnError) {
         $ch = null;
 
@@ -126,44 +128,23 @@
          ];
     };
 
-    function findNearbyNodesAndNormalize ($nodes, $centerLat, $centerLng, $queryKey, $maxNodes = 30) {
-        $targetDistance = 10;
-        $targetCount = 20;
-        $maxCount = $maxNodes;
+    function findNearbyNodesAndNormalize ($nodes, $centerLat, $centerLng, $queryKey, $maxCount) {
         $filteredNodes = [];
 
-        while (true) {
-            $filteredNodes = array_filter($nodes, function ($node) 
-            use ($centerLat, $centerLng, $targetDistance) {
-                $totalDistance = calculateDistance($centerLat, $centerLng, $node['lat'], $node['lon']);
-                return $totalDistance <= $targetDistance;
-            });
+        $filteredNodes = array_map(function ($node) use ($queryKey) {
+            return normalizeNode($node, $queryKey);
+        }, $nodes);
 
-            $filteredNodes = array_map(function ($node) use ($queryKey) {
-                return normalizeNode($node, $queryKey);
-            }, $filteredNodes);
+        $filteredNodes = array_values(array_filter($filteredNodes));
 
-            if (count($filteredNodes) < $targetCount) {
-                $targetDistance += 5;
-                continue;
-            }
+        usort($filteredNodes, function($a, $b) use ($centerLat, $centerLng) {
+            $distanceA = calculateDistance($centerLat, $centerLng, $a['lat'], $a['lon']);
+            $distanceB = calculateDistance($centerLat, $centerLng, $b['lat'], $b['lon']);
+            return $distanceA <=> $distanceB; 
+        });
 
-            $filteredNodes = array_values(array_filter($filteredNodes));
-
-            usort($filteredNodes, function($a, $b) use ($centerLat, $centerLng) {
-                $distanceA = calculateDistance($centerLat, $centerLng, $a['lat'], $a['lon']);
-                $distanceB = calculateDistance($centerLat, $centerLng, $b['lat'], $b['lon']);
-                return $distanceA <=> $distanceB; 
-            });
-
-            if (count($filteredNodes) > $maxCount) {
-                $filteredNodes = array_slice($filteredNodes, 0, $maxCount);
-                break;
-            } 
-
-            if ($targetDistance === 100) {
-                break;
-            }
+        if (count($filteredNodes) > $maxCount) {
+            $filteredNodes = array_slice($filteredNodes, 0, $maxCount);
         }
 
         return $filteredNodes;

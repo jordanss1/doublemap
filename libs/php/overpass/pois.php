@@ -168,8 +168,8 @@
             ];
 
             foreach ($decodedResponse as $currentNode) {
-                if (isset($currentNode['tag'][$queryKey]) && array_key_exists($currentNode['tag'][$queryKey], $allNodesList)) {
-                    $allNodesList[$currentNode['tag'][$queryKey]][] = $currentNode;
+                if (isset($currentNode['tags'][$queryKey]) && array_key_exists($currentNode['tags'][$queryKey], $allNodesList)) {
+                    $allNodesList[$currentNode['tags'][$queryKey]][] = $currentNode;
                 }
             }
 
@@ -177,12 +177,12 @@
 
             foreach ($allNodesList as $nodeList) {
                 $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+                
             }
 
             http_response_code(200);
             echo json_encode(['data' => $filteredResult]);
             exit;
-
 
         } else if ($category === 'food_and_drink') {
            $query = "[out:json];(
@@ -203,6 +203,7 @@
                 exit;
             }
 
+            
             $decodedResponse = $decodedResponse['elements'];
 
             if (!isset($decodedResponse) || !count($decodedResponse)) {
@@ -220,15 +221,16 @@
             ];
 
             foreach ($decodedResponse as $currentNode) {
-                if (isset($currentNode['tag'][$queryKey]) && array_key_exists($currentNode['tag'][$queryKey], $allNodesList)) {
-                    $allNodesList[$currentNode['tag'][$queryKey]][] = $currentNode;
+                if (isset($currentNode['tags'][$queryKey]) && array_key_exists($currentNode['tags'][$queryKey], $allNodesList)) {
+                    $allNodesList[$currentNode['tags'][$queryKey]][] = $currentNode;
                 }
             }
 
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 5));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+                
             }
 
             http_response_code(200);
@@ -276,7 +278,7 @@
                 exit;
             }
 
-            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey);
+            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey, 30);
 
             http_response_code(200);
             echo json_encode([$category => $decodedResponse]);

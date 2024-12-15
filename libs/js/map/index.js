@@ -13,6 +13,7 @@ const styles = [
 
 let categoryList = [];
 let userGeo;
+let mostRecentLocation;
 let searchResults = [];
 
 let tokenCache = {
