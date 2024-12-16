@@ -28,7 +28,6 @@ const tokenIsValid = () => {
 const getToken = () => {
   return new Promise(async (resolve, reject) => {
     if (tokenIsValid()) {
-      console.log('Using cached token');
       resolve(tokenCache.token);
       return;
     }
@@ -74,7 +73,10 @@ const initialiseMap = () => {
           center: [30, 15],
         });
 
+
         map.on('load', () => {
+
+
           if (currentBaseLayer === 'Dark') {
             nightNavStyles(map);
           }

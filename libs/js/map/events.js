@@ -41,15 +41,17 @@ mapPromise.then((map) => {
 
   let timeout;
 
-  map.on('move', () => {
+  map.on('move', async () => {
     const zoom = map.getZoom();
     const bounds = map.getBounds();
 
     clearTimeout(timeout);
 
-    timeout = setTimeout(() => {
-      if (zoom > 10) {
-        getOverpassPois(bounds, 'default');
+    timeout = setTimeout(async () => {
+      if (zoom > 11) {
+        const pois = await getOverpassPois(bounds, 'default');
+
+        addPoiSourceAndLayer(pois);
       }
     }, 800);
   });
@@ -64,8 +66,8 @@ mapPromise.then((map) => {
     await getToken();
 
     const currentStyle = map.getStyle();
-    console.log('Current style name:', currentStyle.name);
-    console.log('Full style object:', JSON.stringify(currentStyle, null, 2));
+
+    map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
 
     if (currentStyle.name === 'Mapbox Navigation Night') {
       nightNavStyles(map);
@@ -148,14 +150,76 @@ mapPromise.then((map) => {
   });
 });
 
-function getOverpassPois(bounds, category) {
-  console.log(bounds);
-  $.ajax({
-    url: `/api/overpass/pois?category=${category}`,
-    method: 'POST',
-    contentType: 'application/json',
-    dataType: 'json',
-    data: JSON.stringify(bounds),
-    success: (res) => console.log(res),
-  });
+async function getOverpassPois(bounds, category) {
+  try {
+    const { data } = await $.ajax({
+      url: `/api/overpass/pois?category=${category}`,
+      method: 'POST',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify(bounds),
+    });
+
+    return data;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function addPoiSourceAndLayer(pois) {
+  if (pois && pois.length) {
+    if (!map.getSource('moving-pois')) {
+      map.addSource('moving-pois', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: pois },
+      });
+    } else {
+      map
+        .getSource('moving-pois')
+        .setData({ type: 'FeatureCollection', features: pois });
+    }
+
+    categoryList.forEach(({ icon, canonical_id }) => {
+      map.loadImage(
+        `../../../assets/category-icons/${canonical_id}.png`,
+        (error, image) => {
+          if (error) throw error;
+          map.addImage(icon, image);
+        }
+      );
+    });
+
+    if (map.hasImage('lodging')) {
+      console.log('Lodging image is available');
+    } else {
+      console.log('Lodging image is not available');
+    }
+
+    map.addLayer({
+      id: 'poi-layer',
+      type: 'symbol',
+      source: 'moving-pois',
+      layout: {
+        'icon-image': [
+          'match',
+          ['get', 'canonical_id'],
+          // ...categoryList.map(({ icon, canonical_id }) => {
+          //   return canonical_id, icon;
+          // }),
+          'hotel',
+          'lodging',
+          'museum',
+          'museum',
+          'marker-15',
+        ],
+        'icon-size': 0.7,
+        'text-field': ['get', 'name'],
+        'text-offset': [0, 1.5],
+        'text-anchor': 'top',
+      },
+      paint: {
+        'text-color': '#ffffff',
+      },
+    });
+  }
 }

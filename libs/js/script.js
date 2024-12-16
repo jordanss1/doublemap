@@ -136,7 +136,11 @@ function createFeatureName(feature) {
     return `${name}, ${full_address}`;
   } else if (feature_type === 'address') {
     return full_address;
-  } else if (feature_type === 'street') {
+  } else if (
+    feature_type === 'street' ||
+    feature_type === 'place' ||
+    feature_type === 'locality'
+  ) {
     return `${name_preferred || name}, ${place_formatted}`;
   } else if (feature_type === 'country') {
     return name;
@@ -145,29 +149,26 @@ function createFeatureName(feature) {
   }
 }
 
-function getCountryData(iso_a2) {
-  $.ajax({
-    url: `/api/countries?country=${iso_a2}`,
-    method: 'GET',
-    dataType: 'json',
+async function getCountryData(iso_a2) {
+  try {
+    const { data } = await $.ajax({
+      url: `/api/countries?country=${iso_a2}`,
+      method: 'GET',
+      dataType: 'json',
+    });
 
-    success: ({ data }) => {
-      map.setFilter('chosen-country-line', ['==', 'iso_a2', iso_a2]);
-      map.setFilter('chosen-country-fill', ['==', 'iso_a2', iso_a2]);
-      // map.setFilter('chosen-country-extrusion', ['==', 'iso_a2', iso_a2]);
+    map.setFilter('chosen-country-line', ['==', 'iso_a2', iso_a2]);
+    map.setFilter('chosen-country-fill', ['==', 'iso_a2', iso_a2]);
+    // map.setFilter('chosen-country-extrusion', ['==', 'iso_a2', iso_a2]);
 
-      const responses = data.map((countryData) => {
-        if (countryData.error) {
-          return;
-        }
+    const responses = data.map((countryData) => {
+      if (countryData.error) {
+        return;
+      }
 
-        return countryData;
-      });
-    },
-    error: (xhr) => {
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
-    },
-  });
+      return countryData;
+    });
+  } catch (err) {
+    console.log(err);
+  }
 }

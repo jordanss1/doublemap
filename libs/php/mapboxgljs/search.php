@@ -11,7 +11,7 @@
 
     if (!$parsedUrl) {
         http_response_code(401);
-        echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
+        echo json_encode(['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']]);
         exit;
     }
 
@@ -32,7 +32,7 @@
             $url = "https://api.mapbox.com/search/searchbox/v1/forward?q=$query&limit=$limit&auto_complete=true$proximity&access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
             $response = fetchApiCall($url, true);
-
+            
             incrementRequestCount('search');
 
             $decodedResponse = decodeResponse($response);

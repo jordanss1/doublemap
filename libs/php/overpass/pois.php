@@ -9,7 +9,7 @@
 
     if (!$parsedUrl) {
         http_response_code(401);
-        echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
+        echo json_encode(['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']]);
         exit;
     }
 
@@ -78,8 +78,8 @@
 
             $filteredResult = [];
 
-            foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 20));
+            foreach ($allNodesList as $key => $nodeList)  {
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $key, 40));
             }
 
             http_response_code(200);
@@ -127,7 +127,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 20));
             }
 
             http_response_code(200);
@@ -176,7 +176,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 10));
                 
             }
 
@@ -229,7 +229,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, 10));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 10));
                 
             }
 
@@ -278,10 +278,10 @@
                 exit;
             }
 
-            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey, 30);
+            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey, $category, 60);
 
             http_response_code(200);
-            echo json_encode([$category => $decodedResponse]);
+            echo json_encode([$category => $filteredResult]);
             exit;
         }        
     }

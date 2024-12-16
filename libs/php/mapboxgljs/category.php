@@ -11,34 +11,57 @@
 
     if (!$parsedUrl) {
         http_response_code(401);
-        echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
+        echo json_encode(['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']]);
         exit;
     }
 
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
-    if ($path[2] === 'category') {        
+    if ($path[2] === 'category') {
+        checkRequestCount('search');
+        
         if (isset($queriesFormatted['list'])) {
-            $categoryList = [
-                [ 'name'=> "Shopping", 'canonical_id'=> "shopping", 'icon' => null ],
-                [ 'name'=> "Food and Drink", 'canonical_id'=> "food_and_drink", 'icon' => "fast-food" ],
-                [ 'name'=> "Health Services", 'canonical_id'=> "health_services", 'icon' => null ],
-                [ 'name'=> "Restaurant", 'canonical_id'=> "restaurant", 'icon' => "restaurant" ],
-                [ 'name'=> "Park", 'canonical_id'=> "park", 'icon' => "park" ],
-                [ 'name'=> "Cinema", 'canonical_id'=> "cinema", 'icon' => "cinema" ],
-                [ 'name'=> "Supermarket", 'canonical_id'=> "supermarket", 'icon' => null ],
-                [ 'name'=> "Café", 'canonical_id'=> "cafe", 'icon' => "cafe" ],
-                [ 'name'=> "Bank", 'canonical_id'=> "bank", 'icon' => null ],
-                [ 'name'=> "Hospital", 'canonical_id'=> "hospital", 'icon' => "hospital" ],
-                [ 'name'=> "Hotel", 'canonical_id'=> "hotel", 'icon' => "hotel" ],
-                [ 'name'=> "Entertainment", 'canonical_id'=> "entertainment", 'icon' => "cinema" ],
-                [ 'name'=> "Coffee", 'canonical_id'=> "coffee", 'icon' => "cafe" ],
-                [ 'name'=> "Post Office", 'canonical_id'=> "post_office", 'icon' => "post" ],
-                [ 'name'=> "Museum", 'canonical_id'=> "museum", 'icon' => "museum" ]
-            ];
+            $url = "https://api.mapbox.com/search/searchbox/v1/list/category?access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
+
+            $categoryList = ['food_and_drink', 'shopping', 'food', 'hotel', 'health_services', 'restaurant', 'grocery', 'outdoors', 'museum', 'park', 'supermarket', 'cafe', 'bank', 'hospital', 'entertainment', 'coffee', 'post_office'];
+            $shopping = ['grocery', 'shopping', 'supermarket'];
+
+            $response = fetchApiCall($url, true);
+
+            incrementRequestCount('search');
+
+            if (isset($response['error']) || empty($response)) {
+                http_response_code(500);
+                echo json_encode($response);
+                exit;
+            }
+
+            $decodedResponse = decodeResponse($response);
+
+            $filteredResponse = array_values(array_filter($decodedResponse['listItems'], function($category) use ($categoryList) {
+                return in_array($category['canonical_id'], $categoryList);
+            }));    
+
+            $filteredResponse = array_map(function($category) use ($shopping)  {
+                $icon = $category['icon'];
+
+                if (in_array($category['canonical_id'], $shopping)) {
+                    $icon = 'shopping';
+                } else if ($category['canonical_id'] === 'bank') {
+                    $icon = 'bank';
+                } else if ($category['canonical_id'] === 'outdoors') {
+                    $icon = 'park';
+                } else if ($category['canonical_id'] === 'health_services') {
+                    $icon = 'hospital';
+                }
+
+                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon];
+            }, $filteredResponse);
+
+
 
             http_response_code(200);
-            echo json_encode(['data' => $categoryList]);
+            echo json_encode(['data' => $filteredResponse]);
             exit;
         }
     }

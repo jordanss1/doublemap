@@ -50,6 +50,7 @@ mapPromise.then((map) => {
       if (closestMatch) {
         const { neighborhood, place, region, district } =
           mostRecentLocation.context;
+
         const categoryName = closestMatch.name.toLowerCase();
         const normalizedText = value
           .toLowerCase()
@@ -61,8 +62,6 @@ mapPromise.then((map) => {
         $('#search-category').append(
           /*html*/ `<div id='search-category-item' data-value='${closestMatch.canonical_id}'>${closestMatch.name} near <span id='search-category-item-default-area'></span><span id='search-category-item-appended'></span></div>`
         );
-
-        console.log(neighborhood);
 
         const regex = new RegExp(`^${categoryName}(\\s)`, 'i');
 
@@ -135,8 +134,8 @@ mapPromise.then((map) => {
     }
   });
 
-  $('#country-select').on('click', '#country-option', ({ target }) => {
-    getCountryData(target.value);
+  $('#country-select').on('click', '#country-option', async ({ target }) => {
+    await getCountryData(target.value);
   });
 
   $('#search-category').on(
@@ -147,7 +146,18 @@ mapPromise.then((map) => {
       let areaToSearch = $('#search-category-item-appended').text();
 
       if (!areaToSearch) {
-        return getOverpassPois(map.getBounds(), category);
+        const bounds = {
+          _sw: {
+            lng: mostRecentLocation.longitude - 0.1,
+            lat: mostRecentLocation.latitude - 0.1,
+          },
+          _ne: {
+            lng: mostRecentLocation.longitude + 0.1,
+            lat: mostRecentLocation.latitude + 0.1,
+          },
+        };
+
+        return getOverpassPois(bounds, category);
       }
 
       areaToSearch = encodeURIComponent(areaToSearch).trim();
@@ -170,12 +180,15 @@ mapPromise.then((map) => {
           getOverpassPois(bounds, category);
         } else {
         }
-      } catch {}
+      } catch (err) {
+        console.log(err);
+      }
     }
   );
 
   $('#search-normal').on('click', '#search-normal-item', function (e) {
     const { coordinates, feature_type } = searchResults[$(this).data('value')];
+
     const coords = [coordinates.longitude, coordinates.latitude]; // Southwest corner
 
     const zoom = zoomForFeatureType(feature_type);
@@ -191,6 +204,8 @@ mapPromise.then((map) => {
 
 function categorySearchOption(value) {
   const closestMatch = categoryList.reduce((bestMatch, current) => {
+    if (current.name === 'default') return bestMatch;
+
     const newValue = value
       .toLowerCase()
       .normalize('NFD')
@@ -248,7 +263,11 @@ function zoomForFeatureType(feature_type) {
     return 3;
   }
 
-  if (feature_type === 'poi' || feature_type === 'street') {
+  if (
+    feature_type === 'poi' ||
+    feature_type === 'street' ||
+    feature_type === 'place'
+  ) {
     return 16;
   }
 

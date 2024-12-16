@@ -106,40 +106,65 @@
         return $earthRadius * $c; 
     }
 
-    function normalizeNode ($node, $queryKey)  {
-        $name = $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
+    function normalizeNode ($node, $queryKey, $category)  {
+        $name = $node['tags']['name'] ?? $node['tags']['official_name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
 
         if (!$name || !isset($node['tags'][$queryKey])) {
             return null;
         }
 
+        $houseNumber = $node['tags']['addr:housenumber'] ?? '';
+        $street = $node['tags']['addr:street'] ?? '';
+
+        $address_parts = array_filter([
+            trim("$houseNumber $street"),
+            $node['tags']['addr:city'] ?? null,
+            $node['tags']['addr:postcode'] ?? null,
+        ]);
+        
+        $place_formatted = implode(', ', $address_parts);
+        $place_formatted = $place_formatted ? trim($place_formatted) : null;
+
+        $latitude_offset = 0.109793;
+        $longitude_offset = 0.133655;
+    
+        $minLatitude = $node['lat'] - $latitude_offset;
+        $maxLatitude = $node['lat'] + $latitude_offset;
+        $minLongitude = $node['lon'] - $longitude_offset;
+        $maxLongitude = $node['lon'] + $longitude_offset;
+    
+        $bbox = [$minLongitude, $minLatitude, $maxLongitude, $maxLatitude];
+
         return [
-            'lat' => $node['lat'],
-            'lon' => $node['lon'],
-            'name' => $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null,
-            'housenumber' => $node['tags']['addr:housenumber'] ?? null,
-            'street' => $node['tags']['addr:street'] ?? null,
-            'postcode' => $node['tags']['addr:postcode'] ?? null,
-            'city' => $node['tags']['addr:city'] ?? null,
-            'country' => $node['tags']['addr:country'] ?? null,
-            'type' => $node['tags'][$queryKey] ?? null,
-            'website' => $node['tags']['website'] ?? $node['tags']['contact:website'] ?? null,
-            'phone' => $node['tags']['phone'] ?? null
-         ];
+            'type' =>	"Feature",
+            'geometry' => [ 'type' => "Point", 'coordinates' => [$node['lon'], $node['lat']] ],
+            'properties' => [ 
+                'name' => $name,
+                'name_preferred' =>	$node['tags']['official_name'] ?? $node['tags']['name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null,
+                'feature_type' => "place",
+                'canonical_id' => $category,
+                'place_formatted'=>	$place_formatted,
+                'coordinates' => [ 'latitude' => $node['lat'], 'longitude' => $node['lon'] ],
+                'bbox' => $bbox,
+                'language'=> "need_request_lang",
+                'maki'=> "marker" 
+                 ],
+        ];
+
     };
 
-    function findNearbyNodesAndNormalize ($nodes, $centerLat, $centerLng, $queryKey, $maxCount) {
+    function findNearbyNodesAndNormalize ($nodes, $centerLat, $centerLng, $queryKey, $category, $maxCount) {
         $filteredNodes = [];
 
-        $filteredNodes = array_map(function ($node) use ($queryKey) {
-            return normalizeNode($node, $queryKey);
+        $filteredNodes = array_map(function ($node) use ($queryKey, $category) {
+            return normalizeNode($node, $queryKey, $category);
         }, $nodes);
 
         $filteredNodes = array_values(array_filter($filteredNodes));
 
         usort($filteredNodes, function($a, $b) use ($centerLat, $centerLng) {
-            $distanceA = calculateDistance($centerLat, $centerLng, $a['lat'], $a['lon']);
-            $distanceB = calculateDistance($centerLat, $centerLng, $b['lat'], $b['lon']);
+            $distanceA = calculateDistance($centerLat, $centerLng, $a['properties']['coordinates']['latitude'], $a['properties']['coordinates']['longitude']);
+            $distanceB = calculateDistance($centerLat, $centerLng, $b['properties']['coordinates']['latitude'], $b['properties']['coordinates']['longitude']);
             return $distanceA <=> $distanceB; 
         });
 
