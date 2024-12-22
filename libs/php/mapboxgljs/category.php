@@ -44,6 +44,7 @@
 
             $filteredResponse = array_map(function($category) use ($shopping)  {
                 $icon = $category['icon'];
+                $color = '';
 
                 if (in_array($category['canonical_id'], $shopping)) {
                     $icon = 'shopping';
@@ -55,7 +56,31 @@
                     $icon = 'hospital';
                 }
 
-                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon];
+                if ($icon === 'lodging') {
+                    $color = '#b093ec';
+                }
+
+                if ($icon === 'museum' ) {
+                    $color = '#ec93ce';
+                }
+
+                if ($icon === 'hotel' || $icon === 'cinema') {
+                    $color = '#f66151'; 
+                }   
+
+                if ($icon === 'post' ||  $icon === 'bank' || $icon === 'hospital') {
+                    $color = '#ed333b'; 
+                }   
+
+                if ($icon === 'shopping' || $icon === 'fast-food' || $icon === 'cafe' || $icon === 'restaurant') {
+                    $color = '#63a6e9'; 
+                }   
+
+                if ($icon === 'park') {
+                    $color = '#2aa70b';
+                }
+
+                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon, 'color' => $color];
             }, $filteredResponse);
 
 

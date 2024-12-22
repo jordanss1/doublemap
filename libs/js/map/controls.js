@@ -13,21 +13,36 @@ mapPromise.then((map) => {
   });
 
   $('#style-control').on('click', async () => {
-    await getToken();
+    const token = await getToken();
+    const zoom = map.getZoom();
 
     const currentIndex = styles.findIndex(
       (style) => currentBaseLayer === style.name
     );
+
     const nextIndex = currentIndex === styles.length - 1 ? 0 : currentIndex + 1;
 
     map.setStyle(styles[nextIndex].url, {
       diff: true,
-      config: { basemap: { showPointOfInterestLabels: false } },
     });
 
     currentBaseLayer = styles[nextIndex].name;
 
     localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
+
+    map.once('style.load', async () => {
+      await retrieveAndApplyIcons(token);
+
+      if (currentBaseLayer === 'Dark') {
+        nightNavStyles(map);
+      } else {
+        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+      }
+
+      if (zoom > 11 && currentPois) {
+        addPoiSourceAndLayer(currentPois);
+      }
+    });
   });
 
   $('#search').on('keydown', (e) => {
@@ -87,7 +102,6 @@ mapPromise.then((map) => {
           if (!feature) return;
 
           const { district, neighborhood, region, place } = feature;
-          console.log(neighborhood);
 
           mostRecentLocation.context = {
             neighborhood,
@@ -146,18 +160,31 @@ mapPromise.then((map) => {
       let areaToSearch = $('#search-category-item-appended').text();
 
       if (!areaToSearch) {
+        const { longitude, latitude } = mostRecentLocation;
+
+        map.fitBounds([
+          [longitude - 0.1, latitude - 0.1],
+          [longitude + 0.1, latitude + 0.1],
+        ]);
+
         const bounds = {
           _sw: {
-            lng: mostRecentLocation.longitude - 0.1,
-            lat: mostRecentLocation.latitude - 0.1,
+            lng: longitude - 0.1,
+            lat: latitude - 0.1,
           },
           _ne: {
-            lng: mostRecentLocation.longitude + 0.1,
-            lat: mostRecentLocation.latitude + 0.1,
+            lng: longitude + 0.1,
+            lat: latitude + 0.1,
           },
         };
 
-        return getOverpassPois(bounds, category);
+        currentPoiCategory = category;
+
+        const pois = await getOverpassPois(bounds, category);
+
+        if (pois.length) {
+          await addPoiSourceAndLayer(pois, 'chosen-pois');
+        }
       }
 
       areaToSearch = encodeURIComponent(areaToSearch).trim();
@@ -177,7 +204,13 @@ mapPromise.then((map) => {
             _ne: { lng: longitude + 0.1, lat: latitude + 0.1 },
           };
 
-          getOverpassPois(bounds, category);
+          currentPoiCategory = category;
+
+          const pois = await getOverpassPois(bounds, category);
+
+          if (pois.length) {
+            await addPoiSourceAndLayer(pois, 'chosen-pois');
+          }
         } else {
         }
       } catch (err) {

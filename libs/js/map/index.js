@@ -5,9 +5,6 @@ let currentBaseLayer =
 
 const styles = [
   { name: 'Standard', url: 'mapbox://styles/mapbox/standard' },
-  { name: 'Streets', url: 'mapbox://styles/mapbox/streets-v12' },
-  { name: 'Outdoors', url: 'mapbox://styles/mapbox/outdoors-v12' },
-  { name: 'Satellite', url: 'mapbox://styles/mapbox/standard-satellite' },
   { name: 'Dark', url: 'mapbox://styles/mapbox/navigation-night-v1' },
 ];
 
@@ -15,6 +12,8 @@ let categoryList = [];
 let userGeo;
 let mostRecentLocation;
 let searchResults = [];
+let currentPois;
+let currentPoiCategory = 'default';
 
 let tokenCache = {
   token: null,
@@ -59,7 +58,7 @@ const initialiseMap = () => {
       dataType: 'json',
       method: 'GET',
       success: async () => {
-        await getToken();
+        const token = await getToken();
 
         const { url } = styles.find((style) => currentBaseLayer === style.name);
 
@@ -73,13 +72,19 @@ const initialiseMap = () => {
           center: [30, 15],
         });
 
-
         map.on('load', () => {
-
-
           if (currentBaseLayer === 'Dark') {
             nightNavStyles(map);
+          } else {
+            map.setConfigProperty(
+              'basemap',
+              'showPointOfInterestLabels',
+              false
+            );
           }
+
+          retrieveAndApplyIcons(token);
+
           resolve(map);
         });
       },

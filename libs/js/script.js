@@ -47,49 +47,47 @@ mapPromise.then((map) => {
       console.log(`Response Text: ${res.details}`);
     },
   });
-});
 
-let allCountriesGeoJSON = null;
+  $.ajax({
+    url: `/api/countries?country=all`,
+    method: 'GET',
+    dataType: 'json',
+    success: ({ data }) => {
+      console.log(data);
 
-$.ajax({
-  url: `/api/countries?country=all`,
-  method: 'GET',
-  dataType: 'json',
-  success: ({ data }) => {
-    console.log(data);
+      const countryList = data
+        .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
+        .map(({ properties }) => {
+          return { name: properties.name, iso_a2: properties.iso_a2 };
+        });
 
-    const countryList = data
-      .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
-      .map(({ properties }) => {
-        return { name: properties.name, iso_a2: properties.iso_a2 };
+      countryList.forEach(({ name, iso_a2 }) => {
+        $('#country-select').append(
+          `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
+        );
       });
+    },
+    error: (xhr) => {
+      const res = JSON.parse(xhr.responseText);
+      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+      console.log(`Response Text: ${res.details}`);
+    },
+  });
 
-    countryList.forEach(({ name, iso_a2 }) => {
-      $('#country-select').append(
-        `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
-      );
-    });
-  },
-  error: (xhr) => {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  },
-});
-
-$.ajax({
-  url: '/api/mapboxgljs/category?list=true',
-  method: 'GET',
-  dataType: 'json',
-  success: (res) => {
-    console.log(res.data);
-    categoryList = res.data;
-  },
-  error: (xhr) => {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  },
+  $.ajax({
+    url: '/api/mapboxgljs/category?list=true',
+    method: 'GET',
+    dataType: 'json',
+    success: (res) => {
+      categoryList = res.data;
+      console.log(res.data);
+    },
+    error: (xhr) => {
+      const res = JSON.parse(xhr.responseText);
+      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+      console.log(`Response Text: ${res.details}`);
+    },
+  });
 });
 
 function getSearchResults(value) {
@@ -171,4 +169,16 @@ async function getCountryData(iso_a2) {
   } catch (err) {
     console.log(err);
   }
+}
+
+function addIconsToMap() {
+  categoryList.forEach(({ icon }) => {
+    map.loadImage(
+      `../../../assets/category-icons/${icon}.png`,
+      (error, image) => {
+        if (error) throw error;
+        map.addImage(icon, image);
+      }
+    );
+  });
 }
