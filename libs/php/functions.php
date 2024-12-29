@@ -162,12 +162,6 @@
 
         $filteredNodes = array_values(array_filter($filteredNodes));
 
-        usort($filteredNodes, function($a, $b) use ($centerLat, $centerLng) {
-            $distanceA = calculateDistance($centerLat, $centerLng, $a['properties']['coordinates']['latitude'], $a['properties']['coordinates']['longitude']);
-            $distanceB = calculateDistance($centerLat, $centerLng, $b['properties']['coordinates']['latitude'], $b['properties']['coordinates']['longitude']);
-            return $distanceA <=> $distanceB; 
-        });
-
         if (count($filteredNodes) > $maxCount) {
             $filteredNodes = array_slice($filteredNodes, 0, $maxCount);
         }

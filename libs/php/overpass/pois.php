@@ -79,7 +79,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $key => $nodeList)  {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $key, 40));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $key, 60));
             }
 
             http_response_code(200);
@@ -127,7 +127,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 20));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 40));
             }
 
             http_response_code(200);
@@ -176,7 +176,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 10));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 30));
                 
             }
 
@@ -184,7 +184,7 @@
             echo json_encode(['data' => $filteredResult]);
             exit;
 
-        } else if ($category === 'food_and_drink') {
+        } else if ($category === 'food_and_drink' || $category === 'food') {
            $query = "[out:json];(
                 node['amenity'='restaurant']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
                 node['amenity'='cafe']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
@@ -221,34 +221,39 @@
             ];
 
             foreach ($decodedResponse as $currentNode) {
-                if (isset($currentNode['tags'][$queryKey]) && array_key_exists($currentNode['tags'][$queryKey], $allNodesList)) {
-                    $allNodesList[$currentNode['tags'][$queryKey]][] = $currentNode;
+                if (isset($currentNode['tags']['amenity']) && array_key_exists($currentNode['tags']['amenity'], $allNodesList)) {
+                    $allNodesList[$currentNode['tags']['amenity']][] = $currentNode;
                 }
             }
 
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 10));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, 'amenity', $category, 30));
                 
             }
 
             http_response_code(200);
-            echo json_encode(['food_and_drink' => $decodedResponse]);
+            echo json_encode(['data' => $filteredResult]);
             exit;
-        }  else {
+        } else {
             $queryKey = '';
-            $categoriesThatAreAmenities = ['post_office', 'park', 'restaurant', 'cinema', 'bank', 'hospital', 'cafe', 'coffee'];
+            $categoriesThatAreAmenities = ['post_office', 'restaurant', 'bank', 'hospital', 'cafe', 'coffee'];
+
+            if ($category === 'coffee') $category = 'cafe';
+
             $categoryKey = '=' . "'$category'";
 
-            if ($category === 'supermarket') {
+            if ($category === 'supermarket' || $category === 'grocery') {
                 $queryKey = 'shop';
             } 
 
-            if ($category === 'entertainment') {
+            if ($category === 'entertainment' || $category === 'park') {
                 $queryKey = 'leisure';
                 $categoryKey = '';
             }
+
+            // park, outdoors
 
             if (in_array($category, $categoriesThatAreAmenities)) {
                 $queryKey = 'amenity';
@@ -258,7 +263,16 @@
                 $queryKey = 'tourism';
             }
 
-            $query = "[out:json];node['$queryKey'$categoryKey]($sw_lat,$sw_lng,$ne_lat,$ne_lng);out;";
+            if ($category === 'grocery') {
+                $query = "[out:json];(node['$queryKey'='supermarket']($sw_lat,$sw_lng,$ne_lat,$ne_lng);node['$queryKey'='convenience']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out;";
+            } else if ($category === 'park' || $category === 'outdoors') {
+                $query = "[out:json];(
+                node['leisure'='park']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['leisure'='garden']($sw_lat,$sw_lng,$ne_lat,$ne_lng);
+                node['leisure'='nature_reserve']($sw_lat,$sw_lng,$ne_lat,$ne_lng););out body;";
+            } else {
+                $query = "[out:json];node['$queryKey'$categoryKey]($sw_lat,$sw_lng,$ne_lat,$ne_lng);out;";
+            }
 
             $response = fetchApiCall($url . urlencode($query), true);
 
@@ -281,7 +295,7 @@
             $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey, $category, 60);
 
             http_response_code(200);
-            echo json_encode([$category => $filteredResult]);
+            echo json_encode(['data' => $filteredResult]);
             exit;
         }        
     }

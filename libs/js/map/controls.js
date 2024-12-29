@@ -96,29 +96,7 @@ mapPromise.then((map) => {
           );
         }
 
-        reverseLookupTimeout = setTimeout(async () => {
-          const feature = await reverseLookupFromLatLng();
-
-          if (!feature) return;
-
-          const { district, neighborhood, region, place } = feature;
-
-          mostRecentLocation.context = {
-            neighborhood,
-            district,
-            region,
-            place,
-          };
-
-          $('#search-category-item-default-area').text('');
-          $('#search-category-item-default-area').text(
-            `${neighborhood ? `${neighborhood}, ` : ''}${
-              place ? `${place}` : ''
-            }${district && district !== place ? `, ${district}` : ''}${
-              region ? `, ${feature.region}` : ''
-            }`
-          );
-        }, 500);
+        reverseLookupTimeout = await appendLocationToCategoryOption();
 
         if (normalizedText.length > 0 && areaToSearch[0]) {
           clearTimeout(reverseLookupTimeout);
@@ -182,9 +160,9 @@ mapPromise.then((map) => {
 
         const pois = await getOverpassPois(bounds, category);
 
-        if (pois.length) {
-          await addPoiSourceAndLayer(pois, 'chosen-pois');
-        }
+        await addPoiSourceAndLayer(pois, 'chosen-pois');
+
+        return;
       }
 
       areaToSearch = encodeURIComponent(areaToSearch).trim();
@@ -198,6 +176,13 @@ mapPromise.then((map) => {
 
         if (data.length) {
           const { latitude, longitude } = data[0].properties.coordinates;
+
+          map.flyTo({
+            center: [longitude, latitude],
+            speed: 0.5,
+            curve: 2,
+            zoom: 10,
+          });
 
           const bounds = {
             _sw: { lng: longitude - 0.1, lat: latitude - 0.1 },
@@ -265,10 +250,11 @@ async function reverseLookupFromLatLng() {
   const { lng, lat } = map.getCenter();
   const { latitude, longitude } = mostRecentLocation;
 
+  const zoomLimit = currentPoiCategory === 'default' ? 9 : 7;
   const threshold = 0.02;
 
   const initiateNewSearch =
-    currentZoom >= 9 &&
+    currentZoom >= zoomLimit &&
     (Math.abs(lng - longitude) > threshold ||
       Math.abs(lat - latitude) > threshold);
 
@@ -289,6 +275,30 @@ async function reverseLookupFromLatLng() {
   }
 
   return null;
+}
+
+async function appendLocationToCategoryOption() {
+  return setTimeout(async () => {
+    const feature = await reverseLookupFromLatLng();
+
+    if (!feature) return;
+
+    const { district, neighborhood, region, place } = feature;
+
+    mostRecentLocation.context = {
+      neighborhood,
+      district,
+      region,
+      place,
+    };
+
+    $('#search-category-item-default-area').text('');
+    $('#search-category-item-default-area').text(
+      `${neighborhood ? `${neighborhood}, ` : ''}${place ? `${place}` : ''}${
+        district && district !== place ? `, ${district}` : ''
+      }${region ? `, ${feature.region}` : ''}`
+    );
+  }, 500);
 }
 
 function zoomForFeatureType(feature_type) {

@@ -44,16 +44,24 @@ mapPromise.then((map) => {
   map.on('move', async () => {
     const zoom = map.getZoom();
     const bounds = map.getBounds();
+    const currentPoiLayer =
+      currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
     clearTimeout(timeout);
 
-    timeout = setTimeout(async () => {
-      if (zoom > 11) {
+    if (
+      (currentPoiLayer === 'default-pois' && zoom >= 9) ||
+      currentPoiLayer === 'chosen-pois'
+    ) {
+      timeout = setTimeout(async () => {
         currentPois = await getOverpassPois(bounds, currentPoiCategory);
 
-        addPoiSourceAndLayer(currentPois, 'default-pois');
-      }
-    }, 800);
+        console.log(currentPois);
+
+        addPoiSourceAndLayer(currentPois, currentPoiLayer);
+        return;
+      }, 800);
+    }
   });
 
   map.on('style.load', () => {});
@@ -196,7 +204,7 @@ async function addPoiSourceAndLayer(pois, layerId) {
         id: layerId,
         type: 'symbol',
         source: 'poi-source',
-        minzoom: layerId === 'default-pois' ? 11 : 0,
+        minzoom: layerId === 'default-pois' ? 9 : 0,
         layout: {
           'icon-image': [
             'match',

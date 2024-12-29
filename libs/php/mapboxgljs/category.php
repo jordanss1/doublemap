@@ -23,12 +23,13 @@
         if (isset($queriesFormatted['list'])) {
             $url = "https://api.mapbox.com/search/searchbox/v1/list/category?access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
-            $categoryList = ['food_and_drink', 'shopping', 'food', 'hotel', 'health_services', 'restaurant', 'grocery', 'outdoors', 'museum', 'park', 'supermarket', 'cafe', 'bank', 'hospital', 'entertainment', 'coffee', 'post_office'];
+            $categoryList = ['food_and_drink', 'shopping', 'food', 'hotel', 'health_services', 'restaurant', 'grocery', 'outdoors', 'museum', 'park', 'supermarket', 'cafe', 'bank', 'hospital', 'entertainment', 'post_office', 'coffee'];
             $shopping = ['grocery', 'shopping', 'supermarket'];
 
             $response = fetchApiCall($url, true);
 
             incrementRequestCount('search');
+
 
             if (isset($response['error']) || empty($response)) {
                 http_response_code(500);
@@ -44,43 +45,45 @@
 
             $filteredResponse = array_map(function($category) use ($shopping)  {
                 $icon = $category['icon'];
-                $color = '';
+                // $color = '';
 
                 if (in_array($category['canonical_id'], $shopping)) {
-                    $icon = 'shopping';
+                    $icon = 'clothing-store';
                 } else if ($category['canonical_id'] === 'bank') {
                     $icon = 'bank';
                 } else if ($category['canonical_id'] === 'outdoors') {
                     $icon = 'park';
                 } else if ($category['canonical_id'] === 'health_services') {
                     $icon = 'hospital';
+                } else if ($category['canonical_id'] === 'food_and_drink') {
+                    $icon = 'restaurant';
                 }
 
-                if ($icon === 'lodging') {
-                    $color = '#b093ec';
-                }
+                // if ($icon === 'lodging') {
+                //     $color = '#b093ec';
+                // }
 
-                if ($icon === 'museum' ) {
-                    $color = '#ec93ce';
-                }
+                // if ($icon === 'museum' ) {
+                //     $color = '#ec93ce';
+                // }
 
-                if ($icon === 'hotel' || $icon === 'cinema') {
-                    $color = '#f66151'; 
-                }   
+                // if ($icon === 'hotel' || $icon === 'cinema') {
+                //     $color = '#f66151'; 
+                // }   
 
-                if ($icon === 'post' ||  $icon === 'bank' || $icon === 'hospital') {
-                    $color = '#ed333b'; 
-                }   
+                // if ($icon === 'post' ||  $icon === 'bank' || $icon === 'hospital') {
+                //     $color = '#ed333b'; 
+                // }   
 
-                if ($icon === 'shopping' || $icon === 'fast-food' || $icon === 'cafe' || $icon === 'restaurant') {
-                    $color = '#63a6e9'; 
-                }   
+                // if ($icon === 'shopping' || $icon === 'fast-food' || $icon === 'cafe' || $icon === 'restaurant') {
+                //     $color = '#63a6e9'; 
+                // }   
 
-                if ($icon === 'park') {
-                    $color = '#2aa70b';
-                }
+                // if ($icon === 'park') {
+                //     $color = '#2aa70b';
+                // }
 
-                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon, 'color' => $color];
+                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon];
             }, $filteredResponse);
 
 
