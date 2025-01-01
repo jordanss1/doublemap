@@ -26,10 +26,11 @@
             $categoryList = ['food_and_drink', 'shopping', 'food', 'hotel', 'health_services', 'restaurant', 'grocery', 'outdoors', 'museum', 'park', 'supermarket', 'cafe', 'bank', 'hospital', 'entertainment', 'post_office', 'coffee'];
             $shopping = ['grocery', 'shopping', 'supermarket'];
 
+            $colorList = [['color' => '#e97d7d', 'hospital', 'museum', 'lodging', 'bank'],['color' => '#7db2e8', 'clothing-store', 'restaurant', 'coffee', 'cafe'],  ['color' => '#7e94a9', 'post'], ['color' => '#36ad1f', 'park'], ['color' => '#ec93ce', 'cinema']];
+
             $response = fetchApiCall($url, true);
 
             incrementRequestCount('search');
-
 
             if (isset($response['error']) || empty($response)) {
                 http_response_code(500);
@@ -43,9 +44,9 @@
                 return in_array($category['canonical_id'], $categoryList);
             }));    
 
-            $filteredResponse = array_map(function($category) use ($shopping)  {
+            $filteredResponse = array_map(function($category) use ($shopping, $colorList)  {
                 $icon = $category['icon'];
-                // $color = '';
+                $color = '';
 
                 if (in_array($category['canonical_id'], $shopping)) {
                     $icon = 'clothing-store';
@@ -59,31 +60,14 @@
                     $icon = 'restaurant';
                 }
 
-                // if ($icon === 'lodging') {
-                //     $color = '#b093ec';
-                // }
+                foreach ($colorList as $item) {
+                    if (in_array($icon, $item)) {
+                        $color = $item['color'];
+                        break;
+                    }
+                }
 
-                // if ($icon === 'museum' ) {
-                //     $color = '#ec93ce';
-                // }
-
-                // if ($icon === 'hotel' || $icon === 'cinema') {
-                //     $color = '#f66151'; 
-                // }   
-
-                // if ($icon === 'post' ||  $icon === 'bank' || $icon === 'hospital') {
-                //     $color = '#ed333b'; 
-                // }   
-
-                // if ($icon === 'shopping' || $icon === 'fast-food' || $icon === 'cafe' || $icon === 'restaurant') {
-                //     $color = '#63a6e9'; 
-                // }   
-
-                // if ($icon === 'park') {
-                //     $color = '#2aa70b';
-                // }
-
-                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon];
+                return ['name' => $category['name'], 'canonical_id' => $category['canonical_id'], 'icon' => $icon, 'color' => $color];
             }, $filteredResponse);
 
 

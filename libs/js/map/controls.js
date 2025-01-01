@@ -31,12 +31,13 @@ mapPromise.then((map) => {
     localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
 
     map.once('style.load', async () => {
-      await retrieveAndApplyIcons(token);
-
       if (currentBaseLayer === 'Dark') {
         nightNavStyles(map);
-      } else {
+      } else if (currentBaseLayer === 'Standard') {
         map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+      } else {
+        historyMapStyles(map);
+        map.filterByDate('2013-04-14');
       }
 
       if (zoom > 11 && currentPois) {

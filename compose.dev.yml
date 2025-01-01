@@ -18,7 +18,7 @@ services:
         - path: ./conf.d/
           target: /etc/nginx/conf.d/
           action: rebuild
-    restart: always
+    restart: no
     env_file:
       - ./.env
 
@@ -42,7 +42,7 @@ services:
     container_name: api
     depends_on:
       - db
-    restart: always
+    restart: no
     develop:
       watch:
         - path: ./libs/php
@@ -57,7 +57,7 @@ services:
       dockerfile: Dockerfile
       args:
         MODE: development
-    restart: always
+    restart: no
     ports:
       - 3000:3000
     container_name: tileserver
@@ -78,7 +78,7 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_DATABASE: map
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    restart: always
+    restart: no
     volumes:
       - db_data:/var/lib/mysql
       - ./my.cnf:/etc/mysql/my.cnf

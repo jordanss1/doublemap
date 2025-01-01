@@ -25,18 +25,6 @@ mapPromise.then((map) => {
     if (disabled === 'true') {
       map.stop();
     }
-
-    if (zoom >= 5) {
-      map.setLayoutProperty('modern-countries', 'visibility', 'none');
-    }
-
-    if (zoom < 5) {
-      map.setLayoutProperty('modern-countries', 'visibility', 'visible');
-    }
-
-    if (zoom > 11.5) {
-      map.setLayoutProperty();
-    }
   });
 
   let timeout;
@@ -56,15 +44,24 @@ mapPromise.then((map) => {
       timeout = setTimeout(async () => {
         currentPois = await getOverpassPois(bounds, currentPoiCategory);
 
-        console.log(currentPois);
-
         addPoiSourceAndLayer(currentPois, currentPoiLayer);
-        return;
       }, 800);
     }
   });
 
-  map.on('style.load', () => {});
+  map.on('style.load', async () => {
+    const currentPoiLayer =
+      currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
+
+    const token = await getToken();
+
+    await applyLayers(token);
+    await retrieveAndApplyIcons(token);
+
+    if (currentPois) {
+      addPoiSourceAndLayer(currentPois, currentPoiLayer);
+    }
+  });
 
   map.on('sourcedata', async (e) => {
     if (e.isSourceLoaded && e.source.type === 'raster-dem') {
@@ -72,79 +69,52 @@ mapPromise.then((map) => {
     }
   });
 
-  map.on('styledata', async () => {
-    await getToken();
+  map.on('mouseenter', ['country-fill', 'chosen-pois', 'default-pois'], () => {
+    map.getCanvas().style.cursor = 'pointer';
+  });
 
-    if (!map.getSource('modern-countries')) {
-      map.addSource('modern-countries', {
-        type: 'vector',
-        tiles: ['http://localhost:3000/data/countries/{z}/{x}/{y}.pbf'],
-        minzoom: 1,
-        maxzoom: 5,
-      });
-    }
+  map.on('mouseleave', ['country-fill', 'chosen-pois', 'default-pois'], () => {
+    map.getCanvas().style.cursor = '';
+  });
 
-    if (!map.getLayer('chosen-country-fill')) {
-      map.addLayer({
-        id: 'chosen-country-fill',
-        type: 'fill',
-        source: 'modern-countries',
-        'source-layer': 'country_bordersgeo',
-        filter: ['==', 'iso_a2', ''], // Use dynamic country selection
-        paint: {
-          'fill-color': 'rgba(0, 255, 255, 0.4)', // Semi-transparent cyan for the fill
-          'fill-opacity': 0.4, // Light opacity for the fill to simulate a glow
+  map.on('mousemove', 'country-fill', (e) => {
+    if (e.features.length > 0) {
+      if (hoveredCountryId !== null) {
+        map.setFeatureState(
+          {
+            source: 'country-borders',
+            sourceLayer: 'country_bordersgeo',
+            id: hoveredCountryId,
+          },
+          { hover: false }
+        );
+      }
+
+      hoveredCountryId = e.features[0].properties.iso_a2;
+      map.setFeatureState(
+        {
+          source: 'country-borders',
+          sourceLayer: 'country_bordersgeo',
+          id: hoveredCountryId,
         },
-      });
+        { hover: true }
+      );
     }
+  });
 
-    // map.addLayer({
-    //   id: 'chosen-country-extrusion',
-    //   type: 'fill-extrusion',
-    //   source: 'modern-countries', // The vector tile source
-    //   'source-layer': 'country_bordersgeo', // The layer within the vector tiles
-    //   filter: ['==', 'iso_a2', ''], // Use dynamic country selection
-    //   paint: {
-    //     'fill-extrusion-color': '#ff0000', // Color of the extrusion
-    //     'fill-extrusion-height': 3, // Height based on a field in the data
-    //     'fill-extrusion-base': 0, // Base height
-    //     'fill-extrusion-opacity': 0.8, // Transparency level
-    //     'fill-extrusion-cast-shadows': true, // Enable shadows
-    //   },
-    // });
-
-    if (!map.getLayer('chosen-country-line')) {
-      map.addLayer({
-        id: 'chosen-country-line',
-        type: 'line',
-        source: 'modern-countries',
-        'source-layer': 'country_bordersgeo',
-        filter: ['==', 'iso_a2', ''],
-        paint: {
-          'line-color': [
-            'step',
-            ['zoom'],
-            'rgba(0, 255, 255, 0.8)', // Cyan with moderate opacity at zoom level 0
-            0,
-            'rgba(0, 255, 255, 1)', // Bright cyan at zoom level 5
-            2,
-            'rgba(0, 255, 255, 1)', // Cyan remains at zoom level 10
-            5,
-            'rgba(255, 105, 180, 0.8)', // Light pink as the glow effect at zoom level 15
-          ],
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            1,
-            1, // Thicker line at zoom level 5
-            5,
-            10, // Even thicker line at zoom level 10
-          ],
-          'line-blur': ['interpolate', ['linear'], ['zoom'], 1, 5, 5, 8],
+  map.on('mouseleave', 'country-fill', () => {
+    if (hoveredCountryId !== null) {
+      map.setFeatureState(
+        {
+          source: 'country-borders',
+          sourceLayer: 'country_bordersgeo',
+          id: hoveredCountryId,
         },
-      });
+        { hover: false }
+      );
     }
+
+    hoveredCountryId = null;
   });
 });
 
@@ -191,7 +161,7 @@ async function addPoiSourceAndLayer(pois, layerId) {
         : ['match', ['get', 'canonical_id'], ...colorArray.flat(), '#9ea8be'];
 
     const haloColor = currentBaseLayer === 'Dark' ? '#000000' : '#ffffff';
-    const haloWidth = currentBaseLayer === 'Dark' ? 1 : 2;
+    const haloWidth = currentBaseLayer === 'Dark' ? 1 : 2.5;
 
     if (layerId === 'default-pois' && map.getLayer('chosen-pois'))
       map.removeLayer('chosen-pois');
@@ -223,7 +193,7 @@ async function addPoiSourceAndLayer(pois, layerId) {
           'text-color': textColor,
           'text-halo-color': haloColor,
           'text-halo-width': haloWidth,
-          'text-halo-blur': 0.5,
+          'text-halo-blur': 1,
         },
       });
     }
@@ -272,9 +242,11 @@ async function retrieveAndApplyIcons(token) {
 
       const iconImage = ctx.getImageData(0, 0, icon.width, icon.height);
 
-      map.addImage(iconName, iconImage, {
-        sdf: icon.sdf || false,
-      });
+      if (!map.hasImage(iconName)) {
+        map.addImage(iconName, iconImage, {
+          sdf: icon.sdf || false,
+        });
+      }
     } catch (error) {
       console.error(`Error adding icon ${iconName}:`, error);
     }
