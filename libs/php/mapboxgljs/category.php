@@ -5,7 +5,6 @@
     require_once dirname(__DIR__) . '/functions.php';
     require_once dirname(__DIR__) . '/error_handle.php';
     require_once dirname(__DIR__) . '/model/map_db.php';
-    require_once dirname(__DIR__) . '/origin_check.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 

@@ -121,7 +121,7 @@ mapPromise.then((map) => {
 async function getOverpassPois(bounds, category) {
   try {
     const { data } = await $.ajax({
-      url: `/api/overpass/pois?category=${category}`,
+      url: `/api/overpass_pois?category=${category}`,
       method: 'POST',
       contentType: 'application/json',
       dataType: 'json',

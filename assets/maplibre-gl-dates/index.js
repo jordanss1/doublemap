@@ -392,11 +392,13 @@ function updateVariable(letExpression, name, newValue) {
   }
 }
 
-map.filterByDate = function (date) {
-  filterByDate(this, date);
-};
+maplibregl = mapboxgl;
 
-if (typeof module !== 'undefined') {
+if (typeof window !== 'undefined' && 'maplibregl' in window) {
+  maplibregl.Map.prototype.filterByDate = function (date) {
+    filterByDate(this, date);
+  };
+} else if (typeof module !== 'undefined') {
   module.exports = {
     filterByDate,
     dateRangeFromDate,
