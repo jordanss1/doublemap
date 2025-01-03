@@ -12,15 +12,45 @@ mapPromise.then((map) => {
     map.easeTo({ zoom: currentZoom - 0.3 });
   });
 
+  $('#history-control').on('click', async () => {
+    console.log(historyMode);
+    if (historyMode) return;
+
+    historyMode = true;
+    localStorage.setItem('historyMode', JSON.stringify(true));
+
+    if (map.getLayer('chosen-pois')) map.removeLayer('chosen-pois');
+
+    if (map.getLayer('default-pois')) map.removeLayer('default-pois');
+
+    if (map.getLayer('country-fill')) {
+      map.removeLayer('country-fill');
+    }
+
+    if (map.getLayer('country-line')) {
+      map.removeLayer('country-line');
+    }
+
+    map.setStyle(styles[2].url);
+
+    map.once('style.load', () => {
+      historyMapStyles(map);
+      map.filterByDate('2013-01-01');
+    });
+  });
+
   $('#style-control').on('click', async () => {
     const token = await getToken();
     const zoom = map.getZoom();
+
+    historyMode = false;
+    localStorage.setItem('historyMode', JSON.stringify(false));
 
     const currentIndex = styles.findIndex(
       (style) => currentBaseLayer === style.name
     );
 
-    const nextIndex = currentIndex === styles.length - 1 ? 0 : currentIndex + 1;
+    const nextIndex = currentIndex === 0 ? 1 : 0;
 
     map.setStyle(styles[nextIndex].url, {
       diff: true,
@@ -33,11 +63,8 @@ mapPromise.then((map) => {
     map.once('style.load', async () => {
       if (currentBaseLayer === 'Dark') {
         nightNavStyles(map);
-      } else if (currentBaseLayer === 'Standard') {
-        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
       } else {
-        historyMapStyles(map);
-        map.filterByDate('2013-04-14');
+        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
       }
 
       if (zoom > 11 && currentPois) {

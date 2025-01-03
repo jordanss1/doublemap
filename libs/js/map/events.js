@@ -30,6 +30,8 @@ mapPromise.then((map) => {
   let timeout;
 
   map.on('move', async () => {
+    if (historyMode) return;
+
     const zoom = map.getZoom();
     const bounds = map.getBounds();
     const currentPoiLayer =
@@ -50,15 +52,17 @@ mapPromise.then((map) => {
   });
 
   map.on('style.load', async () => {
+    if (historyMode) return;
+
     const currentPoiLayer =
       currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
     const token = await getToken();
 
-    await applyLayers(token);
+    await applyMapLayers();
     await retrieveAndApplyIcons(token);
 
-    if (currentPois) {
+    if (currentPois && currentBaseLayer) {
       addPoiSourceAndLayer(currentPois, currentPoiLayer);
     }
   });
@@ -69,15 +73,25 @@ mapPromise.then((map) => {
     }
   });
 
-  map.on('mouseenter', ['country-fill', 'chosen-pois', 'default-pois'], () => {
-    map.getCanvas().style.cursor = 'pointer';
-  });
+  map.on(
+    'mouseenter',
+    ['history-country-fill', 'country-fill', 'chosen-pois', 'default-pois'],
+    () => {
+      map.getCanvas().style.cursor = 'pointer';
+    }
+  );
 
-  map.on('mouseleave', ['country-fill', 'chosen-pois', 'default-pois'], () => {
-    map.getCanvas().style.cursor = '';
-  });
+  map.on(
+    'mouseleave',
+    ['history-country-fill', 'country-fill', 'chosen-pois', 'default-pois'],
+    () => {
+      map.getCanvas().style.cursor = '';
+    }
+  );
 
-  map.on('mousemove', 'country-fill', (e) => {
+  map.on('mousemove', ['history-country-fill', 'country-fill'], (e) => {
+    console.log(e.features);
+
     if (e.features.length > 0) {
       if (hoveredCountryId !== null) {
         map.setFeatureState(
@@ -102,7 +116,7 @@ mapPromise.then((map) => {
     }
   });
 
-  map.on('mouseleave', 'country-fill', () => {
+  map.on('mouseleave', ['history-country-fill', 'country-fill'], (e) => {
     if (hoveredCountryId !== null) {
       map.setFeatureState(
         {

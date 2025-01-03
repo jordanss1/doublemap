@@ -14,4 +14,40 @@
 
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
+    if ($path[2] === 'country_history') {
+
+    }
+
+    if ($path[2] === 'events') {
+        $day = $queriesFormatted['day'];
+        $month = $queriesFormatted['month'];
+
+        $invalidDayOrMonth = (!is_numeric($day) || $day < 1 || $day > 31) || 
+        (!is_numeric($month) || $month < 1 || $month > 12);
+
+        if ($invalidDayOrMonth) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Incorrect query types', 'details' => 'Month and day are not valid number for month or day']);
+            exit;
+        }
+
+        $url = "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/$month/$day";
+
+        $response = fetchApiCall($url, true);
+
+        http_response_code(200);
+        echo json_encode($response);
+        exit;
+
+        $decodedResponse = decodeResponse($response);
+
+        if (isset($decodedResponse['error'])) {
+            http_response_code(500);
+            echo json_encode($decodedResponse);
+            exit;
+        }
+
+
+    }
+
     

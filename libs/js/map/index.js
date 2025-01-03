@@ -2,6 +2,9 @@
 
 let currentBaseLayer =
   JSON.parse(localStorage.getItem('currentBaseLayer')) ?? 'Standard';
+let historyMode = JSON.parse(localStorage.getItem('historyMode'))
+  ? true
+  : false;
 
 const styles = [
   { name: 'Standard', url: 'mapbox://styles/mapbox/standard' },
@@ -65,7 +68,9 @@ const initialiseMap = () => {
       success: async () => {
         const token = await getToken();
 
-        const { url } = styles.find((style) => currentBaseLayer === style.name);
+        let { url } = styles.find((style) => currentBaseLayer === style.name);
+
+        if (historyMode) url = styles[2].url;
 
         map = new mapboxgl.Map({
           style: url,
@@ -78,20 +83,24 @@ const initialiseMap = () => {
         });
 
         map.on('load', async () => {
+          if (historyMode) {
+            historyMapStyles(map);
+            map.filterByDate('2013-01-01');
+            await applyMapLayers();
+            return resolve(map);
+          }
+
           if (currentBaseLayer === 'Dark') {
             nightNavStyles(map);
-          } else if (currentBaseLayer === 'Standard') {
+          } else {
             map.setConfigProperty(
               'basemap',
               'showPointOfInterestLabels',
               false
             );
-          } else {
-            historyMapStyles(map);
-            map.filterByDate('2013-04-14');
           }
 
-          await applyLayers(token);
+          await applyMapLayers();
           await retrieveAndApplyIcons(token);
 
           resolve(map);
@@ -152,7 +161,7 @@ function nightNavStyles(map) {
   );
 }
 
-async function applyLayers(token) {
+async function applyMapLayers() {
   if (!map.getSource('country-borders')) {
     map.addSource('country-borders', {
       type: 'vector',

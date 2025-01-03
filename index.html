@@ -26,14 +26,29 @@
       </div>
       <div class="absolute h-full w-full pointer-events-none z-[8000]">
         <section
-          class="top-panel w-full flex justify-center fixed inset-x-0 top-3"
+          class="top-panel w-full grid grid-cols-[repeat(3,1fr)] grid-flow-col fixed inset-x-0 top-3"
         >
-          <span id="select-container" class="pointer-events-auto h-8">
+          <div></div>
+          <span
+            id="select-container"
+            class="pointer-events-auto justify-self-center h-8"
+          >
             <select
               id="country-select"
               class="px-1 h-6 text-lg text-ellipsis shadow-sm"
             ></select>
           </span>
+          <div
+            id="history-control"
+            title="Activate history mode"
+            role="button"
+            aria-label="Activate history mode"
+            aria-disabled=""
+            disabled=""
+            class="w-8 h-8 mr-14 border-2 border-white-300 flex justify-self-end items-center pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+          >
+            <i class="fa-solid fa-book-open text-white-100"></i>
+          </div>
         </section>
         <section
           class="left-panel flex flex-col items-center gap-1 h-full fixed top-3 left-3"
@@ -51,9 +66,9 @@
         </section>
 
         <section
-          class="right-panel flex flex-col items-center gap-1 h-full fixed top-3 right-3"
+          class="right-panel-1 flex flex-col items-center gap-3 h-full fixed top-3 right-3"
         >
-          <div class="pointer-events-auto">
+          <div class="pointer-events-auto rounded-md">
             <a
               id="zoom-in"
               class="w-8 h-8 flex items-center rounded-t-md border-b-2 border-white-300 justify-center bg-white-50 m-auto aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300"
