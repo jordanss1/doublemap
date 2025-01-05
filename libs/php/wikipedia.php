@@ -1,8 +1,8 @@
 <?php
 
     header('Content-Type: application/json');
-    require_once dirname(__DIR__) . '/functions.php';
-    require_once dirname(__DIR__) . '/error_handle.php';
+    require_once './functions.php';
+    require_once './error_handle.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 
@@ -35,10 +35,6 @@
 
         $response = fetchApiCall($url, true);
 
-        http_response_code(200);
-        echo json_encode($response);
-        exit;
-
         $decodedResponse = decodeResponse($response);
 
         if (isset($decodedResponse['error'])) {
@@ -47,7 +43,9 @@
             exit;
         }
 
-
+        http_response_code(200);
+        echo json_encode($decodedResponse);
+        exit;
     }
 
     

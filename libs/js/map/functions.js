@@ -148,7 +148,7 @@ async function changeHistoryMode(map, enabled) {
       const currentPoiLayer =
         currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-      if (zoom > 11 && currentPois) {
+      if (map.getZoom() > 11 && currentPois) {
         addPoiSourceAndLayer(currentPois, currentPoiLayer);
       }
     });
@@ -156,15 +156,45 @@ async function changeHistoryMode(map, enabled) {
 }
 
 function applyHistoryHtml(enabled) {
-  const searchContainer = enabled ? 'true' : 'false';
-  const historyContainer = enabled ? 'false' : 'true';
+  const disabledDuringHistoryMode = enabled ? 'true' : 'false';
+  const enabledDuringHistoryMode = enabled ? 'false' : 'true';
+  const isDaySliderEnabled =
+    $('#day-slider-container').attr('aria-disabled') === 'false';
+
+  if (enabled) {
+    $('#top-panel').removeClass('auto-cols-[minmax(0,1fr)]');
+    $('#top-panel').addClass('grid-cols-[auto_1fr_auto]');
+    $('#history-container').addClass('animate-start_absolute');
+    $('#country-select-button').addClass('animate-start_absolute');
+    $('#search-container').children().removeClass('animate-start_absolute');
+    $('#select-container').removeClass('animate-start_absolute');
+    $('#select-container').addClass('animate-end_absolute');
+  } else {
+    $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
+    $('#top-panel').removeClass('grid-cols-[auto_1fr_auto]');
+    $('#search-container').children().addClass('animate-start_absolute');
+    $('#select-container').addClass('animate-start_absolute');
+    $('#select-container').removeClass('animate-end_absolute');
+    $('#history-container').removeClass('animate-start_absolute');
+    $('#country-select-button').removeClass('animate-start_absolute');
+
+    if (isDaySliderEnabled) {
+      $('#day-slider-container').attr('aria-disabled', 'true');
+    }
+  }
 
   $('#history-container')
-    .attr('disabled', historyContainer)
-    .attr('aria-disabled', historyContainer);
+    .attr('disabled', enabledDuringHistoryMode)
+    .attr('aria-disabled', enabledDuringHistoryMode);
   $('#search-container')
-    .attr('disabled', searchContainer)
-    .attr('aria-disabled', searchContainer);
+    .attr('disabled', disabledDuringHistoryMode)
+    .attr('aria-disabled', disabledDuringHistoryMode);
+  $('#country-select-button')
+    .attr('disabled', enabledDuringHistoryMode)
+    .attr('aria-disabled', enabledDuringHistoryMode);
+  $('#select-container')
+    .attr('disabled', disabledDuringHistoryMode)
+    .attr('aria-disabled', disabledDuringHistoryMode);
 }
 
 function applyHistoryStyles() {
@@ -217,6 +247,7 @@ function applyHistoryStyles() {
     },
   });
 }
+
 
 async function addPoiSourceAndLayer(pois, layerId) {
   if (pois && pois.length) {

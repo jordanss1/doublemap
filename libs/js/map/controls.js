@@ -16,6 +16,18 @@ mapPromise.then((map) => {
     await changeHistoryMode(map, !historyMode);
   });
 
+  $('#slider-button').on('click', async () => {
+    const isDaySliderEnabled =
+      $('#day-slider-container').attr('aria-disabled') === 'false';
+
+    if (isDaySliderEnabled) {
+      $('#day-slider-container').attr('aria-disabled', 'true');
+    } else {
+      await getWikipediaEvents();
+      $('#day-slider-container').attr('aria-disabled', 'false');
+    }
+  });
+
   $('#style-control').on('click', async () => {
     if (historyMode) {
       await changeHistoryMode(map, false);
@@ -309,4 +321,19 @@ async function reverseLookupFromLatLng() {
   }
 
   return null;
+}
+
+async function getWikipediaEvents() {
+  try {
+    const { data } = await $.ajax({
+      url: '/api/wikipedia/events?day=01&month=11',
+      method: 'GET',
+      dataType: 'json',
+    });
+    console.log(data);
+  } catch (xhr) {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
+  }
 }

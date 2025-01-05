@@ -88,7 +88,6 @@ async function getCountryData(iso_a2) {
 
     map.setFilter('country-line', ['==', 'iso_a2', iso_a2]);
     map.setFilter('country-fill', ['==', 'iso_a2', iso_a2]);
-    // map.setFilter('country-extrusion', ['==', 'iso_a2', iso_a2]);
 
     const responses = data.map((countryData) => {
       if (countryData.error) {

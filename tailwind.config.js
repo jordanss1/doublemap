@@ -16,10 +16,10 @@ module.exports = {
       keyframes: {
         startAbsolute: {
           '0%': { position: 'absolute' },
-          '100%': { position: 'static' },
+          '100%': { position: 'relative' },
         },
         endAbsolute: {
-          '0%': { position: 'static' },
+          '0%': { position: 'relative' },
           '100%': { position: 'absolute' },
         },
       },

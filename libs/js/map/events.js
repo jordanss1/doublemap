@@ -143,7 +143,9 @@ async function getOverpassPois(bounds, category) {
     });
 
     return data;
-  } catch (err) {
-    console.log(err);
+  } catch (xhr) {
+    const res = JSON.parse(xhr.responseText);
+    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
   }
 }
