@@ -9,6 +9,21 @@ module.exports = {
       lg: '0 8px 16px rgba(0, 0, 0, 0.20), 0 10px 24px rgba(0, 0, 0, 0.12)',
     },
     extend: {
+      animation: {
+        start_absolute: 'startAbsolute 500ms forwards',
+        end_absolute: 'endAbsolute 1s forwards',
+      },
+      keyframes: {
+        startAbsolute: {
+          '0%': { position: 'absolute' },
+          '100%': { position: 'static' },
+        },
+        endAbsolute: {
+          '0%': { position: 'static' },
+          '100%': { position: 'absolute' },
+        },
+      },
+
       fontFamily: {
         sans: ['Lato', 'Arial', 'sans-serif'],
         title: ['Montserrat', 'Arial', 'sans-serif'],

@@ -39,21 +39,46 @@
             ></select>
           </span>
           <div
-            id="history-control"
-            title="Activate history mode"
-            role="button"
-            aria-label="Activate history mode"
-            aria-disabled=""
-            disabled=""
-            class="w-8 h-8 mr-14 border-2 border-white-300 flex justify-self-end items-center pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+            id="history-container"
+            aria-disabled="true"
+            class="flex group relative border-1 ease-in transition-all duration-500 border-white-300 backdrop-blur-md rounded-md aria-disabled:p-0 bg-black/50 p-1 justify-self-end mr-14 gap-3 items-center aria-disabled:bg-black/0 justify-end aria-disabled:max-w-10 max-w-20 w-full"
           >
-            <i class="fa-solid fa-book-open text-white-100"></i>
+            <div
+              id="slider-button"
+              title="Show day slider"
+              role="button"
+              aria-label="Show day slider"
+              aria-disabled=""
+              disabled=""
+              class="w-7 h-7 border-2 animate-start_absolute ease-in transition-all duration-500 group-aria-disabled:delay-500 group-aria-disabled:hidden group-aria-disabled:opacity-0 group-aria-disabled:translate-x-1 translate-x-0 opacity-100 border-white-300 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+            >
+              <i class="fa-solid fa-calendar-days text-white-100"></i>
+            </div>
+            <div
+              id="history-control"
+              title="Activate history mode"
+              role="button"
+              aria-label="Activate history mode"
+              aria-disabled=""
+              disabled=""
+              class="w-8 h-8 border-2 relative border-white-300 flex justify-self-end items-center pointer-events-auto rounded-md justify-center duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+            >
+              <i class="fa-solid fa-book-open text-white-100"></i>
+            </div>
           </div>
         </section>
         <section
           class="left-panel flex flex-col items-center gap-1 h-full fixed top-3 left-3"
         >
-          <div class="pointer-events-auto relative">
+          <div id="" class="">
+            <i class="fa-solid fa-flag"></i>
+          </div>
+          <div
+            aria-disabled=""
+            disabled=""
+            id="search-container"
+            class="pointer-events-auto relative duration-500 ease-out transition-all opacity-100 translate-x-0 aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+          >
             <input type="text" id="search" />
             <div
               id="search-popout"
@@ -128,7 +153,7 @@
     <script src="./assets/mapboxgljs/mapbox-gl.js"></script>
     <script src="./assets/maplibre-gl-dates/index.js"></script>
     <script src="./libs/js/map/index.js"></script>
-    <script src="./libs/js/map/layers.js"></script>
+    <script src="./libs/js/map/functions.js"></script>
     <script src="./libs/js/map/controls.js"></script>
     <script src="./libs/js/map/events.js"></script>
     <script src="./libs/js/script.js"></script>

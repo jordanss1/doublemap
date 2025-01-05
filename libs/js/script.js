@@ -1,15 +1,5 @@
 /// <reference path="./jquery.js" />
 
-jQuery(() => {
-  if ($('#preloader').length) {
-    $('#preloader')
-      .delay(300)
-      .fadeOut('slow', function () {
-        $(this).remove();
-      });
-  }
-});
-
 mapPromise.then((map) => {
   $.ajax({
     url: '/api/ipinfo',
@@ -53,9 +43,7 @@ mapPromise.then((map) => {
     method: 'GET',
     dataType: 'json',
     success: ({ data }) => {
-      console.log(data);
-
-      const countryList = data
+      countryList = data
         .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
         .map(({ properties }) => {
           return { name: properties.name, iso_a2: properties.iso_a2 };
@@ -90,63 +78,6 @@ mapPromise.then((map) => {
   });
 });
 
-function getSearchResults(value) {
-  const proximity =
-    mostRecentLocation.latitude && mostRecentLocation.longitude
-      ? `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`
-      : 'ip';
-
-  if (value.length) {
-    $.ajax({
-      url: `/api/mapboxgljs/search?q=${value}&proximity=${proximity}&endpoint=forward`,
-      method: 'GET',
-      dataType: 'json',
-      success: ({ data }) => {
-        $('#search-normal').children().remove();
-
-        if (data.length) {
-          data.forEach(({ properties }, i) => {
-            searchResults.push(properties);
-            const name = createFeatureName(properties);
-
-            $('#search-normal').append(
-              `<div id='search-normal-item' data-value=${i}>${name}</div>`
-            );
-          });
-        }
-      },
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(
-          `Error Status: ${xhr.status} - Error Message: ${res.error}`
-        );
-        console.log(`Response Text: ${res.details}`);
-      },
-    });
-  }
-}
-
-function createFeatureName(feature) {
-  const { name, feature_type, full_address, place_formatted, name_preferred } =
-    feature;
-
-  if (feature_type === 'poi') {
-    return `${name}, ${full_address}`;
-  } else if (feature_type === 'address') {
-    return full_address;
-  } else if (
-    feature_type === 'street' ||
-    feature_type === 'place' ||
-    feature_type === 'locality'
-  ) {
-    return `${name_preferred || name}, ${place_formatted}`;
-  } else if (feature_type === 'country') {
-    return name;
-  } else {
-    return `${place_formatted || name_preferred}`;
-  }
-}
-
 async function getCountryData(iso_a2) {
   try {
     const { data } = await $.ajax({
@@ -169,16 +100,4 @@ async function getCountryData(iso_a2) {
   } catch (err) {
     console.log(err);
   }
-}
-
-function addIconsToMap() {
-  categoryList.forEach(({ icon }) => {
-    map.loadImage(
-      `../../../assets/category-icons/${icon}.png`,
-      (error, image) => {
-        if (error) throw error;
-        map.addImage(icon, image);
-      }
-    );
-  });
 }

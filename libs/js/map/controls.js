@@ -13,38 +13,17 @@ mapPromise.then((map) => {
   });
 
   $('#history-control').on('click', async () => {
-    console.log(historyMode);
-    if (historyMode) return;
-
-    historyMode = true;
-    localStorage.setItem('historyMode', JSON.stringify(true));
-
-    if (map.getLayer('chosen-pois')) map.removeLayer('chosen-pois');
-
-    if (map.getLayer('default-pois')) map.removeLayer('default-pois');
-
-    if (map.getLayer('country-fill')) {
-      map.removeLayer('country-fill');
-    }
-
-    if (map.getLayer('country-line')) {
-      map.removeLayer('country-line');
-    }
-
-    map.setStyle(styles[2].url);
-
-    map.once('style.load', () => {
-      historyMapStyles(map);
-      map.filterByDate('2013-01-01');
-    });
+    await changeHistoryMode(map, !historyMode);
   });
 
   $('#style-control').on('click', async () => {
+    if (historyMode) {
+      await changeHistoryMode(map, false);
+      return;
+    }
+
     const token = await getToken();
     const zoom = map.getZoom();
-
-    historyMode = false;
-    localStorage.setItem('historyMode', JSON.stringify(false));
 
     const currentIndex = styles.findIndex(
       (style) => currentBaseLayer === style.name
@@ -67,8 +46,11 @@ mapPromise.then((map) => {
         map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
       }
 
+      const currentPoiLayer =
+        currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
+
       if (zoom > 11 && currentPois) {
-        addPoiSourceAndLayer(currentPois);
+        addPoiSourceAndLayer(currentPois, currentPoiLayer);
       }
     });
   });
@@ -248,6 +230,30 @@ mapPromise.then((map) => {
   });
 });
 
+async function appendLocationToCategoryOption() {
+  return setTimeout(async () => {
+    const feature = await reverseLookupFromLatLng();
+
+    if (!feature) return;
+
+    const { district, neighborhood, region, place } = feature;
+
+    mostRecentLocation.context = {
+      neighborhood,
+      district,
+      region,
+      place,
+    };
+
+    $('#search-category-item-default-area').text('');
+    $('#search-category-item-default-area').text(
+      `${neighborhood ? `${neighborhood}, ` : ''}${place ? `${place}` : ''}${
+        district && district !== place ? `, ${district}` : ''
+      }${region ? `, ${feature.region}` : ''}`
+    );
+  }, 500);
+}
+
 function categorySearchOption(value) {
   const closestMatch = categoryList.reduce((bestMatch, current) => {
     if (current.name === 'default') return bestMatch;
@@ -303,44 +309,4 @@ async function reverseLookupFromLatLng() {
   }
 
   return null;
-}
-
-async function appendLocationToCategoryOption() {
-  return setTimeout(async () => {
-    const feature = await reverseLookupFromLatLng();
-
-    if (!feature) return;
-
-    const { district, neighborhood, region, place } = feature;
-
-    mostRecentLocation.context = {
-      neighborhood,
-      district,
-      region,
-      place,
-    };
-
-    $('#search-category-item-default-area').text('');
-    $('#search-category-item-default-area').text(
-      `${neighborhood ? `${neighborhood}, ` : ''}${place ? `${place}` : ''}${
-        district && district !== place ? `, ${district}` : ''
-      }${region ? `, ${feature.region}` : ''}`
-    );
-  }, 500);
-}
-
-function zoomForFeatureType(feature_type) {
-  if (feature_type === 'region' || feature_type === 'country') {
-    return 3;
-  }
-
-  if (
-    feature_type === 'poi' ||
-    feature_type === 'street' ||
-    feature_type === 'place'
-  ) {
-    return 16;
-  }
-
-  return 10;
 }
