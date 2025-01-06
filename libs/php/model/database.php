@@ -5,7 +5,7 @@
     $password = $_ENV['DB_PASS'];
 
     try {
-        $db = new PDO($map_dsn, $username, $password);
+        $map_db = new PDO($map_dsn, $username, $password);
     } catch (PDOException $err) {
         http_response_code(500);
         $error = "DB Error: $err";
@@ -16,7 +16,7 @@
     $wikipedia_dsn = "mysql:host={$_ENV['DB_HOST']};port={$_ENV['DB_PORT']};dbname=wikipedia";
 
     try {
-        $db = new PDO($wikipedia_dsn, $username, $password);
+        $wikipedia_db = new PDO($wikipedia_dsn, $username, $password);
     } catch (PDOException $err) {
         http_response_code(500);
         $error = "DB Error: $err";

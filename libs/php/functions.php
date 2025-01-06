@@ -1,5 +1,15 @@
 <?php
 
+    function stmtErrorCheck ($stmt, $db, $endOnError = true) {
+        if (!$stmt) {
+            if (!$endOnError) return false;
+
+            http_response_code(500);
+            echo json_encode(["error" => $db->errorInfo(), "details" => "Could not execute SQL statement"]);
+            exit;
+        }
+    }
+
     function decodeResponse ($response, $dataType = 'json') {
         if ($dataType === "xml") {
             $xmlObject = simplexml_load_string($response);

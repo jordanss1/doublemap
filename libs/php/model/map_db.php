@@ -1,32 +1,23 @@
 <?php
     header('Content-Type: application/json');
     require_once __DIR__ . "/database.php";
+    require_once __DIR__ . "/../functions.php";
 
-    global $db;
-
-    function stmtErrorCheck ($stmt, $db, $endOnError = true) {
-        if (!$stmt) {
-            if (!$endOnError) return false;
-
-            http_response_code(500);
-            echo json_encode(["error" => $db->errorInfo(), "details" => "Could not execute SQL statement"]);
-            exit;
-        }
-    }
+    global $map_db;
 
 
     function incrementRequestCount ($api_name) {
-        global $db;
+        global $map_db;
 
         $query = "UPDATE request_counts SET requests = requests + 1 WHERE api_name = :api_name";
 
-        $stmt = $db->prepare($query);
+        $stmt = $map_db->prepare($query);
 
-        stmtErrorCheck($stmt, $db);
+        stmtErrorCheck($stmt, $map_db);
 
         $stmt->bindParam(':api_name', $api_name, PDO::PARAM_STR);
 
-        stmtErrorCheck($stmt->execute(), $db);
+        stmtErrorCheck($stmt->execute(), $map_db);
         
         if ($stmt->rowCount() === 0) {
             http_response_code(404);
@@ -76,16 +67,16 @@
         }
     }
 
-    function    checkRequestCount ($api_name) {
-        global $db;
+    function checkRequestCount ($api_name) {
+        global $map_db;
 
         $query = "SELECT * FROM request_counts WHERE api_name = :api_name";
 
-        $stmt = $db->prepare($query);
+        $stmt = $map_db->prepare($query);
 
         $stmt->bindParam(':api_name', $api_name, PDO::PARAM_STR);
 
-        stmtErrorCheck($stmt->execute(), $db);
+        stmtErrorCheck($stmt->execute(), $map_db);
 
         
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -94,7 +85,7 @@
 
         if ($results === false) {
             while ($try <= 5) {
-                $error = stmtErrorCheck($stmt->execute(), $db, false);
+                $error = stmtErrorCheck($stmt->execute(), $map_db, false);
 
                 if ($error === false) {
                     $try++;
@@ -109,7 +100,7 @@
 
                 if ($try === 5) {
                     http_response_code(500);
-                    echo json_encode(["error" => "", "SQL has failed request" => "Error fetching map request details"]);
+                    echo json_encode(["error" => "SQL has failed request", "details" => "Error fetching map request details"]);
                     exit;
                 }
 
