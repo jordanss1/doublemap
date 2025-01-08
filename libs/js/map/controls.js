@@ -13,6 +13,8 @@ mapPromise.then((map) => {
   });
 
   $('#history-control').on('click', async () => {
+    if (historyMode) await getToken();
+
     await changeHistoryMode(map, !historyMode);
   });
 
@@ -29,12 +31,13 @@ mapPromise.then((map) => {
   });
 
   $('#style-control').on('click', async () => {
+    await getToken();
+
     if (historyMode) {
       await changeHistoryMode(map, false);
       return;
     }
 
-    const token = await getToken();
     const zoom = map.getZoom();
 
     const currentIndex = styles.findIndex(

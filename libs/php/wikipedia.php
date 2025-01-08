@@ -32,7 +32,7 @@
             exit;
         }
 
-        $results = retrieveEventsForDate($day, $month);
+        $results = retrieveDateEventsFromDB($day, $month);
 
         if (count($results)) {
             http_response_code(200);
@@ -42,38 +42,37 @@
 
         $url = "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/$month/$day";
 
-        $response = fetchApiCall($url, true);
+        $wikipediaResponse = fetchApiCall($url, true);
 
-        $decodedResponse = decodeResponse($response);
+        $wikipediaResponse = decodeResponse($wikipediaResponse);
 
-        if (isset($decodedResponse['error'])) {
+        if (isset($wikipediaResponse['error'])) {
             http_response_code(500);
-            echo json_encode($decodedResponse);
+            echo json_encode($wikipediaResponse);
             exit;
         }
 
-        $eventBatches = array_chunk($decodedResponse['events'], 10);
+        $eventBatches = array_chunk($wikipediaResponse['events'], 5);
 
-        $result = [];
-
+        $eventsWithCoords = [];
 
         foreach ($eventBatches as $eventBatch) {
-            $prompt = "For each event, provide latitude/longitude in the same order as the events: ";
+            $prompt = "Provide latitude and longitude in the same order as events, if you don't know the exact, ALWAYS provide rough lat and long. Response in JSON, no nested arrays, only wrapped in array (no newline characters): [{'lat': 'value', 'long': 'value'} ...]";
 
             foreach ($eventBatch as $event) {
-                $prompt .= "Event: {$event['text']} Year: {$event['year']}; ";
+                $prompt .= " - Event: {$event['text']}, Year: {$event['year']}\n ";
             }
 
-            $prompt .= "Response should be in this format: [{'event': 'Event name', 'lat': 'latitude', 'long': 'longitude'}, ...]";
-
             $data = [
-                'model' => 'babbage-002',
-                'prompt' => $prompt,
-                'max_tokens' => 100, 
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    ['role' => 'developer', 'content' => 'You are a helpful assistant who provides coordinates.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
                 'temperature' => 0.2,
             ];
 
-            $ch = curl_init('https://api.openai.com/v1/completions');
+            $ch = curl_init('https://api.openai.com/v1/chat/completions');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Authorization: Bearer ' . $_ENV['OPEN_AI_KEY'],
@@ -82,17 +81,40 @@
             
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-
             $response = curl_exec($ch);
+
+            curl_close($ch);
 
             $response = decodeResponse($response);
 
-            $result = array_push($response);
+            $coordArray = decodeResponse(sanitizeJsonResponse($response['choices'][0]['message']['content']));
+
+            $eventsWithCoords = array_merge($eventsWithCoords, $coordArray);
+
+            $index = 0;
+
+            foreach ($eventBatch as $event) {
+                $eventDate = sprintf('%04d-%02d-%02d', $event['year'], $month, $day);
+                $thumbnail = $event['pages'][0]['thumbnail']['source'] ?? null;
+                $thumbnailWidth = $event['pages'][0]['thumbnail']['width'] ?? null;
+                $thumbnailHeight = $event['pages'][0]['thumbnail']['height'] ?? null;
+
+                $eventsWithCoords[] = ['title' => $event['text'], 'eventDate' => $eventDate, 'eventDay' => $day, 'eventMonth' => (int)$month, 'eventYear' => (int)$event['year'], 'latitude' => (float)$coordArray[$index]['lat'], 'longitude' => (float)$coordArray[$index]['long'], 'thumbnail' => $thumbnail, 'thumbnailWidth' => $thumbnailWidth, 'thumbnailHeight' => $thumbnailHeight];
+
+                $index++;
+            }
         }
+
+        // $eventsWithCoordsBatches = array_chunk($eventsWithCoords, 40);
+
+        // foreach ($eventsWithCoordsBatches as $eventBatches) {
+        //     addEventsToDB($eventBatches);
+        // }
+
         
 
         http_response_code(200);
-        echo json_encode(['data' => $result]);
+        echo json_encode($eventsWithCoords);
         exit;
     }
 

@@ -178,3 +178,24 @@
 
         return $filteredNodes;
     }
+
+    function sanitizeJsonResponse(string $response): string {
+        $response = trim($response);
+        
+        if ($response[0] !== '[') {
+            $response = '[' . $response;
+        }
+        if (substr($response, -1) !== ']') {
+            $response .= ']';
+        }
+        
+        $response = preg_replace('/}\]\[{\s*/', '},{', $response);
+        
+        $response = str_replace("'", '"', $response);
+        
+        $response = preg_replace('/,\s*([\]}])/m', '$1', $response);
+        
+        $response = preg_replace('/([{,])(\s*)(\w+):/', '$1"$3":', $response);
+        
+        return $response;
+    }

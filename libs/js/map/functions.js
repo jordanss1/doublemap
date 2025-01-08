@@ -109,7 +109,11 @@ async function applyCountryLayers() {
   }
 }
 
+let timeout;
+
 async function changeHistoryMode(map, enabled) {
+  clearTimeout(timeout);
+
   if (enabled) {
     historyMode = true;
     localStorage.setItem('historyMode', JSON.stringify(true));
@@ -122,9 +126,11 @@ async function changeHistoryMode(map, enabled) {
 
     map.once('style.load', async () => {
       map.filterByDate('2013-01-01');
-      applyHistoryHtml(enabled);
       await applyCountryLayers();
       applyHistoryStyles();
+      timeout = setTimeout(() => {
+        applyHistoryHtml(enabled);
+      }, 1000);
     });
   } else {
     historyMode = false;
@@ -137,7 +143,9 @@ async function changeHistoryMode(map, enabled) {
     });
 
     map.once('style.load', async () => {
-      applyHistoryHtml(enabled);
+      timeout = setTimeout(() => {
+        applyHistoryHtml(enabled);
+      }, 500);
 
       if (currentBaseLayer === 'Dark') {
         nightNavStyles(map);
@@ -247,7 +255,6 @@ function applyHistoryStyles() {
     },
   });
 }
-
 
 async function addPoiSourceAndLayer(pois, layerId) {
   if (pois && pois.length) {
