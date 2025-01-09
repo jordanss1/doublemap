@@ -199,3 +199,77 @@
         
         return $response;
     }
+
+    function requestCoordsFromGPT ($prompt) {
+        $data = [
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'developer', 'content' => 'You are a helpful assistant who provides coordinates.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'temperature' => 0.2,
+        ];
+
+        $ch = curl_init('https://api.openai.com/v1/chat/completions');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $_ENV['OPEN_AI_KEY'],
+            'Content-Type: application/json',
+        ]);
+        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            return ['error' => $error];
+        }
+
+        curl_close($ch);
+
+        $response = decodeResponse($response);
+
+        return decodeResponse(sanitizeJsonResponse($response['choices'][0]['message']['content']));
+    }
+
+    function requestCoordsWithEvents ($events) {
+        $eventBatches = array_chunk($events, 5);
+
+        $completedEvents = [];
+        $failedEvents = [];
+
+        foreach ($eventBatches as $eventBatch) {
+            $prompt = "Provide latitude and longitude, if you don't know the exact lat and long ALWAYS provide a guess at the lat and long. Response in JSON, no nested arrays, only wrapped in array (no newline characters): [{'lat': 'value', 'long': 'value'} ...]";
+
+            foreach ($eventBatch as $event) {
+                $prompt .= " - Event: {$event['title']}, Year: {$event['event_year']}\n ";
+            }
+
+            $arrayOfCoords = requestCoordsFromGPT($prompt);
+
+            if ($arrayOfCoords['error']) {
+                array_merge($completedEvents, $eventBatch);
+                continue;
+            }
+
+            foreach ($eventBatch as $index => $event) {
+                if (!isset($arrayOfCoords[$index])  || 
+                !is_numeric($arrayOfCoords[$index]['lat']) || 
+                !is_numeric($arrayOfCoords[$index]['long'])) {
+                    $failedEvents[] = $event;
+                    continue;
+                }
+
+                $event['latitude'] = (float)$arrayOfCoords[$index]['lat'];
+                $event['longitude'] = (float)$arrayOfCoords[$index]['long'];
+
+                $completedEvents[] = $event;
+            }
+
+    }
+
+    return ['completedEvents' => $completedEvents,  'failedEvents' => $failedEvents];
+}
