@@ -328,21 +328,23 @@ async function reverseLookupFromLatLng() {
 
 async function getWikipediaEvents() {
   try {
-    const { data, initial } = await $.ajax({
-      url: '/api/wikipedia/events?day=01&month=11',
+    const { data, complete } = await $.ajax({
+      url: '/api/wikipedia/events?action=fetch&day=01&month=11',
       method: 'GET',
       dataType: 'json',
     });
 
     console.log(data);
 
-    if (initial) {
+    if (!complete) {
       try {
         const { data } = await $.ajax({
-          url: '/api/wikipedia/events?day=01&month=11',
+          url: '/api/wikipedia/events?action=update&day=01&month=11',
           method: 'GET',
           dataType: 'json',
         });
+
+        console.log(data);
       } catch (xhr) {
         const res = JSON.parse(xhr.responseText);
         console.log(

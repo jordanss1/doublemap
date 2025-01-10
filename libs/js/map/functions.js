@@ -212,47 +212,7 @@ function applyHistoryStyles() {
     'horizon-blend': 0.3,
     'high-color': '#a0a0c0',
     'space-color': '#1a1a2a',
-    'star-intensity': 0.6,
-  });
-
-  map.setPaintProperty('water', 'fill-color', '#3a5e63');
-  map.setPaintProperty('water', 'fill-opacity', 0.8);
-
-  map.addLayer({
-    id: 'water-texture',
-    type: 'fill',
-    source: 'composite',
-    'source-layer': 'water',
-    paint: {
-      'fill-pattern': 'wave-pattern',
-      'fill-opacity': 0.1,
-    },
-  });
-  map.setLayoutProperty('country-label', 'text-font', [
-    'Old Standard TT Italic',
-    'Arial Unicode MS Regular',
-  ]);
-  map.setPaintProperty('country-label', 'text-color', '#4a4a4a');
-
-  map.addLayer({
-    id: 'paper-texture',
-    type: 'background',
-    paint: {
-      'background-pattern': 'paper-texture',
-      'background-opacity': 0.1,
-    },
-  });
-
-  map.addLayer({
-    id: 'coastline-glow',
-    type: 'line',
-    source: 'composite',
-    'source-layer': 'coastline',
-    paint: {
-      'line-color': '#c9b77d',
-      'line-width': 2,
-      'line-blur': 3,
-    },
+    'star-intensity': 0.1,
   });
 }
 

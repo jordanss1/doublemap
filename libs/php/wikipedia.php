@@ -20,27 +20,49 @@
 
     }
 
-
     if ($path[2] === 'events') {
+        if (!isset($queriesFormatted['day']) || !isset($queriesFormatted['month']) || !isset($queriesFormatted['action'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Incorrect query types', 'details' => 'Must set day and month']);
+            exit;
+        }
+
         $day = $queriesFormatted['day'];
         $month = $queriesFormatted['month'];
 
         $invalidDayOrMonth = (!is_numeric($day) || $day < 1 || $day > 31) || 
         (!is_numeric($month) || $month < 1 || $month > 12);
 
-
-
         if ($invalidDayOrMonth) {
             http_response_code(401);
-            echo json_encode(['error' => 'Incorrect query types', 'details' => 'Month and day are not valid number for month or day']);
+            echo json_encode(['error' => 'Incorrect query types', 'details' => 'Not valid numbers for month or day']);
             exit;
         }
 
-        $results = updateAndRetrieveEventsFromDB((int)$day, (int)$month);
+        if ($queriesFormatted['action'] === 'update') {
+            $results = fetchAndUpdateEventsFromDB((int)$day, (int)$month, 'update');
+
+            http_response_code(200);
+            echo json_encode($results);
+            exit;
+        }
+
+        $results = fetchAndUpdateEventsFromDB((int)$day, (int)$month, 'fetch');
 
         if (count($results)) {
+            $complete = true;
+
+            foreach ($results as $event) {
+                if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
+                && $event['latitude'] === null 
+                && $event['longitude'] === null) {
+                    $complete = false;
+                    break;
+                }
+            };
+
             http_response_code(200);
-            echo json_encode(['data' => $results]);
+            echo json_encode(['complete' => $complete, 'data' => $results]);
             exit;
         }
 
@@ -55,7 +77,6 @@
             echo json_encode($wikipediaResponse);
             exit;
         }
-
 
         $eventsFormatted = array_map(function ($event) use ($month, $day) {
             $eventDate = sprintf('%04d-%02d-%02d', $event['year'], $month, $day);
@@ -86,7 +107,7 @@
         }
 
         http_response_code(200);
-        echo json_encode(['data' => $events, 'initial' => true]);
+        echo json_encode(['complete' => false, 'data' => $events]);
         exit;
     }
 

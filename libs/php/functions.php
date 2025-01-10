@@ -211,6 +211,7 @@
         ];
 
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
+
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -242,7 +243,7 @@
         $failedEvents = [];
 
         foreach ($eventBatches as $eventBatch) {
-            $prompt = "Provide latitude and longitude, if you don't know the exact lat and long ALWAYS provide a guess at the lat and long. Response in JSON, no nested arrays, only wrapped in array (no newline characters): [{'lat': 'value', 'long': 'value'} ...]";
+            $prompt = "Provide latitude and longitude as a guess if exact values are not known. Respond in JSON format as a flat array: [{'lat': 'value', 'long': 'value'}].";
 
             foreach ($eventBatch as $event) {
                 $prompt .= " - Event: {$event['title']}, Year: {$event['event_year']}\n ";
@@ -250,8 +251,8 @@
 
             $arrayOfCoords = requestCoordsFromGPT($prompt);
 
-            if ($arrayOfCoords['error']) {
-                array_merge($completedEvents, $eventBatch);
+            if (isset($arrayOfCoords['error'])) {
+                $completedEvents = array_merge($completedEvents, $eventBatch);
                 continue;
             }
 
@@ -271,5 +272,5 @@
 
     }
 
-    return ['completedEvents' => $completedEvents,  'failedEvents' => $failedEvents];
+    return [$completedEvents,  $failedEvents];
 }

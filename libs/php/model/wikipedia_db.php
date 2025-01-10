@@ -23,16 +23,19 @@
                 $attempts++;
 
                 if ($attempts < $maxRetries) {
-                    sleep(1 ); 
+                    sleep(1); 
                 } 
             }
         }
     }
 
-    function updateAndRetrieveEventsFromDB($day, $month) {
+    function selectEventsFromDB($day, $month) {
         global $wikipedia_db;
 
-        $query = "SELECT * FROM events WHERE event_day = :event_day AND event_month = :event_month";
+        $query = "SELECT 
+                *, CAST(latitude AS DOUBLE) AS latitude, CAST(longitude AS DOUBLE) AS longitude 
+                FROM events 
+                WHERE event_day = :event_day AND event_month = :event_month";
 
         $stmt = $wikipedia_db->prepare($query);
 
@@ -57,8 +60,16 @@
             exit;
         }
 
-        if (!count($results)) {
-            return [];
+        return $results;
+    }
+
+    function fetchAndUpdateEventsFromDB($day, $month, $action) {
+        global $wikipedia_db;
+
+        $results = selectEventsFromDB($day, $month);
+
+        if ($action === 'fetch') {
+            return $results;
         }
 
         $eventsWithoutCoords = array_filter($results, function ($event) {
@@ -68,8 +79,8 @@
         });
 
         if (!count($eventsWithoutCoords)) {
-            return $results;
-        }
+            return ['complete' => true, 'data' => $results];
+        } 
 
         [$completedEvents, $failedEvents] = requestCoordsWithEvents($eventsWithoutCoords);
 
@@ -121,24 +132,22 @@
                     }
                 }
             }
-
-            $query = "SELECT * FROM events WHERE event_day = :event_day AND event_month = :event_month";
-
-            $stmt = $wikipedia_db->prepare($query);
-
-            $stmt->bindParam(':event_day', $day,  PDO::PARAM_INT);
-            $stmt->bindParam(':event_month', $month,  PDO::PARAM_INT);
-
-            try {
-                $stmt->execute();
-            } catch (PDOException $e) {
-                retryFailedDBExecution($stmt);
-            }
-
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        return $results;
+        $results = selectEventsFromDB($day, $month);
+
+        $complete = true;
+
+        foreach ($results as $event) {
+            if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
+            && $event['latitude'] === null 
+            && $event['longitude'] === null) {
+                $complete = false;
+                break;
+            }
+        };
+
+        return ['complete' => $complete, 'data' => $results];
     }
 
         
