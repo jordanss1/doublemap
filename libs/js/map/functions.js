@@ -128,6 +128,7 @@ async function changeHistoryMode(map, enabled) {
       map.filterByDate('2013-01-01');
       await applyCountryLayers();
       applyHistoryStyles();
+
       timeout = setTimeout(() => {
         applyHistoryHtml(enabled);
       }, 1000);
@@ -177,6 +178,7 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
+    $('#history-date').removeClass('animate-end_absolute');
   } else {
     $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
     $('#top-panel').removeClass('grid-cols-[auto_1fr_auto]');
@@ -188,6 +190,10 @@ function applyHistoryHtml(enabled) {
 
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
+      $('#history-container').removeClass('h-20');
+      $('#history-container').addClass('h-10');
+      $('#history-date').addClass('animate-end_absolute');
+      $('#history-date').attr('aria-disabled', 'true');
     }
   }
 

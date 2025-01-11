@@ -24,10 +24,38 @@ mapPromise.then((map) => {
 
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
+      $('#history-container').removeClass('h-20');
+      $('#history-container').addClass('h-10');
+      $('#history-date').attr('aria-disabled', 'true');
+      $('#history-date').addClass('animate-end_absolute');
     } else {
       await getWikipediaEvents();
+
       $('#day-slider-container').attr('aria-disabled', 'false');
+      $('#history-container').removeClass('h-10');
+      $('#history-container').addClass('h-20');
+      $('#history-date').attr('aria-disabled', 'false');
+      $('#history-date').removeClass('animate-end_absolute');
     }
+  });
+
+  const slider = $('#day-slider');
+
+  slider.on('input', function () {
+    console.log($(this).val());
+    const value = $(this).val();
+  });
+
+  slider.on('mousedown', function () {
+    $(this).css('--active-height', '6px');
+    $(this).css('--scale-thumb', '1.2');
+    $(this).css('--track-color', 'rgb(227 231 236)');
+  });
+
+  slider.on('mouseup', function () {
+    $(this).css('--active-height', '8px');
+    $(this).css('--scale-thumb', '1');
+    $(this).css('--track-color', 'rgb(209,214,225)');
   });
 
   $('#style-control').on('click', async () => {
