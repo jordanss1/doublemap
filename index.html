@@ -100,27 +100,31 @@
               aria-label="Current date"
               aria-disabled="true"
               class="h-8 group-aria-disabled:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled:delay-100 aria-disabled:opacity-0 group-aria-disabled:scale-50 aria-disabled:scale-50 group-aria-disabled:invisible aria-disabled:invisible group-aria-disabled:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled:duration-500 duration-300"
-            >
-              11/26
-            </div>
+            ></div>
           </div>
         </section>
         <section
           id="left-panel"
           class="min-w-48 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
         >
-          <a
-            id="country-select-button"
-            class="p-2 pointer-events-auto gap-2 delay-500 aria-disabled:delay-0 relative duration-500 ease-out aria-disabled:opacity-0 aria-disabled:-translate-x-5 translate-x-0 aria-disabled:invisible aria-disabled:absolute opacity-100 transition-all flex rounded-md border-b-2 border-white-300 justify-center bg-white-50"
-            title="Select country"
-            role="button"
-            aria-label="Select country"
-            aria-disabled="true"
-          >
-            <i class="fa-solid fa-flag text-slate-800"></i>
-            <i class="fa-solid fa-caret-down text-white-500"></i>
-          </a>
-
+          <div class="relative">
+            <a
+              id="country-select-button"
+              class="p-2 pointer-events-auto gap-2 delay-500 aria-disabled:delay-0 relative duration-500 ease-out aria-disabled:opacity-0 aria-disabled:-translate-x-5 translate-x-0 aria-disabled:invisible aria-disabled:absolute opacity-100 transition-all flex rounded-md border-b-2 border-white-300 justify-center bg-white-50"
+              title="Select country"
+              role="button"
+              aria-label="Select country"
+              aria-disabled="true"
+            >
+              <i class="fa-solid fa-flag text-slate-800"></i>
+              <i class="fa-solid fa-caret-down text-white-500"></i>
+            </a>
+            <ul
+              aria-disabled="true"
+              id="country-select-list"
+              class="bg-white-300 absolute aria-disabled:invisible visible flex items-center justify-center"
+            ></ul>
+          </div>
           <div
             aria-disabled=""
             disabled=""
@@ -187,7 +191,7 @@
             aria-label="Activate country mode"
             aria-disabled=""
             disabled=""
-            class="w-8 h-8 flex items-center pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+            class="w-8 h-8 flex items-center  pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
           >
             <i
               class="fa-solid fa-globe text-slate-800 text-sm group-aria-disabled:text-white-500"

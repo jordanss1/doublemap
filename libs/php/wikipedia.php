@@ -47,30 +47,38 @@
             exit;
         }
 
-        $results = fetchAndUpdateEventsFromDB((int)$day, (int)$month, 'fetch');
-
-        if (count($results)) {
-            $complete = true;
-
-            foreach ($results as $event) {
-                if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
-                && $event['latitude'] === null 
-                && $event['longitude'] === null) {
-                    $complete = false;
-                    break;
-                }
-            };
-
-            http_response_code(200);
-            echo json_encode(['complete' => $complete, 'data' => $results]);
-            exit;
-        }
-
         $url = "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/$month/$day";
 
         $wikipediaResponse = fetchApiCall($url, true);
 
         $wikipediaResponse = decodeResponse($wikipediaResponse);
+
+        $dbResults = fetchAndUpdateEventsFromDB((int)$day, (int)$month, 'fetch');
+
+        if (count($dbResults)) {
+            if (count($dbResults) === count($wikipediaResponse['events'])) {
+                $complete = true;
+
+                foreach ($dbResults as $event) {
+                    if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
+                    && $event['latitude'] === null 
+                    && $event['longitude'] === null) {
+                        $complete = false;
+                        break;
+                    }
+                };
+
+                http_response_code(200);
+                echo json_encode(['complete' => $complete, 'data' => $dbResults]);
+                exit;
+            } else {
+                $titlesInDB = array_column($dbResults, 'title');
+
+                $wikipediaResponse['events'] = array_filter($wikipediaResponse['events'], function ($event) use ($titlesInDB) {
+                    return !in_array($event['text'], $titlesInDB);
+                });
+            }
+        }
 
         if (isset($wikipediaResponse['error'])) {
             http_response_code(500);
@@ -98,16 +106,12 @@
             ];
         }, $wikipediaResponse['events']);
 
-        $events = [];
-
         foreach (array_chunk($eventsFormatted, 40) as $eventBatches) {
-            $returnedEvents = addEventsToDB($eventBatches);
-
-            array_merge($events, $returnedEvents);
+            addEventsToDB($eventBatches);
         }
 
         http_response_code(200);
-        echo json_encode(['complete' => false, 'data' => $events]);
+        echo json_encode(['complete' => false, 'data' => $eventsFormatted]);
         exit;
     }
 

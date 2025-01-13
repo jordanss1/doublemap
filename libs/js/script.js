@@ -28,7 +28,8 @@ mapPromise.then((map) => {
         center: [longitude, latitude],
         speed: 0.5,
         curve: 2,
-        zoom: 3,
+        zoom: 4,
+        duration: 1000,
       });
     },
     error: (xhr) => {
@@ -52,6 +53,10 @@ mapPromise.then((map) => {
       countryList.forEach(({ name, iso_a2 }) => {
         $('#country-select').append(
           `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
+        );
+
+        $('#country-select-list').append(
+          `<li id='country-list-option' class='text-lg' value='${iso_a2}'>${name}</li>`
         );
       });
     },
@@ -86,16 +91,15 @@ async function getCountryData(iso_a2) {
       dataType: 'json',
     });
 
-    map.setFilter('country-line', ['==', 'iso_a2', iso_a2]);
-    map.setFilter('country-fill', ['==', 'iso_a2', iso_a2]);
-
     const responses = data.map((countryData) => {
       if (countryData.error) {
-        return;
+        return false;
       }
 
       return countryData;
     });
+
+    return responses;
   } catch (err) {
     console.log(err);
   }

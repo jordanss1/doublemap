@@ -23,6 +23,7 @@ let currentPois;
 let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
+let chosenCountryISO = null;
 
 let tokenCache = {
   token: null,

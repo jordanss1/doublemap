@@ -1,8 +1,8 @@
 <?php
 
     header('Content-Type: application/json');
-    require_once dirname(__DIR__) . '/functions.php';
-    require_once dirname(__DIR__) . '/error_handle.php';
+    require_once './functions.php';
+    require_once './error_handle.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 
@@ -38,7 +38,7 @@
     $centerLat = ($sw_lat + $ne_lat) / 2;
     $centerLng = ($sw_lng + $ne_lng) / 2;
 
-    if ($path[2] === 'pois') {
+    if ($path[1] === 'overpass_pois') {
         $category = $queriesFormatted['category'];
         $url = 'https://overpass-api.de/api/interpreter?data=';
 

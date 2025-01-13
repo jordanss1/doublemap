@@ -102,6 +102,7 @@ mapPromise.then((map) => {
 
     wikipediaTimer = setTimeout(async () => {
       await getWikipediaEvents(day, month);
+
       $('#history-date').text(dateString);
     }, 1500);
   });
@@ -227,7 +228,26 @@ mapPromise.then((map) => {
   });
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
-    await getCountryData(target.value);
+    const [restCountryData, geonames] = await getCountryData(target.value);
+
+    updateChosenCountryState(target.value);
+
+    if (geonames) {
+      changeMapInteraction(true);
+      const bbox = [
+        [geonames.west, geonames.south],
+        [geonames.east, geonames.north],
+      ];
+
+      map.fitBounds(bbox, {
+        padding: 20,
+        maxZoom: 8,
+        duration: 2000,
+      });
+    }
+
+    if (restCountryData) {
+    }
   });
 
   $('#search-category').on(
@@ -279,7 +299,7 @@ mapPromise.then((map) => {
 
           map.flyTo({
             center: [longitude, latitude],
-            speed: 0.5,
+            speed: 1.5,
             curve: 2,
             zoom: 10,
           });
@@ -305,18 +325,35 @@ mapPromise.then((map) => {
   );
 
   $('#search-normal').on('click', '#search-normal-item', function (e) {
-    const { coordinates, feature_type } = searchResults[$(this).data('value')];
+    console.log(searchResults[$(this).data('value')]);
+
+    const { coordinates, feature_type, bbox, context } =
+      searchResults[$(this).data('value')];
 
     const coords = [coordinates.longitude, coordinates.latitude]; // Southwest corner
 
-    const zoom = zoomForFeatureType(feature_type);
+    if (feature_type === 'region' || feature_type === 'country') {
+      map.fitBounds(bbox, {
+        padding: 20,
+        maxZoom: 8,
+        duration: 2000,
+      });
 
-    map.flyTo({
-      center: coords,
-      speed: 3,
-      curve: 1.7,
-      zoom,
-    });
+      if (feature_type === 'country') {
+        updateChosenCountryState(context.country.country_code);
+      }
+    } else {
+      const zoom = zoomForFeatureType(feature_type);
+
+      map.flyTo({
+        center: coords,
+        speed: 0.5,
+        curve: 1,
+        zoom,
+        essential: true,
+        duration: 2000,
+      });
+    }
   });
 });
 
@@ -414,7 +451,7 @@ async function getWikipediaEvents(day, month) {
 
     console.log(data);
 
-    if (!complete) {
+    if (complete === false) {
       try {
         const { data } = await $.ajax({
           url: `/api/wikipedia/events?action=update&day=${day}&month=${month}`,

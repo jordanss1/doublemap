@@ -193,6 +193,4 @@
             echo json_encode(["error" => "SQL has failed inserting wikipedia events: $error[2]", "details" => "Problem retrieving events try again"]);
             exit;
         }
-
-        return $events;
     }

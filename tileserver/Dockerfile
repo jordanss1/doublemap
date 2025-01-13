@@ -47,7 +47,7 @@ COPY --chown=node:node . /app/
 
 RUN mkdir /app/borders
 
-RUN tippecanoe -o /app/borders/countries.mbtiles -Z1 -z5 --drop-densest-as-needed --force ./country_borders.geo.json 
+RUN tippecanoe -o /app/borders/countries.mbtiles -Z1 -z7 --drop-densest-as-needed --force ./country_borders.geo.json 
 
 
 RUN ldd /usr/local/lib/node_modules/tileserver-gl/node_modules/@maplibre/maplibre-gl-native/index.node || true

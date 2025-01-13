@@ -52,26 +52,25 @@ mapPromise.then((map) => {
       timeout = setTimeout(async () => {
         currentPois = await getOverpassPois(bounds, currentPoiCategory);
 
-        currentPois, currentPoiLayer;
+        addPoiSourceAndLayer(currentPois, currentPoiLayer);
       }, 800);
     }
   });
 
   map.on('style.load', async () => {
-    if (historyMode) {
-      $();
-    }
+    const token = await getToken();
 
     const currentPoiLayer =
       currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-    const token = await getToken();
-
     await applyCountryLayers();
-    await retrieveAndApplyIcons(token);
 
-    if (currentPois && currentBaseLayer) {
-      addPoiSourceAndLayer(currentPois, currentPoiLayer);
+    if (!historyMode) {
+      await retrieveAndApplyIcons(token);
+
+      if (currentPois && currentBaseLayer) {
+        addPoiSourceAndLayer(currentPois, currentPoiLayer);
+      }
     }
   });
 
@@ -83,7 +82,7 @@ mapPromise.then((map) => {
 
   map.on(
     'mouseenter',
-    ['history-country-fill', 'country-fill', 'chosen-pois', 'default-pois'],
+    ['hovered-country-fill', 'chosen-pois', 'default-pois'],
     () => {
       map.getCanvas().style.cursor = 'pointer';
     }
@@ -91,15 +90,13 @@ mapPromise.then((map) => {
 
   map.on(
     'mouseleave',
-    ['history-country-fill', 'country-fill', 'chosen-pois', 'default-pois'],
+    ['hovered-country-fill', 'chosen-pois', 'default-pois'],
     () => {
       map.getCanvas().style.cursor = '';
     }
   );
 
-  map.on('mousemove', ['history-country-fill', 'country-fill'], (e) => {
-    console.log(e.features);
-
+  map.on('mousemove', ['hovered-country-fill'], (e) => {
     if (e.features.length > 0) {
       if (hoveredCountryId !== null) {
         map.setFeatureState(
@@ -124,7 +121,7 @@ mapPromise.then((map) => {
     }
   });
 
-  map.on('mouseleave', ['history-country-fill', 'country-fill'], (e) => {
+  map.on('mouseleave', ['hovered-country-fill'], (e) => {
     if (hoveredCountryId !== null) {
       map.setFeatureState(
         {

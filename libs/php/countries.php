@@ -11,14 +11,6 @@
 
     if ($path[1] === "countries") { 
         $countryISO = $queriesFormatted["country"];
-
-        $countriesArray = json_decode(file_get_contents("./country_borders.geo.json"), true)["features"];
-
-        if ($countriesArray === null || json_last_error() !== JSON_ERROR_NONE) {
-            http_response_code(500);
-            echo json_encode(['details' => "Error retrieving data from server"]);
-            exit;
-        }
     
         if ($countryISO !== "all") {            
             $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['GEO_USERNAME']}";
@@ -30,10 +22,25 @@
             $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xml');
             $decodedRestResponse = decodeResponse($restCountriesResponse);
 
+            if (!isset($decodedGeonamesResponse['error'])) {
+                $decodedGeonamesResponse['country']['apiName'] = 'geonames';
+            }
+            if (!isset($decodedRestResponse['error'])) {
+                $decodedRestResponse['0']['apiName'] = 'rest-countries';
+            }
+
             http_response_code(200);
-            echo json_encode(["data" => [["restCountries" => $decodedRestResponse], ["geonames" => $decodedGeonamesResponse]]]);
+            echo json_encode(["data" => [$decodedRestResponse['0'], $decodedGeonamesResponse['country']]]);
             exit;
-        }       
+        }  
+        
+        $countriesArray = json_decode(file_get_contents("./country_borders.geo.json"), true)["features"];
+
+        if ($countriesArray === null || json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(500);
+            echo json_encode(['details' => "Error retrieving data from server"]);
+            exit;
+        }
         
         http_response_code(200);
         echo json_encode(["data" => $countriesArray]);

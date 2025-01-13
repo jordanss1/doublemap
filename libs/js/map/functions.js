@@ -37,6 +37,30 @@ function nightNavStyles(map) {
   );
 }
 
+function updateChosenCountryState(iso_a2) {
+  if (chosenCountryISO) {
+    map.setFeatureState(
+      {
+        source: 'country-borders',
+        sourceLayer: 'country_bordersgeo',
+        id: chosenCountryISO,
+      },
+      { chosen: false }
+    );
+  }
+
+  map.setFeatureState(
+    {
+      source: 'country-borders',
+      sourceLayer: 'country_bordersgeo',
+      id: iso_a2,
+    },
+    { chosen: true }
+  );
+
+  chosenCountryISO = iso_a2;
+}
+
 async function applyCountryLayers() {
   if (!map.getSource('country-borders')) {
     map.addSource('country-borders', {
@@ -46,45 +70,32 @@ async function applyCountryLayers() {
     });
   }
 
-  if (!map.getLayer('country-fill')) {
+  const fillOpacity =
+    historyMode || currentBaseLayer === 'Standard' ? 0.6 : 0.4;
+
+  if (!map.getLayer('chosen-country-fill')) {
     map.addLayer({
-      id: 'country-fill',
+      id: 'chosen-country-fill',
       type: 'fill',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
       maxzoom: 5.5,
       paint: {
-        'fill-color': 'rgb(0, 255, 255)',
+        'fill-color': 'rgba(79, 70, 229,.6)',
         'fill-opacity': [
           'case',
-          ['boolean', ['feature-state', 'hover'], false],
-          currentBaseLayer === 'Dark' ? 0.4 : 0.6,
+          ['boolean', ['feature-state', 'chosen'], false],
+          1,
           0,
         ],
         'fill-emissive-strength': 10,
-        'fill-outline-color': 'red',
       },
     });
   }
 
-  // map.addLayer({
-  //   id: 'country-extrusion',
-  //   type: 'fill-extrusion',
-  //   source: 'country-borders', // The vector tile source
-  //   'source-layer': 'country_bordersgeo', // The layer within the vector tiles
-  //   // filter: ['==', 'iso_a2', ''], // Use dynamic country selection
-  //   paint: {
-  //     'fill-extrusion-color': '#ff0000', // Color of the extrusion
-  //     'fill-extrusion-height': 3, // Height based on a field in the data
-  //     'fill-extrusion-base': 0, // Base height
-  //     'fill-extrusion-opacity': 0.8, // Transparency level
-  //     'fill-extrusion-cast-shadows': true, // Enable shadows
-  //   },
-  // });
-
-  if (!map.getLayer('country-line')) {
+  if (!map.getLayer('chosen-country-line')) {
     map.addLayer({
-      id: 'country-line',
+      id: 'chosen-country-line',
       type: 'line',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
@@ -92,13 +103,13 @@ async function applyCountryLayers() {
       paint: {
         'line-color': [
           'case',
-          ['boolean', ['feature-state', 'hover'], false],
-          'rgba(0, 255, 255, 0.8)',
-          'rgba(0, 255, 255, 0.3)',
+          ['boolean', ['feature-state', 'chosen'], false],
+          'rgba(248, 113, 113, 0.8)',
+          'rgba(248, 113, 113,.3)',
         ],
         'line-width': [
           'case',
-          ['boolean', ['feature-state', 'hover'], false],
+          ['boolean', ['feature-state', 'chosen'], false],
           3,
           1,
         ],
@@ -106,6 +117,52 @@ async function applyCountryLayers() {
         'line-emissive-strength': 10,
       },
     });
+
+    if (!map.getLayer('hovered-country-fill')) {
+      map.addLayer({
+        id: 'hovered-country-fill',
+        type: 'fill',
+        source: 'country-borders',
+        'source-layer': 'country_bordersgeo',
+        maxzoom: 5.5,
+        paint: {
+          'fill-color': historyMode ? 'rgb(168, 85, 247)' : 'rgb(0, 255, 255)',
+          'fill-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            fillOpacity,
+            0,
+          ],
+          'fill-emissive-strength': 10,
+        },
+      });
+    }
+
+    if (!map.getLayer('hovered-country-line')) {
+      map.addLayer({
+        id: 'hovered-country-line',
+        type: 'line',
+        source: 'country-borders',
+        'source-layer': 'country_bordersgeo',
+        maxzoom: 5.5,
+        paint: {
+          'line-color': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            'rgba(0, 255, 255, 0.8)',
+            'rgba(0, 255, 255, 0.3)',
+          ],
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            3,
+            1,
+          ],
+          'line-blur': ['interpolate', ['linear'], ['zoom'], 3, 1, 5, 10],
+          'line-emissive-strength': 10,
+        },
+      });
+    }
   }
 }
 
@@ -179,6 +236,7 @@ function applyHistoryHtml(enabled) {
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
     $('#history-date').removeClass('animate-end_absolute');
+    $('#slider-button').removeClass('animate-end_absolute');
   } else {
     $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
     $('#top-panel').removeClass('grid-cols-[auto_1fr_auto]');
@@ -187,13 +245,14 @@ function applyHistoryHtml(enabled) {
     $('#select-container').removeClass('animate-end_absolute');
     $('#history-container').removeClass('animate-start_absolute');
     $('#country-select-button').removeClass('animate-start_absolute');
+    $('#slider-button').addClass('animate-end_absolute');
+    $('#history-date').addClass('animate-end_absolute');
+    $('#history-date').attr('aria-disabled', 'true');
 
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
       $('#history-container').removeClass('h-20');
       $('#history-container').addClass('h-10');
-      $('#history-date').addClass('animate-end_absolute');
-      $('#history-date').attr('aria-disabled', 'true');
     }
   }
 
@@ -223,6 +282,7 @@ function applyHistoryStyles() {
 }
 
 async function addPoiSourceAndLayer(pois, layerId) {
+  console.log(pois);
   if (pois && pois.length) {
     if (!map.getSource('poi-source')) {
       map.addSource('poi-source', {
@@ -251,11 +311,13 @@ async function addPoiSourceAndLayer(pois, layerId) {
     const haloColor = currentBaseLayer === 'Dark' ? '#000000' : '#ffffff';
     const haloWidth = currentBaseLayer === 'Dark' ? 1 : 2.5;
 
-    if (layerId === 'default-pois' && map.getLayer('chosen-pois'))
+    if (layerId === 'default-pois' && map.getLayer('chosen-pois')) {
       map.removeLayer('chosen-pois');
+    }
 
-    if (layerId === 'chosen-pois' && map.getLayer('default-pois'))
+    if (layerId === 'chosen-pois' && map.getLayer('default-pois')) {
       map.removeLayer('default-pois');
+    }
 
     if (!map.getLayer(layerId)) {
       map.addLayer({
@@ -342,8 +404,12 @@ async function retrieveAndApplyIcons(token) {
 }
 
 function zoomForFeatureType(feature_type) {
-  if (feature_type === 'region' || feature_type === 'country') {
-    return 3;
+  if (feature_type === 'country') {
+    return 5;
+  }
+
+  if (feature_type === 'region') {
+    return 7;
   }
 
   if (
@@ -372,6 +438,8 @@ function getSearchResults(value) {
         $('#search-normal').children().remove();
 
         if (data.length) {
+          searchResults = [];
+
           data.forEach(({ properties }, i) => {
             searchResults.push(properties);
             const name = createFeatureName(properties);
@@ -409,7 +477,29 @@ function createFeatureName(feature) {
     return `${name_preferred || name}, ${place_formatted}`;
   } else if (feature_type === 'country') {
     return name;
+  } else if (feature_type === 'region') {
+    return `${name}, ${place_formatted || name_preferred}`;
   } else {
     return `${place_formatted || name_preferred}`;
+  }
+}
+
+function changeMapInteraction(disable) {
+  if (disable) {
+    map.dragPan.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.dragRotate.disable();
+    map.keyboard.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+  } else {
+    map.dragPan.enable();
+    map.scrollZoom.enable();
+    map.boxZoom.enable();
+    map.dragRotate.enable();
+    map.keyboard.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoomRotate.enable();
   }
 }
