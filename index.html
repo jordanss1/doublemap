@@ -27,7 +27,7 @@
       <div class="absolute h-full w-full pointer-events-none z-[8000]">
         <section
           id="top-panel"
-          class="w-full grid transition-all items-baseline delay-1000 duration-300 ease-in auto-cols-[minmax(0,1fr)] grid-flow-col fixed inset-x-0 top-3"
+          class="w-full grid gap-2 transition-all items-baseline delay-1000 duration-300 ease-in auto-cols-[minmax(0,1fr)] grid-flow-col fixed inset-x-0 top-3"
         >
           <div class="min-w-20 w-full"></div>
           <span
@@ -45,14 +45,24 @@
             id="day-slider-container"
             aria-disabled="true"
             disabled="true"
-            class="pointer-events-auto px-2 group top-5 transition-all origin-right scale-100 aria-disabled:scale-50 visible duration-700 aria-disabled:duration-300 ease-in opacity-100 aria-disabled:opacity-0 relative aria-disabled:invisible aria-disabled:animate-end_absolute aria-disabled:translate-x-20 translate-x-0 w-full"
+            class="pointer-events-auto items-center justify-center flex px-2 group top-5 transition-all origin-right scale-100 aria-disabled:scale-50 visible duration-700 aria-disabled:duration-300 ease-in opacity-100 aria-disabled:opacity-0 relative aria-disabled:invisible aria-disabled:animate-end_absolute aria-disabled:translate-x-20 translate-x-0 w-full"
           >
+            <div
+              id="popup-container"
+              class="absolute flex items-center origin-bottom scale-[--popup-scale,.6] justify-center bg-black/50 opacity-[--opacity-popup,0] transition-[top,opacity,scale] max-w-12 w-full h-8 left-[--left-popup] rounded-md ease-in-out top-[--top-popup,10]"
+            >
+              <span id="popup-text" class="text-white-300 font-bold"></span>
+            </div>
+            <div
+              id="day-slider-bg"
+              class="absolute h-[80%] scale-[--scale-track,1] -z-10 top-[2.5px] w-[99%] bg-[--bg-range,rgb(0,0,0,0)] transition-all duration-100 delay-100 rounded-md backdrop-blur-2xl"
+            ></div>
             <input
               type="range"
               min="1"
-              max="365"
+              max="366"
               value="150"
-              class="w-full cursor-pointer bg-transparent"
+              class="w-full cursor-pointer transition-all bg-transparent"
               id="day-slider"
               aria-label="Day slider"
             />
@@ -69,7 +79,7 @@
               aria-label="Show day slider"
               aria-disabled=""
               disabled=""
-              class="w-7 h-7 border-2 origin-right transition-all group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 visible group-aria-disabled:invisible group-aria-disabled:translate-x-5 translate-x-0 opacity-100 border-white-300 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+              class="w-7 h-7 origin-right transition-all border border-white-300 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 visible group-aria-disabled:invisible group-aria-disabled:translate-x-5 translate-x-0 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
             >
               <i class="fa-solid fa-calendar-days text-white-100"></i>
             </div>
@@ -80,7 +90,7 @@
               aria-label="Activate history mode"
               aria-disabled=""
               disabled=""
-              class="w-8 h-8 border-2 relative border-white-300 flex justify-self-end items-center pointer-events-auto rounded-md justify-center duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
+              class="w-8 h-8 relative flex border border-white-300 justify-self-end items-center pointer-events-auto rounded-md justify-center duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
             >
               <i class="fa-solid fa-book-open text-white-100"></i>
             </div>
@@ -89,7 +99,7 @@
               title="Current date"
               aria-label="Current date"
               aria-disabled="true"
-              class="h-8 group-aria-disabled:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled:delay-100 aria-disabled:opacity-0 group-aria-disabled:scale-50 aria-disabled:scale-50 group-aria-disabled:invisible aria-disabled:invisible group-aria-disabled:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled:duration-500 duration-300"
+              class="h-8 group-aria-disabled:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled:delay-100 aria-disabled:opacity-0 group-aria-disabled:scale-50 aria-disabled:scale-50 group-aria-disabled:invisible aria-disabled:invisible group-aria-disabled:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled:duration-500 duration-300"
             >
               11/26
             </div>

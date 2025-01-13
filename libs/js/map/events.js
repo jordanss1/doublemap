@@ -15,12 +15,20 @@ mapPromise.then((map) => {
   });
 
   map.on('zoom', () => {
-    const disabled =
-      map.getZoom() <= map.getMinZoom() + 0.0001 ? 'true' : 'false';
+    const zoom = map.getZoom();
+    const disabled = zoom <= map.getMinZoom() + 0.0001 ? 'true' : 'false';
+
     $('#zoom-out').attr('disabled', disabled).attr('aria-disabled', disabled);
 
     if (disabled === 'true') {
       map.stop();
+    }
+
+    if (zoom >= 1.7 && historyMode) {
+      $('#day-slider-bg').css('--bg-range', 'rgb(0,0,0,.2)');
+    }
+    if (zoom < 1.7 && historyMode) {
+      $('#day-slider-bg').css('--bg-range', 'rgb(0,0,0,0)');
     }
   });
 
