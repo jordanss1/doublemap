@@ -17,7 +17,62 @@
 
 
     if ($path[2] === 'country_history') {
+        $country = $queriesFormatted['country'];
 
+        if (str_contains($country, "Congo")) {
+            $country = "the_Republic_of_the_Congo";
+        }
+
+        $country = str_replace(" ", "_", $country);    
+
+        if (str_contains($country, "United")) {
+            $country = "the_$country";
+        }
+
+        $url = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=History_of_$country";    
+        
+        $retryLimit = 2;
+        $attempt = 0;
+        $countryHistoryResponse = null;
+
+        do {
+            $countryHistoryResponse = fetchApiCall($url, false);
+            $attempt++;
+
+            if (!isset($countryHistoryResponse['error'])) {
+                break;
+            }
+
+            if ($attempt === $retryLimit) {
+                http_response_code(500);
+                echo json_encode($countryHistoryResponse);
+                exit;
+            }
+
+            sleep(2);
+        } while ($attempt < $retryLimit);
+
+        $countryHistoryResponse = decodeResponse($countryHistoryResponse);  
+        
+        if (isset($countryHistoryResponse['error'])) {
+            http_response_code(500);
+            echo json_encode($countryHistoryResponse);
+            exit;
+        }
+
+        $pages = $countryHistoryResponse['query']['pages']; 
+        $firstPage = reset($pages); 
+
+        $cleanExtract = preg_replace('/\r\n|\r|\n/', ' ', $firstPage['extract']);
+
+        $finalCountryHistory = [
+            'title' => $firstPage['title'],
+            'extract' => $cleanExtract
+        ];
+
+        http_response_code(200);
+        echo json_encode(['data' => $finalCountryHistory]);
+        exit;
     }
 
     if ($path[2] === 'events') {

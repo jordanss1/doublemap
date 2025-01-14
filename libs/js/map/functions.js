@@ -79,7 +79,7 @@ async function applyCountryLayers() {
       type: 'fill',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
-      maxzoom: 5.5,
+      maxzoom: 8,
       paint: {
         'fill-color': 'rgba(79, 70, 229,.6)',
         'fill-opacity': [
@@ -99,7 +99,7 @@ async function applyCountryLayers() {
       type: 'line',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
-      maxzoom: 5.5,
+      maxzoom: 8,
       paint: {
         'line-color': [
           'case',
@@ -423,41 +423,37 @@ function zoomForFeatureType(feature_type) {
   return 10;
 }
 
-function getSearchResults(value) {
+async function getSearchResults(value) {
   const proximity =
     mostRecentLocation.latitude && mostRecentLocation.longitude
       ? `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`
       : 'ip';
 
-  if (value.length) {
-    $.ajax({
+  try {
+    const { data } = await $.ajax({
       url: `/api/mapboxgljs/search?q=${value}&proximity=${proximity}&endpoint=forward`,
       method: 'GET',
       dataType: 'json',
-      success: ({ data }) => {
-        $('#search-normal').children().remove();
-
-        if (data.length) {
-          searchResults = [];
-
-          data.forEach(({ properties }, i) => {
-            searchResults.push(properties);
-            const name = createFeatureName(properties);
-
-            $('#search-normal').append(
-              `<div id='search-normal-item' data-value=${i}>${name}</div>`
-            );
-          });
-        }
-      },
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(
-          `Error Status: ${xhr.status} - Error Message: ${res.error}`
-        );
-        console.log(`Response Text: ${res.details}`);
-      },
     });
+
+    $('#search-normal').children().remove();
+
+    if (data.length) {
+      searchResults = [];
+
+      data.forEach(({ properties }, i) => {
+        searchResults.push(properties);
+        const name = createFeatureName(properties);
+
+        $('#search-normal').append(
+          `<div id='search-normal-item' data-value=${i}>${name}</div>`
+        );
+      });
+    }
+  } catch (err) {
+    const res = JSON.parse(err.responseText);
+    console.log(`Error Status: ${err.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
   }
 }
 
@@ -484,22 +480,38 @@ function createFeatureName(feature) {
   }
 }
 
-function changeMapInteraction(disable) {
-  if (disable) {
-    map.dragPan.disable();
-    map.scrollZoom.disable();
-    map.boxZoom.disable();
-    map.dragRotate.disable();
-    map.keyboard.disable();
-    map.doubleClickZoom.disable();
-    map.touchZoomRotate.disable();
-  } else {
-    map.dragPan.enable();
-    map.scrollZoom.enable();
-    map.boxZoom.enable();
-    map.dragRotate.enable();
-    map.keyboard.enable();
-    map.doubleClickZoom.enable();
-    map.touchZoomRotate.enable();
+async function getHistoryOfCountry(country) {
+  try {
+    const { data } = await $.ajax({
+      url: `/api/wikipedia/country_history?country=${country}`,
+      dataType: 'json',
+      method: 'GET',
+    });
+
+    console.log(data);
+  } catch (err) {
+    const res = JSON.parse(err.responseText);
+    console.log(`Error Status: ${err.status} - Error Message: ${res.error}`);
+    console.log(`Response Text: ${res.details}`);
   }
 }
+
+// function changeMapInteraction(disable) {
+//   if (disable) {
+//     map.dragPan.disable();
+//     map.scrollZoom.disable();
+//     map.boxZoom.disable();
+//     map.dragRotate.disable();
+//     map.keyboard.disable();
+//     map.doubleClickZoom.disable();
+//     map.touchZoomRotate.disable();
+//   } else {
+//     map.dragPan.enable();
+//     map.scrollZoom.enable();
+//     map.boxZoom.enable();
+//     map.dragRotate.enable();
+//     map.keyboard.enable();
+//     map.doubleClickZoom.enable();
+//     map.touchZoomRotate.enable();
+//   }
+// }

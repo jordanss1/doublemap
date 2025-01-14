@@ -33,6 +33,7 @@ mapPromise.then((map) => {
       $('#history-date').addClass('animate-end_absolute');
     } else {
       positionSliderPopup(slider, popupContainer);
+
       const progress =
         ((slider.val() - slider[0].min) / (slider[0].max - slider[0].min)) *
         100;
@@ -147,7 +148,7 @@ mapPromise.then((map) => {
     });
   });
 
-  $('#search').on('keydown', (e) => {
+  $('#search').on('keydown', async (e) => {
     let value = e.target.value;
 
     if (e.key === 'Enter' && value.length) {
@@ -228,26 +229,27 @@ mapPromise.then((map) => {
   });
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
-    const [restCountryData, geonames] = await getCountryData(target.value);
+    await getHistoryOfCountry(target.text);
+    // const [restCountryData, geonames] = await getCountryData(target.value);
 
-    updateChosenCountryState(target.value);
+    // updateChosenCountryState(target.value);
 
-    if (geonames) {
-      changeMapInteraction(true);
-      const bbox = [
-        [geonames.west, geonames.south],
-        [geonames.east, geonames.north],
-      ];
+    // if (geonames) {
+    //   // changeMapInteraction(true);
+    //   const bbox = [
+    //     [geonames.west, geonames.south],
+    //     [geonames.east, geonames.north],
+    //   ];
 
-      map.fitBounds(bbox, {
-        padding: 20,
-        maxZoom: 8,
-        duration: 2000,
-      });
-    }
+    //   map.fitBounds(bbox, {
+    //     padding: 20,
+    //     maxZoom: 8,
+    //     duration: 2000,
+    //   });
+    // }
 
-    if (restCountryData) {
-    }
+    // if (restCountryData) {
+    // }
   });
 
   $('#search-category').on(
@@ -438,8 +440,6 @@ async function reverseLookupFromLatLng() {
 }
 
 async function getWikipediaEvents(day, month) {
-  console.log(day);
-  console.log(month);
   $('#day-slider').prop('disabled', true);
 
   try {

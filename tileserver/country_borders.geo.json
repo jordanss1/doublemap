@@ -1286,7 +1286,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dominican Rep.",
+        "name": "Dominican Republic",
         "iso_a2": "DO",
         "iso_a3": "DOM",
         "iso_n3": "214"
@@ -3391,38 +3391,6 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "N. Cyprus",
-        "iso_a2": "-99",
-        "iso_a3": "-99",
-        "iso_n3": "-99"
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [32.73178022637745, 35.14002594658844],
-            [32.80247358575275, 35.14550364841138],
-            [32.946960890440806, 35.3867033961337],
-            [33.667227003724946, 35.37321584730551],
-            [34.57647382990046, 35.67159556735879],
-            [33.900804477684204, 35.245755927057616],
-            [33.97361657078346, 35.058506374648],
-            [33.86643965021011, 35.09359467217419],
-            [33.675391880027064, 35.01786286065045],
-            [33.5256852556775, 35.03868846286407],
-            [33.475817498515845, 35.000344550103506],
-            [33.45592207208347, 35.10142365166641],
-            [33.3838334490363, 35.16271190036457],
-            [33.19097700372305, 35.17312470147138],
-            [32.919572381326134, 35.08783274997364],
-            [32.73178022637745, 35.14002594658844]
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
         "name": "Cyprus",
         "iso_a2": "CY",
         "iso_a3": "CYP",
@@ -3570,7 +3538,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Falkland Is.",
+        "name": "Falkland Islands",
         "iso_a2": "FK",
         "iso_a3": "FLK",
         "iso_n3": "238"
@@ -4898,7 +4866,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Korea",
+        "name": "South Korea",
         "iso_a2": "KR",
         "iso_a3": "KOR",
         "iso_n3": "410"
@@ -5358,7 +5326,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dem. Rep. Korea",
+        "name": "North Korea",
         "iso_a2": "KP",
         "iso_a3": "PRK",
         "iso_n3": "408"
@@ -5811,7 +5779,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Lao PDR",
+        "name": "Laos",
         "iso_a2": "LA",
         "iso_a3": "LAO",
         "iso_n3": "418"
@@ -6680,7 +6648,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Central African Rep.",
+        "name": "Central African Republic",
         "iso_a2": "CF",
         "iso_a3": "CAF",
         "iso_n3": "140"
@@ -6835,7 +6803,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dem. Rep. Congo",
+        "name": "Republic of Congo",
         "iso_a2": "CD",
         "iso_a3": "COD",
         "iso_n3": "180"
@@ -7614,7 +7582,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "C\u00f4te d'Ivoire",
+        "name": "Ivory Coast",
         "iso_a2": "CI",
         "iso_a3": "CIV",
         "iso_n3": "384"
@@ -8564,7 +8532,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "W. Sahara",
+        "name": "Western Sahara",
         "iso_a2": "EH",
         "iso_a3": "ESH",
         "iso_n3": "732"
@@ -8696,7 +8664,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "S. Sudan",
+        "name": "South Sudan",
         "iso_a2": "SS",
         "iso_a3": "SSD",
         "iso_n3": "728"
@@ -8835,7 +8803,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Eq. Guinea",
+        "name": "Equatorial Guinea",
         "iso_a2": "GQ",
         "iso_a3": "GNQ",
         "iso_n3": "226"
@@ -10013,7 +9981,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Czech Rep.",
+        "name": "Czech Republic",
         "iso_a2": "CZ",
         "iso_a3": "CZE",
         "iso_n3": "203"
@@ -10531,7 +10499,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Bosnia and Herz.",
+        "name": "Bosnia and Herzegovina",
         "iso_a2": "BA",
         "iso_a3": "BIH",
         "iso_n3": "070"
@@ -13079,7 +13047,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Solomon Is.",
+        "name": "Solomon Islands",
         "iso_a2": "SB",
         "iso_a3": "SLB",
         "iso_n3": "090"
