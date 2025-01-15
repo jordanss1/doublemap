@@ -37,30 +37,6 @@ function nightNavStyles(map) {
   );
 }
 
-function updateChosenCountryState(iso_a2) {
-  if (chosenCountryISO) {
-    map.setFeatureState(
-      {
-        source: 'country-borders',
-        sourceLayer: 'country_bordersgeo',
-        id: chosenCountryISO,
-      },
-      { chosen: false }
-    );
-  }
-
-  map.setFeatureState(
-    {
-      source: 'country-borders',
-      sourceLayer: 'country_bordersgeo',
-      id: iso_a2,
-    },
-    { chosen: true }
-  );
-
-  chosenCountryISO = iso_a2;
-}
-
 async function applyCountryLayers() {
   if (!map.getSource('country-borders')) {
     map.addSource('country-borders', {
@@ -70,8 +46,15 @@ async function applyCountryLayers() {
     });
   }
 
-  const fillOpacity =
-    historyMode || currentBaseLayer === 'Standard' ? 0.6 : 0.4;
+  const lineColor =
+    historyMode || currentBaseLayer === 'Standard'
+      ? ['rgba(70, 130, 180, .8)', 'rgba(70, 130, 180, .3)']
+      : ['rgba(248, 113, 113, 0.8)', 'rgba(248, 113, 113,.3)'];
+
+  const fillColor =
+    historyMode || currentBaseLayer === 'Standard'
+      ? 'rgba(94, 234, 212, .8)'
+      : 'rgba(79, 70, 229, .6)';
 
   if (!map.getLayer('chosen-country-fill')) {
     map.addLayer({
@@ -79,9 +62,9 @@ async function applyCountryLayers() {
       type: 'fill',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
-      maxzoom: 8,
+      maxzoom: 9,
       paint: {
-        'fill-color': 'rgba(79, 70, 229,.6)',
+        'fill-color': fillColor,
         'fill-opacity': [
           'case',
           ['boolean', ['feature-state', 'chosen'], false],
@@ -99,21 +82,25 @@ async function applyCountryLayers() {
       type: 'line',
       source: 'country-borders',
       'source-layer': 'country_bordersgeo',
-      maxzoom: 8,
+      maxzoom: 9,
       paint: {
         'line-color': [
           'case',
           ['boolean', ['feature-state', 'chosen'], false],
-          'rgba(248, 113, 113, 0.8)',
-          'rgba(248, 113, 113,.3)',
+          ...lineColor,
         ],
         'line-width': [
           'case',
           ['boolean', ['feature-state', 'chosen'], false],
-          3,
-          1,
+          4,
+          0,
         ],
-        'line-blur': ['interpolate', ['linear'], ['zoom'], 3, 1, 5, 10],
+        'line-blur': [
+          'case',
+          ['boolean', ['feature-state', 'chosen'], false],
+          1,
+          0,
+        ],
         'line-emissive-strength': 10,
       },
     });
@@ -124,13 +111,13 @@ async function applyCountryLayers() {
         type: 'fill',
         source: 'country-borders',
         'source-layer': 'country_bordersgeo',
-        maxzoom: 5.5,
+        maxzoom: 6,
         paint: {
-          'fill-color': historyMode ? 'rgb(168, 85, 247)' : 'rgb(0, 255, 255)',
+          'fill-color': fillColor,
           'fill-opacity': [
             'case',
             ['boolean', ['feature-state', 'hover'], false],
-            fillOpacity,
+            1,
             0,
           ],
           'fill-emissive-strength': 10,
@@ -144,82 +131,79 @@ async function applyCountryLayers() {
         type: 'line',
         source: 'country-borders',
         'source-layer': 'country_bordersgeo',
-        maxzoom: 5.5,
+        maxzoom: 6,
         paint: {
           'line-color': [
             'case',
             ['boolean', ['feature-state', 'hover'], false],
-            'rgba(0, 255, 255, 0.8)',
-            'rgba(0, 255, 255, 0.3)',
+            ...lineColor,
           ],
           'line-width': [
             'case',
             ['boolean', ['feature-state', 'hover'], false],
-            3,
+            8,
+            2,
+          ],
+          'line-blur': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            6,
             1,
           ],
-          'line-blur': ['interpolate', ['linear'], ['zoom'], 3, 1, 5, 10],
-          'line-emissive-strength': 10,
         },
       });
     }
   }
 }
 
-let timeout;
+let exitButtonTimer;
 
-async function changeHistoryMode(map, enabled) {
-  clearTimeout(timeout);
+function updateChosenCountryState(iso_a2) {
+  if (chosenCountryISO) {
+    map.setFeatureState(
+      {
+        source: 'country-borders',
+        sourceLayer: 'country_bordersgeo',
+        id: chosenCountryISO,
+      },
+      { chosen: false }
+    );
+  }
 
-  if (enabled) {
-    historyMode = true;
-    localStorage.setItem('historyMode', JSON.stringify(true));
+  if (!iso_a2) {
+    map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
+    map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
+    $('#exit-container').attr('aria-disabled', 'true');
 
-    if (map.getLayer('chosen-pois')) map.removeLayer('chosen-pois');
+    exitButtonTimer = setTimeout(
+      () => $('#exit-container').addClass('invisible'),
+      300
+    );
 
-    if (map.getLayer('default-pois')) map.removeLayer('default-pois');
-
-    map.setStyle(styles[2].url);
-
-    map.once('style.load', async () => {
-      map.filterByDate('2013-01-01');
-      await applyCountryLayers();
-      applyHistoryStyles();
-
-      timeout = setTimeout(() => {
-        applyHistoryHtml(enabled);
-      }, 1000);
-    });
+    disableMapInteraction(false);
+    chosenCountryISO = null;
+    return;
   } else {
-    historyMode = false;
-    localStorage.setItem('historyMode', JSON.stringify(false));
+    map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
+    map.setLayoutProperty('hovered-country-line', 'visibility', 'none');
+    $('#exit-container').attr('aria-disabled', 'false');
 
-    let { url } = styles.find(({ name }) => name === currentBaseLayer);
+    disableMapInteraction(true);
 
-    map.setStyle(url, {
-      diff: true,
-    });
+    map.setFeatureState(
+      {
+        source: 'country-borders',
+        sourceLayer: 'country_bordersgeo',
+        id: iso_a2,
+      },
+      { chosen: true }
+    );
 
-    map.once('style.load', async () => {
-      timeout = setTimeout(() => {
-        applyHistoryHtml(enabled);
-      }, 500);
-
-      if (currentBaseLayer === 'Dark') {
-        nightNavStyles(map);
-      } else {
-        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-      }
-
-      const currentPoiLayer =
-        currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
-
-      if (map.getZoom() > 11 && currentPois) {
-        addPoiSourceAndLayer(currentPois, currentPoiLayer);
-      }
-    });
+    chosenCountryISO = iso_a2;
   }
 }
+
+let timeout;
 
 function applyHistoryHtml(enabled) {
   const disabledDuringHistoryMode = enabled ? 'true' : 'false';
@@ -238,8 +222,10 @@ function applyHistoryHtml(enabled) {
     $('#history-date').removeClass('animate-end_absolute');
     $('#slider-button').removeClass('animate-end_absolute');
   } else {
-    $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
+    $('#search-container-inside').removeClass('outline-3');
+    $('#search-container-inside').addClass('outline-0');
     $('#top-panel').removeClass('grid-cols-[auto_1fr_auto]');
+    $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
     $('#search-container').children().addClass('animate-start_absolute');
     $('#select-container').addClass('animate-start_absolute');
     $('#select-container').removeClass('animate-end_absolute');
@@ -248,6 +234,7 @@ function applyHistoryHtml(enabled) {
     $('#slider-button').addClass('animate-end_absolute');
     $('#history-date').addClass('animate-end_absolute');
     $('#history-date').attr('aria-disabled', 'true');
+    $('#country-select-list').attr('aria-disabled', 'true');
 
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
@@ -423,7 +410,9 @@ function zoomForFeatureType(feature_type) {
   return 10;
 }
 
-async function getSearchResults(value) {
+async function getSearchResults(value, loading) {
+  loading = true;
+
   const proximity =
     mostRecentLocation.latitude && mostRecentLocation.longitude
       ? `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`
@@ -443,10 +432,14 @@ async function getSearchResults(value) {
 
       data.forEach(({ properties }, i) => {
         searchResults.push(properties);
-        const name = createFeatureName(properties);
+        const name = createFeatureNameForSearch(properties);
 
         $('#search-normal').append(
-          `<div id='search-normal-item' data-value=${i}>${name}</div>`
+          /*html*/
+          `<div id='search-normal-item' class='flex items-baseline gap-1' data-value=${i}>
+          <i class="fa-solid fa-location-dot text-[10px] text-slate-400"></i>
+          <span class='text-sm'>${name}</span>
+          </div>`
         );
       });
     }
@@ -454,15 +447,17 @@ async function getSearchResults(value) {
     const res = JSON.parse(err.responseText);
     console.log(`Error Status: ${err.status} - Error Message: ${res.error}`);
     console.log(`Response Text: ${res.details}`);
+  } finally {
+    loading = false;
   }
 }
 
-function createFeatureName(feature) {
+function createFeatureNameForSearch(feature) {
   const { name, feature_type, full_address, place_formatted, name_preferred } =
     feature;
 
   if (feature_type === 'poi') {
-    return `${name}, ${full_address}`;
+    return /*html*/ `<span class='text-sm'>${name}, </span><span class='text-white-900 text-[13px]'>${full_address}</span>`;
   } else if (feature_type === 'address') {
     return full_address;
   } else if (
@@ -470,13 +465,17 @@ function createFeatureName(feature) {
     feature_type === 'place' ||
     feature_type === 'locality'
   ) {
-    return `${name_preferred || name}, ${place_formatted}`;
+    return /*html*/ `<span class='text-sm'>${
+      name_preferred || name
+    }, </span><span class='text-white-900 text-[13px]'>${place_formatted}</span>`;
   } else if (feature_type === 'country') {
     return name;
   } else if (feature_type === 'region') {
-    return `${name}, ${place_formatted || name_preferred}`;
+    return /*html*/ `<span class='text-sm'>${name}, </span><span class='text-white-900 text-[13px]'>${
+      place_formatted || name_preferred
+    }</span>`;
   } else {
-    return `${place_formatted || name_preferred}`;
+    return /*html*/ `${place_formatted || name_preferred}`;
   }
 }
 
@@ -496,22 +495,22 @@ async function getHistoryOfCountry(country) {
   }
 }
 
-// function changeMapInteraction(disable) {
-//   if (disable) {
-//     map.dragPan.disable();
-//     map.scrollZoom.disable();
-//     map.boxZoom.disable();
-//     map.dragRotate.disable();
-//     map.keyboard.disable();
-//     map.doubleClickZoom.disable();
-//     map.touchZoomRotate.disable();
-//   } else {
-//     map.dragPan.enable();
-//     map.scrollZoom.enable();
-//     map.boxZoom.enable();
-//     map.dragRotate.enable();
-//     map.keyboard.enable();
-//     map.doubleClickZoom.enable();
-//     map.touchZoomRotate.enable();
-//   }
-// }
+function disableMapInteraction(disable) {
+  if (disable) {
+    map.dragPan.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.dragRotate.disable();
+    map.keyboard.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+  } else {
+    map.dragPan.enable();
+    map.scrollZoom.enable();
+    map.boxZoom.enable();
+    map.dragRotate.enable();
+    map.keyboard.enable();
+    map.doubleClickZoom.enable();
+    map.touchZoomRotate.enable();
+  }
+}

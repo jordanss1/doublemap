@@ -86,6 +86,8 @@ const initialiseMap = () => {
         });
 
         map.on('load', async () => {
+          $('#search').val('');
+
           if ($('#preloader').length) {
             $('#preloader').fadeOut('slow', function () {
               $(this).remove();
@@ -99,6 +101,8 @@ const initialiseMap = () => {
             map.filterByDate('2020-01-01');
             return resolve(map);
           }
+
+          applyHistoryHtml(false);
 
           if (currentBaseLayer === 'Dark') {
             nightNavStyles(map);

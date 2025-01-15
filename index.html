@@ -38,7 +38,7 @@
           >
             <select
               id="country-select"
-              class="px-1 h-6 text-lg text-ellipsis shadow-sm"
+              class="px-1 rounded-md font-sans border-1 border-purple-500 h-6 text-lg text-ellipsis shadow-sm"
             ></select>
           </span>
           <div
@@ -68,44 +68,69 @@
             />
           </div>
           <div
-            id="history-container"
-            aria-disabled="true"
-            class="flex group h-10 relative border-1 ease-in transition-all duration-500 border-white-300 gap-y-0.5 flex-wrap rounded-md aria-disabled:p-0 bg-black/50 p-1 justify-self-end mr-14 gap-3 items-baseline aria-disabled:bg-black/0 justify-end max-w-20 w-full"
+            id="top-right-panel"
+            class="justify-self-end items-baseline flex gap-3"
           >
             <div
-              id="slider-button"
-              title="Show day slider"
-              role="button"
-              aria-label="Show day slider"
-              aria-disabled=""
-              disabled=""
-              class="w-7 h-7 origin-right transition-all border border-white-300 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 visible group-aria-disabled:invisible group-aria-disabled:translate-x-5 translate-x-0 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
-            >
-              <i class="fa-solid fa-calendar-days text-white-100"></i>
-            </div>
-            <div
-              id="history-control"
-              title="Activate history mode"
-              role="button"
-              aria-label="Activate history mode"
-              aria-disabled=""
-              disabled=""
-              class="w-8 h-8 relative flex border border-white-300 justify-self-end items-center pointer-events-auto rounded-md justify-center duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500"
-            >
-              <i class="fa-solid fa-book-open text-white-100"></i>
-            </div>
-            <div
-              id="history-date"
-              title="Current date"
-              aria-label="Current date"
               aria-disabled="true"
-              class="h-8 group-aria-disabled:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled:delay-100 aria-disabled:opacity-0 group-aria-disabled:scale-50 aria-disabled:scale-50 group-aria-disabled:invisible aria-disabled:invisible group-aria-disabled:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled:duration-500 duration-300"
-            ></div>
+              disabled="true"
+              id="exit-container"
+              class="aria-disabled:opacity-0 opacity-100 group"
+            >
+              <div
+                id="exit-button"
+                title="Exit country information"
+                role="button"
+                aria-label="Exit country information"
+                class="w-7 h-7 origin-top visible transition-all border border-white-300 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 group-aria-disabled:-translate-y-5 translate-y-1 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r bg-white-100"
+              >
+                <i class="fa-solid fa-circle-xmark text-2xl text-red-600"></i>
+              </div>
+            </div>
+            <div
+              id="history-container"
+              aria-disabled="true"
+              class="flex group/container h-10 relative border-1 ease-in transition-all duration-500 border-white-300 gap-y-0.5 flex-wrap rounded-md aria-disabled:p-0 bg-black/50 p-1 justify-self-end mr-14 gap-3 items-baseline aria-disabled:bg-black/0 justify-end max-w-20 w-full"
+            >
+              <div
+                id="slider-button"
+                title="Show day slider"
+                role="button"
+                aria-label="Show day slider"
+                aria-disabled=""
+                disabled=""
+                class="w-7 h-7 origin-right transition-all border border-white-300 group-aria-disabled/container:delay-100 delay-500 group-aria-disabled/container:duration-500 duration-300 relative group-aria-disabled/container:opacity-0 group-aria-disabled/container:scale-50 scale-100 visible group-aria-disabled/container:invisible group-aria-disabled/container:translate-x-5 translate-x-0 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500 group/slider aria-disabled:cursor-default aria-disabled:from-blue-600 aria-disabled:via-purple-900 aria-disabled:to-pink-900"
+              >
+                <i
+                  class="fa-solid fa-calendar-days text-white-100 group-aria-disabled/slider:text-white-300"
+                ></i>
+              </div>
+              <div
+                id="history-control"
+                title="Activate history mode"
+                role="button"
+                aria-label="Activate history mode"
+                aria-disabled=""
+                disabled=""
+                class="w-8 h-8 relative flex border transition group/history aria-disabled:cursor-default border-white-300 justify-self-end items-center pointer-events-auto rounded-md justify-center duration-300 bg-gradient-to-r from-blue-300 via-purple-500 to-pink-500 aria-disabled:from-blue-600 aria-disabled:via-purple-900 aria-disabled:to-pink-900"
+              >
+                <i
+                  class="fa-solid fa-book-open text-white-100 group-aria-disabled/history:text-white-300"
+                ></i>
+              </div>
+              <div
+                id="history-date"
+                title="Current date"
+                aria-label="Current date"
+                aria-disabled="true"
+                class="h-8 group-aria-disabled/container:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled/container:delay-100 aria-disabled:opacity-0 group-aria-disabled/container:scale-50 aria-disabled:scale-50 group-aria-disabled/container:invisible aria-disabled:invisible group-aria-disabled/container:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled/container:duration-500 duration-300"
+              ></div>
+            </div>
           </div>
         </section>
         <section
           id="left-panel"
-          class="min-w-48 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
+          class="max-w-64 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
         >
           <div class="relative">
             <a
@@ -122,22 +147,46 @@
             <ul
               aria-disabled="true"
               id="country-select-list"
-              class="bg-white-300 absolute aria-disabled:invisible visible flex items-center justify-center"
+              class="bg-white-100 left-10 rounded-md odd:bg-white-300 *:font-sans pointer-events-auto flex-col gap-y-1 absolute aria-disabled:invisible visible flex items-center justify-center"
             ></ul>
           </div>
           <div
             aria-disabled=""
             disabled=""
             id="search-container"
-            class="pointer-events-auto relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+            class="pointer-events-auto rounded-md w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
           >
-            <input type="text" id="search" />
+            <div
+              id="search-container-inside"
+              class="flex outline outline-0 outline-blue-400 items-center w-full rounded-md h-7"
+            >
+              <input
+                class="flex-1 w-full h-full text-sm font-sans px-1 rounded-l-md outline-none"
+                type="text"
+                id="search"
+              />
+              <div
+                class="w-7 h-full group rounded-r-md flex justify-center items-center bg-purple-500"
+                role="button"
+              >
+                <i
+                  class="fa-solid fa-magnifying-glass group-active:scale-95 text-xs text-white-100"
+                ></i>
+              </div>
+            </div>
             <div
               id="search-popout"
-              class="relative w-full h-20 border-t-2 border-black bg-white-50"
+              aria-disabled="true"
+              class="absolute p-1 inset-0 w-full pointer-events-auto rounded-md aria-disabled:invisible transition min-h-20 border-t-2 border-black bg-white-50"
             >
-              <div class="w-full" id="search-category"></div>
-              <div id="search-normal"></div>
+              <div
+                class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
+                id="search-category"
+              ></div>
+              <div
+                id="search-normal"
+                class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
+              ></div>
             </div>
           </div>
         </section>
@@ -178,7 +227,7 @@
             role="button"
             aria-label="Change map type"
             aria-disabled="false"
-            class="w-8 h-8 cursor-pointer flex bg-white-50 rounded-md pointer-events-auto relative"
+            class="w-8 h-8 cursor-pointer transition duration-300 aria-disabled:bg-white-200 aria-disabled:cursor-default flex bg-white-50 rounded-md pointer-events-auto relative"
           >
             <i
               class="fa-solid fa-layer-group text-slate-800 text-sm m-auto"
@@ -191,7 +240,7 @@
             aria-label="Activate country mode"
             aria-disabled=""
             disabled=""
-            class="w-8 h-8 flex items-center  pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+            class="w-8 h-8 flex items-center pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
           >
             <i
               class="fa-solid fa-globe text-slate-800 text-sm group-aria-disabled:text-white-500"
@@ -207,8 +256,9 @@
     <script src="./assets/maplibre-gl-dates/index.js"></script>
     <script src="./libs/js/map/index.js"></script>
     <script src="./libs/js/map/functions.js"></script>
-    <script src="./libs/js/map/controls.js"></script>
-    <script src="./libs/js/map/events.js"></script>
+    <script src="./libs/js/map/events/index.js"></script>
+    <script src="./libs/js/map/events/search.js"></script>
+    <script src="./libs/js/map/events/slider.js"></script>
     <script src="./libs/js/script.js"></script>
   </body>
 </html>

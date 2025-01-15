@@ -15,6 +15,29 @@
 
     [$path, $queriesFormatted] = parsePathAndQueryString($parsedUrl);
 
+    function apiCallAttempts($url) {
+        $retryLimit = 2;
+        $attempt = 0;
+        $response = null;
+
+        do {
+            $response = fetchApiCall($url, false);
+            $attempt++;
+
+            if (!isset($response['error'])) {
+                return $response;
+            }
+
+            if ($attempt === $retryLimit) {
+                http_response_code(500);
+                echo json_encode($response);
+                exit;
+            }
+
+            sleep(2);
+        } while ($attempt < $retryLimit);
+    }
+
 
     if ($path[2] === 'country_history') {
         $country = $queriesFormatted['country'];
@@ -31,28 +54,7 @@
 
         $url = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=History_of_$country";    
         
-        $retryLimit = 2;
-        $attempt = 0;
-        $countryHistoryResponse = null;
-
-        do {
-            $countryHistoryResponse = fetchApiCall($url, false);
-            $attempt++;
-
-            if (!isset($countryHistoryResponse['error'])) {
-                break;
-            }
-
-            if ($attempt === $retryLimit) {
-                http_response_code(500);
-                echo json_encode($countryHistoryResponse);
-                exit;
-            }
-
-            sleep(2);
-        } while ($attempt < $retryLimit);
-
-        $countryHistoryResponse = decodeResponse($countryHistoryResponse);  
+        $countryHistoryResponse = decodeResponse(apiCallAttempts($url));
         
         if (isset($countryHistoryResponse['error'])) {
             http_response_code(500);
@@ -61,6 +63,7 @@
         }
 
         $pages = $countryHistoryResponse['query']['pages']; 
+
         $firstPage = reset($pages); 
 
         $cleanExtract = preg_replace('/\r\n|\r|\n/', ' ', $firstPage['extract']);
@@ -104,14 +107,18 @@
 
         $url = "https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/$month/$day";
 
-        $wikipediaResponse = fetchApiCall($url, true);
+        $wikipediaEventsResponse = decodeResponse(apiCallAttempts($url));
 
-        $wikipediaResponse = decodeResponse($wikipediaResponse);
+        if (isset($wikipediaEventsResponse['error'])) {
+            http_response_code(500);
+            echo json_encode($wikipediaEventsResponse);
+            exit;
+        }
 
         $dbResults = fetchAndUpdateEventsFromDB((int)$day, (int)$month, 'fetch');
 
         if (count($dbResults)) {
-            if (count($dbResults) === count($wikipediaResponse['events'])) {
+            if (count($dbResults) === count($wikipediaEventsResponse['events'])) {
                 $complete = true;
 
                 foreach ($dbResults as $event) {
@@ -129,15 +136,15 @@
             } else {
                 $titlesInDB = array_column($dbResults, 'title');
 
-                $wikipediaResponse['events'] = array_filter($wikipediaResponse['events'], function ($event) use ($titlesInDB) {
+                $wikipediaEventsResponse['events'] = array_filter($wikipediaEventsResponse['events'], function ($event) use ($titlesInDB) {
                     return !in_array($event['text'], $titlesInDB);
                 });
             }
         }
 
-        if (isset($wikipediaResponse['error'])) {
+        if (isset($wikipediaEventsResponse['error'])) {
             http_response_code(500);
-            echo json_encode($wikipediaResponse);
+            echo json_encode($wikipediaEventsResponse);
             exit;
         }
 
@@ -159,7 +166,7 @@
                 'thumbnail_width' => $thumbnailWidth, 
                 'thumbnail_height' => $thumbnailHeight
             ];
-        }, $wikipediaResponse['events']);
+        }, $wikipediaEventsResponse['events']);
 
         foreach (array_chunk($eventsFormatted, 40) as $eventBatches) {
             addEventsToDB($eventBatches);

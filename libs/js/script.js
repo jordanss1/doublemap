@@ -29,7 +29,7 @@ mapPromise.then((map) => {
         speed: 0.5,
         curve: 2,
         zoom: 4,
-        duration: 1000,
+        duration: 2000,
       });
     },
     error: (xhr) => {
@@ -52,11 +52,11 @@ mapPromise.then((map) => {
 
       countryList.forEach(({ name, iso_a2 }) => {
         $('#country-select').append(
-          `<option id="country-option" class="text-lg" value="${iso_a2}">${name}</option>`
+          `<option id="country-option" class="text-lg font-sans" value="${iso_a2}">${name}</option>`
         );
 
         $('#country-select-list').append(
-          `<li id='country-list-option' class='text-lg' value='${iso_a2}'>${name}</li>`
+          `<li id='country-list-option' class='text-lg cursor-pointer hover:bg-blue-300 hover:text-white-100 w-full rounded-md' value='${iso_a2}'>${name}</li>`
         );
       });
     },
@@ -83,7 +83,7 @@ mapPromise.then((map) => {
   });
 });
 
-async function getCountryData(iso_a2) {
+async function getCountryDataAndFitBounds(iso_a2) {
   try {
     const { data } = await $.ajax({
       url: `/api/countries?country=${iso_a2}`,
@@ -91,7 +91,7 @@ async function getCountryData(iso_a2) {
       dataType: 'json',
     });
 
-    const responses = data.map((countryData) => {
+    const [restCountries, geonames] = data.map((countryData) => {
       if (countryData.error) {
         return false;
       }
@@ -99,7 +99,20 @@ async function getCountryData(iso_a2) {
       return countryData;
     });
 
-    return responses;
+    if (geonames) {
+      const bbox = [
+        [geonames.west, geonames.south],
+        [geonames.east, geonames.north],
+      ];
+
+      map.fitBounds(bbox, {
+        padding: 20,
+        maxZoom: 8,
+        duration: 2000,
+      });
+
+      return [restCountries, geonames];
+    }
   } catch (err) {
     console.log(err);
   }
