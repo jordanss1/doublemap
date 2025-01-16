@@ -52,9 +52,13 @@
             $country = "the_$country";
         }
 
-        $url = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=History_of_$country";    
+        $url1 = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles=History_of_$country";    
+        $url2 = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles=History_of_$country";    
         
-        $countryHistoryResponse = decodeResponse(apiCallAttempts($url));
+        
+        $countryHistoryResponse = decodeResponse(apiCallAttempts($url1));
+
+        $countryImageResponse = decodeResponse(apiCallAttempts($url2));
         
         if (isset($countryHistoryResponse['error'])) {
             http_response_code(500);
@@ -62,16 +66,23 @@
             exit;
         }
 
-        $pages = $countryHistoryResponse['query']['pages']; 
-
-        $firstPage = reset($pages); 
+        $firstPage = reset($countryHistoryResponse['query']['pages']);
 
         $cleanExtract = preg_replace('/\r\n|\r|\n/', ' ', $firstPage['extract']);
 
         $finalCountryHistory = [
             'title' => $firstPage['title'],
-            'extract' => $cleanExtract
+            'extract' => $cleanExtract,
+            'image' => null,
         ];
+
+        if (!isset($countryImageResponse['error'])) {
+            $firstPage = reset($countryImageResponse['query']['pages']);
+
+            $finalCountryHistory['image'] = $firstPage['original']['source'];
+            $finalCountryHistory['imageWidth'] = $firstPage['original']['width'];
+            $finalCountryHistory['imageHeight'] = $firstPage['original']['height'];
+        }
 
         http_response_code(200);
         echo json_encode(['data' => $finalCountryHistory]);

@@ -1,4 +1,13 @@
 /// <reference path="../jquery.js" />
+const historyFog = {
+  range: [0.8, 8],
+  color: '#e0d8c0',
+  'horizon-blend': 0.3,
+  'high-color': '#a0a0c0',
+  'space-color': '#1a1a2a',
+  'star-intensity': 0.1,
+};
+
 function nightNavStyles(map) {
   map.setFog({
     color: 'rgb(11, 11, 25)',
@@ -53,7 +62,7 @@ async function applyCountryLayers() {
 
   const fillColor =
     historyMode || currentBaseLayer === 'Standard'
-      ? 'rgba(94, 234, 212, .8)'
+      ? 'rgba(94, 234, 212, .6)'
       : 'rgba(79, 70, 229, .6)';
 
   if (!map.getLayer('chosen-country-fill')) {
@@ -258,14 +267,7 @@ function applyHistoryHtml(enabled) {
 }
 
 function applyHistoryStyles() {
-  map.setFog({
-    range: [0.8, 8],
-    color: '#e0d8c0',
-    'horizon-blend': 0.3,
-    'high-color': '#a0a0c0',
-    'space-color': '#1a1a2a',
-    'star-intensity': 0.1,
-  });
+  map.setFog(historyFog);
 }
 
 async function addPoiSourceAndLayer(pois, layerId) {
@@ -438,7 +440,7 @@ async function getSearchResults(value, loading) {
           /*html*/
           `<div id='search-normal-item' class='flex items-baseline gap-1' data-value=${i}>
           <i class="fa-solid fa-location-dot text-[10px] text-slate-400"></i>
-          <span class='text-sm'>${name}</span>
+          <span class='text-sm truncate'>${name}</span>
           </div>`
         );
       });
@@ -470,7 +472,7 @@ function createFeatureNameForSearch(feature) {
     }, </span><span class='text-white-900 text-[13px]'>${place_formatted}</span>`;
   } else if (feature_type === 'country') {
     return name;
-  } else if (feature_type === 'region') {
+  } else if (feature_type === 'region' || feature_type === 'district') {
     return /*html*/ `<span class='text-sm'>${name}, </span><span class='text-white-900 text-[13px]'>${
       place_formatted || name_preferred
     }</span>`;
@@ -495,6 +497,16 @@ async function getHistoryOfCountry(country) {
   }
 }
 
+function flyToPromise(options) {
+  return new Promise((resolve) => {
+    map.once('moveend', () => {
+      resolve();
+    });
+
+    map.flyTo(options);
+  });
+}
+
 function disableMapInteraction(disable) {
   if (disable) {
     map.dragPan.disable();
@@ -513,4 +525,47 @@ function disableMapInteraction(disable) {
     map.doubleClickZoom.enable();
     map.touchZoomRotate.enable();
   }
+}
+
+function removeAllButtons(disable) {
+  $('#left-panel').attr('aria-disabled', `${disable}`);
+  $('#right-panel').attr('aria-disabled', `${disable}`);
+  $('#top-panel').attr('aria-disabled', `${disable}`);
+}
+
+async function animateFog(startProps, endProps, duration) {
+  return new Promise((resolve) => {
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+      const elapsedTime = currentTime - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+
+      const currentProps = {};
+      for (const key in endProps) {
+        if (Array.isArray(endProps[key])) {
+          currentProps[key] = endProps[key].map((endValue, index) => {
+            const startValue = startProps[key][index];
+            return startValue + (endValue - startValue) * progress;
+          });
+        } else if (typeof endProps[key] === 'number') {
+          const startValue = startProps[key];
+          currentProps[key] =
+            startValue + (endProps[key] - startValue) * progress;
+        } else {
+          currentProps[key] = endProps[key];
+        }
+      }
+
+      map.setFog(currentProps);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(animate);
+  });
 }

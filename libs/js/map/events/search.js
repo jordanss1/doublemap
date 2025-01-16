@@ -151,10 +151,13 @@ mapPromise.then((map) => {
       if (!areaToSearch) {
         const { longitude, latitude } = mostRecentLocation;
 
-        map.fitBounds([
-          [longitude - 0.1, latitude - 0.1],
-          [longitude + 0.1, latitude + 0.1],
-        ]);
+        map.fitBounds(
+          [
+            [longitude - 0.1, latitude - 0.1],
+            [longitude + 0.1, latitude + 0.1],
+          ],
+          { speed: 0.5, curve: 2, padding: 50, maxZoom: 8, duration: 2500 }
+        );
 
         const bounds = {
           _sw: {
@@ -192,7 +195,7 @@ mapPromise.then((map) => {
 
           map.flyTo({
             center: [longitude, latitude],
-            speed: 1.5,
+            speed: 0.5,
             curve: 2,
             zoom: 10,
           });
@@ -221,6 +224,7 @@ mapPromise.then((map) => {
 
   $('#search-normal').on('click', '#search-normal-item', function (e) {
     panToSearchResult($(this).data('value'));
+    console.log($(this).data('value'));
   });
 });
 
@@ -237,27 +241,33 @@ function panToSearchResult(indexInResults) {
 
   const coords = [coordinates.longitude, coordinates.latitude];
 
-  if (feature_type === 'region' || feature_type === 'country') {
+  if (bbox && bbox.length) {
     map.fitBounds(bbox, {
       padding: 20,
       maxZoom: 8,
-      duration: 2000,
+      speed: 0.5,
+      curve: 2,
+      duration: 2500,
     });
-
-    if (feature_type === 'country') {
-      updateChosenCountryState(context.country.country_code);
-    }
   } else {
-    const zoom = zoomForFeatureType(feature_type);
-
     map.flyTo({
       center: coords,
       speed: 0.5,
       curve: 1,
       zoom,
       essential: true,
-      duration: 2000,
+      duration: 2500,
     });
+  }
+
+  if (feature_type === 'country') {
+    updateChosenCountryState(context.country.country_code);
+  } else {
+    const marker = new mapboxgl.Marker({
+      color: '#FFFFFF',
+    })
+      .setLngLat(coords)
+      .addTo(map);
   }
 
   $('#search-popout').attr('aria-disabled', 'true');

@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "baseUrl": "./",
-    "paths": {
-      "mapbox-gl": ["libs/js/map/index.d.ts"]
-    }
-  },
-  "include": ["./**/*", "types"]
-}

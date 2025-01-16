@@ -27,7 +27,8 @@
       <div class="absolute h-full w-full pointer-events-none z-[8000]">
         <section
           id="top-panel"
-          class="w-full grid gap-2 transition-all items-baseline delay-1000 duration-300 ease-in auto-cols-[minmax(0,1fr)] grid-flow-col fixed inset-x-0 top-3"
+          aria-disabled="false"
+          class="w-full grid gap-2 opacity-100 transition-all ease-in aria-disabled:opacity-0 aria-disabled:-top-6 items-baseline aria-disabled:delay-0 delay-1000 duration-300 auto-cols-[minmax(0,1fr)] grid-flow-col fixed inset-x-0 top-3"
         >
           <div class="min-w-20 w-full"></div>
           <span
@@ -130,7 +131,8 @@
         </section>
         <section
           id="left-panel"
-          class="max-w-64 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
+          aria-disabled="false"
+          class="max-w-64 opacity-100 transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-10 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
         >
           <div class="relative">
             <a
@@ -147,7 +149,7 @@
             <ul
               aria-disabled="true"
               id="country-select-list"
-              class="bg-white-100 left-10 rounded-md odd:bg-white-300 *:font-sans pointer-events-auto flex-col gap-y-1 absolute aria-disabled:invisible visible flex items-center justify-center"
+              class="bg-white-100 p-1 max-w-36 h-96 overflow-auto left-0 rounded-md odd:bg-white-300 *:font-sans pointer-events-auto absolute aria-disabled:invisible visible"
             ></ul>
           </div>
           <div
@@ -177,7 +179,7 @@
             <div
               id="search-popout"
               aria-disabled="true"
-              class="absolute p-1 inset-0 w-full pointer-events-auto rounded-md aria-disabled:invisible transition min-h-20 border-t-2 border-black bg-white-50"
+              class="absolute p-1 inset-0 w-full top-0.5 pointer-events-auto rounded-md aria-disabled:invisible transition min-h-20 border-t-1 border-white-500 bg-white-50"
             >
               <div
                 class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
@@ -193,7 +195,8 @@
 
         <section
           id="right-panel"
-          class="flex flex-col items-center gap-3 h-full fixed top-3 right-3"
+          aria-disabled="false"
+          class="flex flex-col opacity-100 transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-right-6 items-center gap-3 h-full fixed top-3 right-3"
         >
           <div class="pointer-events-auto rounded-md">
             <a

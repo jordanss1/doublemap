@@ -68,8 +68,8 @@ const initialiseMap = () => {
       dataType: 'json',
       method: 'GET',
       success: async () => {
-        const token = await getToken();
         let url = styles[2].url;
+        const token = await getToken();
 
         if (!historyMode) {
           url = styles.find((style) => currentBaseLayer === style.name).url;
@@ -112,6 +112,13 @@ const initialiseMap = () => {
               'showPointOfInterestLabels',
               false
             );
+            map.setFog({
+              color: 'rgb(11, 11, 25)',
+              'high-color': 'rgb(36, 92, 223)',
+              'horizon-blend': 0.02,
+              'space-color': 'rgb(11, 11, 25)',
+              'star-intensity': 0.6,
+            });
           }
 
           await applyCountryLayers();

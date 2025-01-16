@@ -25,7 +25,13 @@
             $categoryList = ['food_and_drink', 'shopping', 'food', 'hotel', 'health_services', 'restaurant', 'grocery', 'outdoors', 'museum', 'park', 'supermarket', 'cafe', 'bank', 'hospital', 'entertainment', 'post_office', 'coffee'];
             $shopping = ['grocery', 'shopping', 'supermarket'];
 
-            $colorList = [['color' => '#e97d7d', 'hospital', 'museum', 'lodging', 'bank'],['color' => '#7db2e8', 'clothing-store', 'restaurant', 'coffee', 'cafe'],  ['color' => '#7e94a9', 'post'], ['color' => '#36ad1f', 'park'], ['color' => '#ec93ce', 'cinema']];
+            $colorList = [
+                ['color' => '#d9534f', 'hospital', 'museum', 'lodging', 'bank'], 
+                ['color' => '#5b9bd5', 'clothing-store', 'restaurant', 'coffee', 'cafe'], 
+                ['color' => '#5a6d83', 'post'], 
+                ['color' => '#2e8b57', 'park'],
+                ['color' => '#c8559d', 'cinema'] 
+            ];
 
             $response = fetchApiCall($url, true);
 
