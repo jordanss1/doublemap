@@ -19,6 +19,7 @@ let categoryList = [];
 let userGeo;
 let mostRecentLocation;
 let searchResults = [];
+let searchTerm;
 let currentPois;
 let currentPoiCategory = 'default';
 let countryList = [];
@@ -123,6 +124,7 @@ const initialiseMap = () => {
 
           await applyCountryLayers();
           await retrieveAndApplyIcons(token);
+
 
           resolve(map);
         });

@@ -78,7 +78,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $key => $nodeList)  {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $key, 60));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $queryKey, $key, 60));
             }
 
             http_response_code(200);
@@ -126,7 +126,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 40));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $queryKey, $category, 40));
             }
 
             http_response_code(200);
@@ -175,7 +175,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, $queryKey, $category, 30));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $queryKey, $category, 30));
                 
             }
 
@@ -228,7 +228,7 @@
             $filteredResult = [];
 
             foreach ($allNodesList as $nodeList) {
-                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, $centerLat, $centerLng, 'amenity', $category, 30));
+                $filteredResult = array_merge($filteredResult, findNearbyNodesAndNormalize($nodeList, 'amenity', $category, 30));
                 
             }
 
@@ -291,7 +291,7 @@
                 exit;
             }
 
-            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $centerLat, $centerLng, $queryKey, $category, 60);
+            $filteredResult = findNearbyNodesAndNormalize($decodedResponse, $queryKey, $category, 60);
 
             http_response_code(200);
             echo json_encode(['data' => $filteredResult]);

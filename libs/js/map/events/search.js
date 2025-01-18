@@ -12,8 +12,18 @@ mapPromise.then((map) => {
       }
 
       if (!searchLoading) {
-        panToSearchResult(0);
+        markAndPanToSearchResult(0);
       }
+    }
+  });
+
+  $('#search-button').on('click', async (e) => {
+    if (chosenCountryISO) {
+      updateChosenCountryState();
+    }
+
+    if (!searchLoading) {
+      markAndPanToSearchResult(0);
     }
   });
 
@@ -29,15 +39,6 @@ mapPromise.then((map) => {
 
     if (isPopoutDisabled && target.value.length) {
       $('#search-popout').attr('aria-disabled', 'false');
-    }
-  });
-
-  $('#search').on('blur', ({ e }) => {
-    $('#search-container-inside').removeClass('outline-3');
-    $('#search-container-inside').addClass('outline-0');
-
-    if (e.target === e.currentTarget) {
-      $('#search-popout').attr('aria-disabled', 'true');
     }
   });
 
@@ -60,10 +61,12 @@ mapPromise.then((map) => {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
 
-      searchTimer = setTimeout(
-        () => getSearchResults(normalizedValue, searchLoading),
-        1500
-      );
+      if (searchTerm !== normalizedValue) {
+        searchTimer = setTimeout(
+          () => getSearchResults(normalizedValue, searchLoading),
+          1500
+        );
+      }
 
       const closestMatch = categorySearchOption(value);
 
@@ -223,23 +226,46 @@ mapPromise.then((map) => {
   );
 
   $('#search-normal').on('click', '#search-normal-item', function (e) {
-    panToSearchResult($(this).data('value'));
+    markAndPanToSearchResult($(this).data('value'));
     console.log($(this).data('value'));
   });
 });
 
-function panToSearchResult(indexInResults) {
+function markAndPanToSearchResult(indexInResults) {
   $('#search-container-inside').removeClass('outline-3');
   $('#search-container-inside').addClass('outline-0');
 
   const { coordinates, feature_type, bbox, context } =
-    searchResults[indexInResults];
+    searchResults[indexInResults].properties;
 
   console.log(feature_type);
   console.log(indexInResults);
   console.log(searchResults);
 
   const coords = [coordinates.longitude, coordinates.latitude];
+
+  if (feature_type === 'country') {
+    updateChosenCountryState(context.country.country_code);
+  } else {
+    if (!map.getSource('markers-source')) {
+      map.addSource('markers-source', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: [searchResults[indexInResults]],
+        },
+      });
+    } else {
+      map.getSource('markers-source').setData({
+        type: 'FeatureCollection',
+        features: [searchResults[indexInResults]],
+      });
+    }
+
+    addMarkersLayer();
+    map.moveLayer('modern-markers-layer');
+    currentPoiCategory = 'default';
+  }
 
   if (bbox && bbox.length) {
     map.fitBounds(bbox, {
@@ -250,6 +276,8 @@ function panToSearchResult(indexInResults) {
       duration: 2500,
     });
   } else {
+    const zoom = zoomForFeatureType(feature_type);
+
     map.flyTo({
       center: coords,
       speed: 0.5,
@@ -258,16 +286,6 @@ function panToSearchResult(indexInResults) {
       essential: true,
       duration: 2500,
     });
-  }
-
-  if (feature_type === 'country') {
-    updateChosenCountryState(context.country.country_code);
-  } else {
-    const marker = new mapboxgl.Marker({
-      color: '#FFFFFF',
-    })
-      .setLngLat(coords)
-      .addTo(map);
   }
 
   $('#search-popout').attr('aria-disabled', 'true');

@@ -61,9 +61,9 @@ async function applyCountryLayers() {
       : ['rgba(248, 113, 113, 0.8)', 'rgba(248, 113, 113,.3)'];
 
   const fillColor =
-    historyMode || currentBaseLayer === 'Standard'
-      ? 'rgba(94, 234, 212, .6)'
-      : 'rgba(79, 70, 229, .6)';
+    historyMode || currentBaseLayer === 'Dark'
+      ? 'rgba(79, 70, 229, .6)'
+      : 'rgba(94, 234, 212, .6)';
 
   if (!map.getLayer('chosen-country-fill')) {
     map.addLayer({
@@ -271,71 +271,106 @@ function applyHistoryStyles() {
 }
 
 async function addPoiSourceAndLayer(pois, layerId) {
-  console.log(pois);
-  if (pois && pois.length) {
-    if (!map.getSource('poi-source')) {
-      map.addSource('poi-source', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: pois },
-      });
-    } else {
-      map
-        .getSource('poi-source')
-        .setData({ type: 'FeatureCollection', features: pois });
-    }
-
-    let colorArray = [];
-
-    const iconArray = categoryList.flatMap(({ icon, canonical_id, color }) => {
-      colorArray.push([canonical_id, color]);
-
-      return [canonical_id, icon];
+  if (!map.getSource('poi-source')) {
+    map.addSource('poi-source', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: pois },
     });
+  } else {
+    map
+      .getSource('poi-source')
+      .setData({ type: 'FeatureCollection', features: pois });
+  }
 
-    const textColor =
-      currentBaseLayer === 'Dark'
-        ? '#eef0f0'
-        : ['match', ['get', 'canonical_id'], ...colorArray.flat(), '#9ea8be'];
+  let colorArray = [];
 
-    const haloColor = currentBaseLayer === 'Dark' ? '#000000' : '#ffffff';
-    const haloWidth = currentBaseLayer === 'Dark' ? 1 : 2.5;
+  const iconArray = categoryList.flatMap(({ icon, canonical_id, color }) => {
+    colorArray.push([canonical_id, color]);
 
-    if (layerId === 'default-pois' && map.getLayer('chosen-pois')) {
-      map.removeLayer('chosen-pois');
-    }
+    return [canonical_id, icon];
+  });
 
-    if (layerId === 'chosen-pois' && map.getLayer('default-pois')) {
-      map.removeLayer('default-pois');
-    }
+  const textColor =
+    currentBaseLayer === 'Dark'
+      ? '#eef0f0'
+      : ['match', ['get', 'canonical_id'], ...colorArray.flat(), '#9ea8be'];
 
-    if (!map.getLayer(layerId)) {
-      map.addLayer({
-        id: layerId,
-        type: 'symbol',
-        source: 'poi-source',
-        minzoom: layerId === 'default-pois' ? 9 : 0,
-        layout: {
-          'icon-image': [
-            'match',
-            ['get', 'canonical_id'],
-            ...iconArray,
-            'marker-15',
-          ],
-          'icon-size': 0.5,
-          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-          'text-size': 13,
-          'text-field': ['get', 'name'],
-          'text-offset': [0, 0.5],
-          'text-anchor': 'top',
-        },
-        paint: {
-          'text-color': textColor,
-          'text-halo-color': haloColor,
-          'text-halo-width': haloWidth,
-          'text-halo-blur': 1,
-        },
-      });
-    }
+  const haloColor = currentBaseLayer === 'Dark' ? '#000000' : '#ffffff';
+  const haloWidth = currentBaseLayer === 'Dark' ? 1 : 2.5;
+
+  if (layerId === 'default-pois' && map.getLayer('chosen-pois')) {
+    map.setLayoutProperty('chosen-pois', 'visibility', 'none');
+  }
+
+  if (layerId === 'chosen-pois' && map.getLayer('default-pois')) {
+    map.setLayoutProperty('default-pois', 'visibility', 'none');
+  }
+
+  if (!map.getLayer(layerId)) {
+    map.addLayer({
+      id: layerId,
+      type: 'symbol',
+      source: 'poi-source',
+      slot: 'middle',
+      promoteId: 'index',
+      minzoom: layerId === 'default-pois' ? 9 : 0,
+      layout: {
+        'icon-image': [
+          'match',
+          ['get', 'canonical_id'],
+          ...iconArray,
+          'marker-15',
+        ],
+        'icon-size': 0.5,
+        'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+        'text-size': 13,
+        'text-field': ['get', 'name'],
+        'text-offset': [0, 0.5],
+        'text-anchor': 'top',
+      },
+      paint: {
+        'text-color': textColor,
+        'text-halo-color': haloColor,
+        'text-halo-width': haloWidth,
+        'text-halo-blur': 1,
+      },
+    });
+  }
+}
+
+function addMarkersLayer() {
+  if (!map.getLayer('modern-markers-layer')) {
+    map.addLayer({
+      id: 'modern-markers-layer',
+      type: 'symbol',
+      slot: 'top',
+      source: 'markers-source',
+      layout: {
+        'icon-image': 'custom-marker',
+        'icon-size': 1,
+      },
+      paint: {
+        'icon-color': 'rgb(168, 85, 247)',
+      },
+    });
+  }
+
+  if (!map.getLayer('history-markers-layer')) {
+    map.addLayer({
+      id: 'history-markers-layer',
+      type: 'symbol',
+      source: 'markers-source',
+      layout: {
+        'icon-image': 'custom-marker',
+        'icon-size': 1,
+        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+        'text-offset': [0, 1.25],
+        'text-anchor': 'top',
+      },
+      paint: {
+        'icon-color': '#FF0000', // Red color
+      },
+    });
   }
 }
 
@@ -343,6 +378,14 @@ async function retrieveAndApplyIcons(token) {
   const spriteUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/sprite${
     window.devicePixelRatio > 1 ? '@2x' : ''
   }`;
+
+  map.loadImage(
+    'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+    (error, image) => {
+      if (error) throw error;
+      map.addImage('custom-marker', image, { sdf: true });
+    }
+  );
 
   const [spriteJson, spriteImage] = await Promise.all([
     $.ajax({
@@ -415,10 +458,15 @@ function zoomForFeatureType(feature_type) {
 async function getSearchResults(value, loading) {
   loading = true;
 
-  const proximity =
-    mostRecentLocation.latitude && mostRecentLocation.longitude
-      ? `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`
-      : 'ip';
+  let proximity = 'ip';
+
+  if (
+    mostRecentLocation &&
+    mostRecentLocation.latitude &&
+    mostRecentLocation.longitude
+  ) {
+    proximity = `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`;
+  }
 
   try {
     const { data } = await $.ajax({
@@ -427,14 +475,16 @@ async function getSearchResults(value, loading) {
       dataType: 'json',
     });
 
+    searchTerm = value;
+
     $('#search-normal').children().remove();
 
     if (data.length) {
       searchResults = [];
 
-      data.forEach(({ properties }, i) => {
-        searchResults.push(properties);
-        const name = createFeatureNameForSearch(properties);
+      data.forEach((results, i) => {
+        searchResults.push(results);
+        const name = createFeatureNameForSearch(results.properties);
 
         $('#search-normal').append(
           /*html*/

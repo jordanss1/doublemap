@@ -73,7 +73,8 @@ mapPromise.then((map) => {
     dataType: 'json',
     success: (res) => {
       categoryList = res.data;
-      console.log(res.data);
+      addMarkersLayer();
+      addPoiSourceAndLayer([], 'default-pois');
     },
     error: (xhr) => {
       const res = JSON.parse(xhr.responseText);
@@ -84,7 +85,6 @@ mapPromise.then((map) => {
 });
 
 async function getCountryDataAndFitBounds(iso_a2) {
-  console.log(iso_a2);
   try {
     const { data } = await $.ajax({
       url: `/api/countries?country=${iso_a2}`,

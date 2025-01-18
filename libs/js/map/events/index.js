@@ -12,7 +12,22 @@ mapPromise.then((map) => {
         map.removeSource(e.source.id);
         map.addSource(e.source.id, e.source);
       }
+
       map.triggerRepaint();
+    }
+  });
+
+  $(document).on('click', (e) => {
+    const searchContainer = $('#search-container');
+
+    if (
+      !searchContainer.is(e.target) &&
+      searchContainer.has(e.target).length === 0
+    ) {
+      $('#search-popout').attr('aria-disabled', 'true');
+      $('#search-container-inside')
+        .removeClass('outline-3')
+        .addClass('outline-0');
     }
   });
 
@@ -46,15 +61,6 @@ mapPromise.then((map) => {
     const currentPoiLayer =
       currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-    // // Extract the southwest and northeast corners of the bounding box
-    // const bbox = [
-    //   [bounds.getWest(), bounds.getSouth()], // Southwest corner
-    //   [bounds.getEast(), bounds.getNorth()], // Northeast corner
-    // ];
-
-    // // Log the bbox to the console
-    // console.log('Current BBox:', bbox);
-
     clearTimeout(timeout);
 
     if (
@@ -78,11 +84,11 @@ mapPromise.then((map) => {
     await applyCountryLayers();
 
     if (!historyMode) {
-      await retrieveAndApplyIcons(token);
+      const pois = currentPois.length ? currentPois : [];
 
-      if (currentPois && currentBaseLayer) {
-        addPoiSourceAndLayer(currentPois, currentPoiLayer);
-      }
+      await retrieveAndApplyIcons(token);
+      addMarkersLayer();
+      addPoiSourceAndLayer(pois, currentPoiLayer);
     }
   });
 
@@ -106,7 +112,12 @@ mapPromise.then((map) => {
 
   map.on(
     'mouseenter',
-    ['hovered-country-fill', 'chosen-pois', 'default-pois'],
+    [
+      'hovered-country-fill',
+      'chosen-pois',
+      'default-pois',
+      'modern-markers-layer',
+    ],
     () => {
       map.getCanvas().style.cursor = 'pointer';
     }
@@ -114,7 +125,12 @@ mapPromise.then((map) => {
 
   map.on(
     'mouseleave',
-    ['hovered-country-fill', 'chosen-pois', 'default-pois'],
+    [
+      'hovered-country-fill',
+      'chosen-pois',
+      'default-pois',
+      'modern-markers-layer',
+    ],
     () => {
       map.getCanvas().style.cursor = '';
     }

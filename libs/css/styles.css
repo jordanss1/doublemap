@@ -25,6 +25,10 @@
   font-style: normal;
 }
 
+.mapboxgl-canvas-container {
+  transition: transform 0.3s ease-out;
+}
+
 #preloader {
   position: fixed;
   top: 0;
