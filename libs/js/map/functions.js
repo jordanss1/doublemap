@@ -221,8 +221,8 @@ function applyHistoryHtml(enabled) {
     $('#day-slider-container').attr('aria-disabled') === 'false';
 
   if (enabled) {
-    $('#top-panel').removeClass('auto-cols-[minmax(0,1fr)]');
-    $('#top-panel').addClass('grid-cols-[auto_1fr_auto]');
+    $('#top-panel').removeClass('auto-cols-[auto_1fr_1fr]');
+    $('#top-panel').addClass('grid-cols-[150px_1fr_auto]');
     $('#history-container').addClass('animate-start_absolute');
     $('#country-select-button').addClass('animate-start_absolute');
     $('#search-container').children().removeClass('animate-start_absolute');
@@ -233,8 +233,8 @@ function applyHistoryHtml(enabled) {
   } else {
     $('#search-container-inside').removeClass('outline-3');
     $('#search-container-inside').addClass('outline-0');
-    $('#top-panel').removeClass('grid-cols-[auto_1fr_auto]');
-    $('#top-panel').addClass('auto-cols-[minmax(0,1fr)]');
+    $('#top-panel').removeClass('grid-cols-[150px_1fr_auto]');
+    $('#top-panel').addClass('auto-cols-[auto_1fr_1fr]');
     $('#search-container').children().addClass('animate-start_absolute');
     $('#select-container').addClass('animate-start_absolute');
     $('#select-container').removeClass('animate-end_absolute');
@@ -270,7 +270,7 @@ function applyHistoryStyles() {
   map.setFog(historyFog);
 }
 
-async function addPoiSourceAndLayer(pois, layerId) {
+function addPoiSourceAndLayer(pois, layerId) {
   if (!map.getSource('poi-source')) {
     map.addSource('poi-source', {
       type: 'geojson',
@@ -300,10 +300,12 @@ async function addPoiSourceAndLayer(pois, layerId) {
 
   if (layerId === 'default-pois' && map.getLayer('chosen-pois')) {
     map.setLayoutProperty('chosen-pois', 'visibility', 'none');
+    map.setLayoutProperty('default-pois', 'visibility', 'visible');
   }
 
   if (layerId === 'chosen-pois' && map.getLayer('default-pois')) {
     map.setLayoutProperty('default-pois', 'visibility', 'none');
+    map.setLayoutProperty('chosen-pois', 'visibility', 'visible');
   }
 
   if (!map.getLayer(layerId)) {

@@ -20,7 +20,7 @@ let userGeo;
 let mostRecentLocation;
 let searchResults = [];
 let searchTerm;
-let currentPois;
+let currentPois = [];
 let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
@@ -124,7 +124,6 @@ const initialiseMap = () => {
 
           await applyCountryLayers();
           await retrieveAndApplyIcons(token);
-
 
           resolve(map);
         });

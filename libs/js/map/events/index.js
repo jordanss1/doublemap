@@ -89,6 +89,19 @@ mapPromise.then((map) => {
       await retrieveAndApplyIcons(token);
       addMarkersLayer();
       addPoiSourceAndLayer(pois, currentPoiLayer);
+
+      if (currentBaseLayer === 'Dark') {
+        nightNavStyles(map);
+      } else {
+        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+        map.setFog({
+          color: 'rgb(11, 11, 25)',
+          'high-color': 'rgb(36, 92, 223)',
+          'horizon-blend': 0.02,
+          'space-color': 'rgb(11, 11, 25)',
+          'star-intensity': 0.6,
+        });
+      }
     }
   });
 
@@ -206,10 +219,6 @@ mapPromise.then((map) => {
   });
 
   $('#style-control').on('click', async () => {
-    if (chosenCountryISO) {
-      updateChosenCountryState();
-    }
-
     await getToken();
 
     if (historyMode) {
@@ -234,23 +243,23 @@ mapPromise.then((map) => {
     localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
 
     map.once('style.load', async () => {
-      if (currentBaseLayer === 'Dark') {
-        nightNavStyles(map);
-      } else {
-        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-        map.setFog({
-          color: 'rgb(11, 11, 25)',
-          'high-color': 'rgb(36, 92, 223)',
-          'horizon-blend': 0.02,
-          'space-color': 'rgb(11, 11, 25)',
-          'star-intensity': 0.6,
-        });
-      }
-
       const currentPoiLayer =
         currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-      if (zoom > 11 && currentPois) {
+      if (chosenCountryISO) {
+        setTimeout(() => {
+          map.setFeatureState(
+            {
+              source: 'country-borders',
+              sourceLayer: 'country_bordersgeo',
+              id: chosenCountryISO,
+            },
+            { chosen: true }
+          );
+        }, 500);
+      }
+
+      if (zoom >= 9 && currentPois) {
         addPoiSourceAndLayer(currentPois, currentPoiLayer);
       }
     });
@@ -280,7 +289,9 @@ mapPromise.then((map) => {
     async ({ target }) => {
       $('#country-select-list').attr('aria-disabled', 'true');
 
-      await getHistoryOfCountry(target.textContent);
+      if (historyMode) {
+        await getHistoryOfCountry(target.textContent);
+      }
 
       updateChosenCountryState(target.getAttribute('value'));
 
@@ -317,18 +328,6 @@ mapPromise.then((map) => {
 
       // if (restCountryData) {
       // }
-    }
-  });
-
-  $('#country-select-list').on('keydown', '#country-list-option', async (e) => {
-    $('#country-select-list').attr('aria-disabled', 'true');
-
-    if (e.key === 'Enter' && value.length) {
-      await getHistoryOfCountry(e.target.textContent);
-
-      updateChosenCountryState(e.target.getAttribute('value'));
-
-      await getCountryDataAndFitBounds(e.target.getAttribute('value'));
     }
   });
 });
@@ -401,12 +400,14 @@ async function changeHistoryMode(map, enabled) {
       historyMode = true;
       localStorage.setItem('historyMode', JSON.stringify(true));
 
-      if (map.getLayer('chosen-pois')) map.removeLayer('chosen-pois');
+      map.setLayoutProperty('chosen-pois', 'visibility', 'none');
 
-      if (map.getLayer('default-pois')) map.removeLayer('default-pois');
+      map.setLayoutProperty('default-pois', 'visibility', 'none');
 
       disableMapInteraction(false);
+      updateChosenCountryState();
       removeAllButtons(false);
+      currentPois = [];
 
       map.filterByDate('2013-01-01');
       await applyCountryLayers();
@@ -440,32 +441,17 @@ async function changeHistoryMode(map, enabled) {
     map.once('style.load', async () => {
       historyMode = false;
       localStorage.setItem('historyMode', JSON.stringify(false));
+
       disableMapInteraction(false);
       removeAllButtons(false);
+      updateChosenCountryState();
 
       timeout = setTimeout(() => {
         applyHistoryHtml(enabled);
       }, 1500);
 
-      if (currentBaseLayer === 'Dark') {
-        nightNavStyles(map);
-      } else {
-        map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
-        map.setFog({
-          color: 'rgb(11, 11, 25)',
-          'high-color': 'rgb(36, 92, 223)',
-          'horizon-blend': 0.02,
-          'space-color': 'rgb(11, 11, 25)',
-          'star-intensity': 0.6,
-        });
-      }
-
-      const currentPoiLayer =
-        currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
-
-      if (map.getZoom() > 11 && currentPois) {
-        addPoiSourceAndLayer(currentPois, currentPoiLayer);
-      }
+      map.setLayoutProperty('default-pois', 'visibility', 'visible');
+      currentPoiCategory = 'default';
     });
   }
 }

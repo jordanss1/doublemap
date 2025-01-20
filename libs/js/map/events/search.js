@@ -177,8 +177,10 @@ mapPromise.then((map) => {
 
         const pois = await getOverpassPois(bounds, category);
 
-        await addPoiSourceAndLayer(pois, 'chosen-pois');
-
+        if (pois.length) {
+          currentPois = pois;
+          addPoiSourceAndLayer(pois, 'chosen-pois');
+        }
         $('#search-popout').attr('aria-disabled', 'true');
 
         return;
@@ -213,7 +215,8 @@ mapPromise.then((map) => {
           const pois = await getOverpassPois(bounds, category);
 
           if (pois.length) {
-            await addPoiSourceAndLayer(pois, 'chosen-pois');
+            currentPois = pois;
+            addPoiSourceAndLayer(pois, 'chosen-pois');
           }
         } else {
         }

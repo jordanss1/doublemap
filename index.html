@@ -28,14 +28,16 @@
         <section
           id="top-panel"
           aria-disabled="false"
-          class="w-full grid gap-2 opacity-100 transition-all ease-in aria-disabled:opacity-0 aria-disabled:-top-6 items-baseline aria-disabled:delay-0 delay-1000 duration-300 auto-cols-[minmax(0,1fr)] grid-flow-col fixed inset-x-0 top-3"
+          class="w-full grid gap-2 opacity-100 transition-all ease-in aria-disabled:opacity-0 aria-disabled:-top-6 items-baseline aria-disabled:delay-0 delay-1000 duration-300 auto-cols-[auto_1fr_1fr] grid-flow-col fixed inset-x-0 top-3"
         >
-          <div class="min-w-20 w-full"></div>
+          <div
+            class="xl:min-w-[35rem] lg:min-w-[30rem] md:min-w-[25rem] w-full"
+          ></div>
           <span
             id="select-container"
             aria-disabled="false"
             disabled="false"
-            class="pointer-events-auto aria-disabled:delay-0 delay-500 relative duration-500 ease-out aria-disabled:opacity-0 aria-disabled:invisible aria-disabled:-translate-x-5 translate-x-0 opacity-100 transition-all justify-self-center h-8"
+            class="pointer-events-auto md:inline hidden aria-disabled:delay-0 delay-500 relative duration-500 ease-out aria-disabled:opacity-0 aria-disabled:invisible aria-disabled:-translate-x-5 translate-x-0 opacity-100 transition-all justify-self-center h-8"
           >
             <select
               id="country-select"
@@ -132,64 +134,85 @@
         <section
           id="left-panel"
           aria-disabled="false"
-          class="max-w-64 opacity-100 transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-10 flex flex-col items-start gap-1 h-full fixed top-3 left-3"
+          class="opacity-100 transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-10 flex items-start gap-1 h-full fixed"
         >
-          <div class="relative">
-            <a
-              id="country-select-button"
-              class="p-2 pointer-events-auto gap-2 delay-500 aria-disabled:delay-0 relative duration-500 ease-out aria-disabled:opacity-0 aria-disabled:-translate-x-5 translate-x-0 aria-disabled:invisible aria-disabled:absolute opacity-100 transition-all flex rounded-md border-b-2 border-white-300 justify-center bg-white-50"
-              title="Select country"
-              role="button"
-              aria-label="Select country"
-              aria-disabled="true"
-            >
-              <i class="fa-solid fa-flag text-slate-800"></i>
-              <i class="fa-solid fa-caret-down text-white-500"></i>
-            </a>
-            <ul
-              aria-disabled="true"
-              id="country-select-list"
-              class="bg-white-100 p-1 max-w-36 h-96 overflow-auto left-0 rounded-md odd:bg-white-300 *:font-sans pointer-events-auto absolute aria-disabled:invisible visible"
-            ></ul>
-          </div>
           <div
-            aria-disabled=""
-            disabled=""
-            id="search-container"
-            class="pointer-events-auto rounded-md w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+            id="sidebar"
+            aria-disabled="false"
+            class="h-full flex flex-col max-w-20 py-3 pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           >
-            <div
-              id="search-container-inside"
-              class="flex outline outline-0 outline-blue-400 items-center w-full rounded-md h-7"
-            >
-              <input
-                class="flex-1 w-full h-full text-sm font-sans px-1 rounded-l-md outline-none"
-                type="text"
-                id="search"
-              />
+            <div class="w-full flex justify-center">
               <div
-                id="search-button"
-                class="w-7 h-full group rounded-r-md flex justify-center items-center bg-purple-500"
-                role="button"
+                class="cursor-pointer h-7 w-7 rounded-md flex items-center justify-center "
               >
-                <i
-                  class="fa-solid fa-magnifying-glass group-active:scale-95 text-xs text-white-100"
-                ></i>
+                <i class="fa-solid fa-bars text-white-600 text-lg"></i>
               </div>
             </div>
+          </div>
+          <div
+            id="side-panel"
+            aria-disabled="false"
+            class="h-full max-w-72 hidden pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
+          ></div>
+          <div class="w-20"></div>
+          <div class="flex gap-2 relative top-3 left-3">
+            <div class="">
+              <a
+                id="country-select-button"
+                class="h-7 p-1 pointer-events-auto gap-1.5 delay-500 md:aria-disabled:delay-0 relative duration-500 ease-out md:aria-disabled:opacity-0 md:aria-disabled:-translate-x-5 translate-x-0 md:aria-disabled:invisible md:aria-disabled:absolute opacity-100 transition-all flex rounded-md border-b-2 border-white-300 justify-center items-center bg-white-50"
+                title="Select country"
+                role="button"
+                aria-label="Select country"
+                aria-disabled="true"
+              >
+                <i class="fa-solid fa-flag text-sm text-slate-800"></i>
+                <i class="fa-solid fa-caret-down text-white-500"></i>
+              </a>
+              <ul
+                aria-disabled="true"
+                id="country-select-list"
+                class="bg-white-100 p-1 max-w-36 h-96 overflow-auto left-0 rounded-md odd:bg-white-300 *:font-sans pointer-events-auto absolute aria-disabled:invisible visible"
+              ></ul>
+            </div>
             <div
-              id="search-popout"
-              aria-disabled="true"
-              class="absolute p-1 inset-0 w-full top-0.5 pointer-events-auto rounded-md aria-disabled:invisible transition min-h-20 border-t-1 border-white-500 bg-white-50"
+              aria-disabled=""
+              disabled=""
+              id="search-container"
+              class="pointer-events-auto rounded-md h-7 w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
             >
               <div
-                class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
-                id="search-category"
-              ></div>
+                id="search-container-inside"
+                class="flex outline outline-0 outline-blue-400 items-center w-full rounded-md h-7"
+              >
+                <input
+                  class="flex-1 w-full h-full text-sm font-sans px-1 rounded-l-md outline-none"
+                  type="text"
+                  id="search"
+                />
+                <div
+                  id="search-button"
+                  class="w-7 h-full group rounded-r-md flex justify-center items-center bg-purple-500"
+                  role="button"
+                >
+                  <i
+                    class="fa-solid fa-magnifying-glass group-active:scale-95 text-xs text-white-100"
+                  ></i>
+                </div>
+              </div>
               <div
-                id="search-normal"
-                class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
-              ></div>
+                id="search-popout"
+                aria-disabled="true"
+                class="absolute p-1 inset-0 w-full top-0.5 pointer-events-auto rounded-md aria-disabled:invisible transition min-h-20 border-t-1 border-white-500 bg-white-50"
+              >
+                <div
+                  class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
+                  id="search-category"
+                ></div>
+                <div
+                  id="search-normal"
+                  class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
+                ></div>
+              </div>
             </div>
           </div>
         </section>

@@ -29,6 +29,11 @@
   transition: transform 0.3s ease-out;
 }
 
+.mapboxgl-ctrl {
+  position: relative;
+  left: 90px;
+}
+
 #preloader {
   position: fixed;
   top: 0;
