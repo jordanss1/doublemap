@@ -73,6 +73,7 @@ mapPromise.then((map) => {
     dataType: 'json',
     success: (res) => {
       categoryList = res.data;
+      console.log(categoryList);
       addMarkersLayer();
       addPoiSourceAndLayer([], 'default-pois');
     },

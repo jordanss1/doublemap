@@ -154,14 +154,6 @@ mapPromise.then((map) => {
       if (!areaToSearch) {
         const { longitude, latitude } = mostRecentLocation;
 
-        map.fitBounds(
-          [
-            [longitude - 0.1, latitude - 0.1],
-            [longitude + 0.1, latitude + 0.1],
-          ],
-          { speed: 0.5, curve: 2, padding: 50, maxZoom: 8, duration: 2500 }
-        );
-
         const bounds = {
           _sw: {
             lng: longitude - 0.1,
@@ -175,12 +167,22 @@ mapPromise.then((map) => {
 
         currentPoiCategory = category;
 
+        activateCategoryButton();
+
         const pois = await getOverpassPois(bounds, category);
 
-        if (pois.length) {
-          currentPois = pois;
-          addPoiSourceAndLayer(pois, 'chosen-pois');
-        }
+        currentPois = pois;
+
+        map.fitBounds(
+          [
+            [longitude - 0.1, latitude - 0.1],
+            [longitude + 0.1, latitude + 0.1],
+          ],
+          { speed: 0.5, curve: 2, padding: 50, zoom: 9.5, duration: 2500 }
+        );
+
+        addPoiSourceAndLayer(pois, 'chosen-pois');
+
         $('#search-popout').attr('aria-disabled', 'true');
 
         return;
@@ -198,13 +200,6 @@ mapPromise.then((map) => {
         if (data.length) {
           const { latitude, longitude } = data[0].properties.coordinates;
 
-          map.flyTo({
-            center: [longitude, latitude],
-            speed: 0.5,
-            curve: 2,
-            zoom: 10,
-          });
-
           const bounds = {
             _sw: { lng: longitude - 0.1, lat: latitude - 0.1 },
             _ne: { lng: longitude + 0.1, lat: latitude + 0.1 },
@@ -212,13 +207,22 @@ mapPromise.then((map) => {
 
           currentPoiCategory = category;
 
+          activateCategoryButton();
+
           const pois = await getOverpassPois(bounds, category);
 
-          if (pois.length) {
-            currentPois = pois;
-            addPoiSourceAndLayer(pois, 'chosen-pois');
-          }
+          currentPois = pois;
+
+          map.flyTo({
+            center: [longitude, latitude],
+            speed: 0.5,
+            curve: 2,
+            zoom: 9.5,
+          });
+
+          addPoiSourceAndLayer(pois, 'chosen-pois');
         } else {
+          // couldn't find area to search
         }
       } catch (err) {
         console.log(err);
@@ -308,6 +312,8 @@ async function appendLocationToCategoryOption() {
       region,
       place,
     };
+
+    $('#search-category-item-appended').text('');
 
     $('#search-category-item-default-area').text(
       `${neighborhood ? `${neighborhood}, ` : ''}${place ? `${place}` : ''}${

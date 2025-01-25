@@ -25,6 +25,15 @@ let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
 let chosenCountryISO = null;
+let categoryPanelButtons = [
+  '#hotel-button',
+  '#bank-button',
+  '#museum-button',
+  '#shopping-button',
+  '#food_and_drink-button',
+  '#coffee-button',
+  '#outdoors-button',
+];
 
 let tokenCache = {
   token: null,

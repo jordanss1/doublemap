@@ -14,14 +14,14 @@
         if ($dataType === "xml") {
             $xmlObject = simplexml_load_string($response);
             
-            if (!$xmlObject)   return ["error" => "Problem decoding xml", "details" => "Problem retrieving country details"];
+            if (!$xmlObject)   return ["error" => "Problem decoding xml", "details" => "Problem retrieving this info"];
 
             return json_decode(json_encode($xmlObject), true);
         } else {
             $decodedResponse = json_decode($response, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return ["error" => "Problem decoding JSON " . json_last_error_msg(), "details" => "Problem retrieving country details"];
+                return ["error" => "Problem decoding JSON " . json_last_error_msg(), "details" => "Problem retrieving this info"];
             }
 
             return $decodedResponse;

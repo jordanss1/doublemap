@@ -57,7 +57,6 @@ mapPromise.then((map) => {
 
     const zoom = map.getZoom();
 
-    const bounds = map.getBounds();
     const currentPoiLayer =
       currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
@@ -68,6 +67,10 @@ mapPromise.then((map) => {
       currentPoiLayer === 'chosen-pois'
     ) {
       timeout = setTimeout(async () => {
+        const bounds = map.getBounds();
+
+        await appendLocationToCategoryOption();
+
         currentPois = await getOverpassPois(bounds, currentPoiCategory);
 
         addPoiSourceAndLayer(currentPois, currentPoiLayer);
@@ -330,7 +333,106 @@ mapPromise.then((map) => {
       // }
     }
   });
+
+  let categoryButtonTimeout;
+
+  $('#category-button').on('click', () => {
+    const isDisabled = $('#category-button').attr('aria-disabled') === 'true';
+    clearTimeout(categoryButtonTimeout);
+
+    if (isDisabled) {
+      activateCategoryButton();
+
+      $('#category-button').attr('aria-disabled', 'false');
+      $('#category-panel').attr('aria-disabled', 'false');
+
+      $('#category-panel > *').removeClass('invisible');
+      $('#category-panel > *').addClass('visible');
+      $('#category-panel > *').addClass('duration-300');
+
+      categoryButtonTimeout = setTimeout(() => {
+        $('#category-panel > *').removeClass('duration-300');
+        $('#category-panel > *').addClass('duration-75');
+      }, 300);
+    } else {
+      $('#category-button').attr('aria-disabled', 'true');
+      $('#category-panel').attr('aria-disabled', 'true');
+      $('#category-panel > *').removeClass('duration-75');
+      $('#category-panel > *').addClass('duration-300');
+
+      categoryButtonTimeout = setTimeout(() => {
+        $('#category-panel > *').removeClass('visible');
+        $('#category-panel > *').addClass('invisible');
+      }, 300);
+    }
+  });
+
+  categoryPanelButtons.forEach((buttonId) => {
+    $(buttonId).on('click', async () => {
+      const zoom = map.getZoom();
+      await appendLocationToCategoryOption();
+
+      const { longitude, latitude } = mostRecentLocation;
+
+      const category = buttonId.replace('#', '').split('-')[0];
+
+      if (category === currentPoiCategory && zoom < 9) {
+        map.fitBounds(
+          [
+            [longitude - 0.1, latitude - 0.1],
+            [longitude + 0.1, latitude + 0.1],
+          ],
+          { speed: 0.5, curve: 2, padding: 50, zoom: 9, duration: 2500 }
+        );
+        return;
+      }
+
+      $('#category-panel > *').attr('aria-checked', 'false');
+
+      const bounds = {
+        _sw: {
+          lng: longitude - 0.1,
+          lat: latitude - 0.1,
+        },
+        _ne: {
+          lng: longitude + 0.1,
+          lat: latitude + 0.1,
+        },
+      };
+
+      currentPoiCategory = category;
+
+      const pois = await getOverpassPois(bounds, category);
+
+      currentPois = pois;
+
+      map.fitBounds(
+        [
+          [longitude - 0.1, latitude - 0.1],
+          [longitude + 0.1, latitude + 0.1],
+        ],
+        { speed: 0.5, curve: 2, padding: 50, zoom: 9.5, duration: 2500 }
+      );
+
+      addPoiSourceAndLayer(pois, 'chosen-pois');
+
+      $(buttonId).attr('aria-checked', 'true');
+    });
+  });
 });
+
+function activateCategoryButton() {
+  let matchingCategory = categoryPanelButtons.find((button) => {
+    const category = button.replace('#', '').split('-')[0];
+    return category === currentPoiCategory;
+  });
+
+  $('#category-panel > *').attr('aria-checked', 'false');
+
+  if (matchingCategory) {
+    $(matchingCategory).attr('aria-checked', 'true');
+  }
+}
 
 async function getOverpassPois(bounds, category) {
   try {
@@ -356,9 +458,8 @@ async function changeHistoryMode(map, enabled) {
   clearTimeout(timeout);
 
   const zoom = map.getZoom();
-  const { latitude, longitude } = map.getCenter();
-  const centeredIncorrect =
-    longitude !== -15.81099973 && latitude !== 41.8295758;
+  const { lng, lat } = map.getCenter();
+  const centeredIncorrect = lng !== -15.81099973 && lat !== 41.8295758;
 
   let styleJson;
 

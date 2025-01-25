@@ -139,13 +139,141 @@
           <div
             id="sidebar"
             aria-disabled="false"
-            class="h-full flex flex-col max-w-20 py-3 pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
+            class="h-full flex flex-col max-w-20 pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           >
-            <div class="w-full flex justify-center">
+            <div
+              id="menu-button"
+              class="w-full cursor-pointer h-14 flex items-center border-b border-white-800 active:border-white-400 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white-100/0 from-10% via-purple-500/0 via-30% to-100% to-transparent hover:from-white-100/20 hover:via-purple-500/20 hover:to-transparent active:from-transparent group transition-all ease-out duration-75 justify-center"
+            >
+              <div class="h-7 w-7 rounded-md flex items-center justify-center">
+                <i
+                  class="fa-solid fa-bars group-active:text-white-300 active:text-white-300 text-white-600 transition-all duration-75 ease-out group-active:translate-y-0.5 text-lg"
+                ></i>
+              </div>
+            </div>
+            <div class="mx-auto">
               <div
-                class="cursor-pointer h-7 w-7 rounded-md flex items-center justify-center "
+                aria-disabled="true"
+                id="category-button"
+                class="w-full h-14 aria-disabled:after:opacity-0 aria-disabled:after:scale-x-75 after:scale-100 after:opacity-100 after:content-[''] after:transition-all after:duration-300 after:ease-out after:absolute after:w-[80%] after:-bottom-3 after:h-[1px] after:bg-white-300 flex cursor-pointer relative items-center bg-[radial-gradient(circle_at_50%_50%,_var(--tw-gradient-stops))] from-white-100/0 from-10% via-purple-500/0 via-30% to-100% to-transparent hover:from-white-100/20 hover:via-purple-500/20 hover:to-transparent active:from-transparent group transition-all ease-out duration-75 justify-center"
               >
-                <i class="fa-solid fa-bars text-white-600 text-lg"></i>
+                <div
+                  class="h-7 w-7 group-active:after:text-white-300 active:after:text-white-300 after:transition-all after:ease-out group-active:after:translate-y-0.5 after:content-['Categories'] after:bottom-0.5 after:text-xs after:text-white-600 after:font-sans after:absolute after:duration-75 rounded-md flex items-center justify-center"
+                >
+                  <i
+                    class="fa-solid fa-list group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-md"
+                  ></i>
+                </div>
+              </div>
+              <div
+                aria-disabled="true"
+                id="category-panel"
+                class="flex-col *:after:content-[''] group/panel *:after:absolute *:after:-left-5 *:after:rounded-r-full *:after:top-3 *:after:w-1 *:after:transition-all *:after:origin-left *:after:scale-50 *:after:h-2 *:after:bg-blue-300/0 gap-2 pt-6 pb-4 flex items-center justify-center w-14 rounded-md relative"
+              >
+                <div
+                  aria-checked="false"
+                  id="hotel-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-hotel group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-xs"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Hotel
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="museum-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-building-columns group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Museum
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="food_and_drink-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-utensils group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Food
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="bank-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-piggy-bank group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Bank
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="shopping-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-cart-shopping group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Shopping
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="park-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 duration-300 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out justify-center"
+                >
+                  <i
+                    class="fa-solid fa-tree group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Outdoors
+                  </span>
+                </div>
+
+                <div
+                  aria-checked="false"
+                  id="coffee-button"
+                  class="cursor-pointer aria-checked:after:bg-blue-300 aria-checked:after:opacity-100 aria-checked:after:scale-100 group-aria-disabled/panel:-top-2 top-0 group-aria-disabled/panel:scale-75 scale-100 group-aria-disabled/panel:opacity-0 opacity-100 visible h-10 w-10 hover:after:scale-100 hover:after:bg-white-600 active:after:bg-white-300 rounded-md flex-col flex gap-1 relative items-center group transition-all ease-out duration-300 justify-center"
+                >
+                  <i
+                    class="fa-solid fa-mug-saucer group-aria-checked:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-sm"
+                  ></i>
+                  <span
+                    class="group-active:text-white-300 group-aria-checked:text-white-300 active:text-white-300 transition-all ease-out group-active:translate-y-0.5 text-xs text-white-600 font-sans duration-75"
+                  >
+                    Coffee
+                  </span>
+                </div>
               </div>
             </div>
           </div>
