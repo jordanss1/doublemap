@@ -165,9 +165,7 @@ async function applyCountryLayers() {
   }
 }
 
-let exitButtonTimer;
-
-function updateChosenCountryState(iso_a2) {
+async function updateChosenCountryState(iso_a2) {
   if (chosenCountryISO) {
     map.setFeatureState(
       {
@@ -182,12 +180,8 @@ function updateChosenCountryState(iso_a2) {
   if (!iso_a2) {
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
     map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
-    $('#exit-container').attr('aria-disabled', 'true');
 
-    exitButtonTimer = setTimeout(
-      () => $('#exit-container').addClass('invisible'),
-      300
-    );
+    changeExitButton(true);
 
     disableMapInteraction(false);
     chosenCountryISO = null;
@@ -195,7 +189,20 @@ function updateChosenCountryState(iso_a2) {
   } else {
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
     map.setLayoutProperty('hovered-country-line', 'visibility', 'none');
-    $('#exit-container').attr('aria-disabled', 'false');
+
+    if (map.getSource('markers-source')) {
+      map.getSource('markers-source').setData({
+        type: 'FeatureCollection',
+        features: [],
+      });
+    }
+
+    currentPoiCategory = 'default';
+    currentMarker = null;
+
+    addPoiSourceAndLayer([], 'default-pois');
+
+    changeExitButton(false, 'Exit country information');
 
     disableMapInteraction(true);
 
@@ -230,6 +237,12 @@ function applyHistoryHtml(enabled) {
     $('#select-container').addClass('animate-end_absolute');
     $('#history-date').removeClass('animate-end_absolute');
     $('#slider-button').removeClass('animate-end_absolute');
+    $('#category-container').addClass('animate-end_absolute');
+
+    timeout = setTimeout(
+      () => $('#category-container').addClass('invisible'),
+      300
+    );
   } else {
     $('#search-container-inside').removeClass('outline-3');
     $('#search-container-inside').addClass('outline-0');
@@ -244,6 +257,8 @@ function applyHistoryHtml(enabled) {
     $('#history-date').addClass('animate-end_absolute');
     $('#history-date').attr('aria-disabled', 'true');
     $('#country-select-list').attr('aria-disabled', 'true');
+    $('#category-container').removeClass('animate-end_absolute');
+    $('#category-container').removeClass('invisible');
 
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
@@ -252,6 +267,9 @@ function applyHistoryHtml(enabled) {
     }
   }
 
+  changeExitButton(true);
+
+  $('#category-container').attr('aria-disabled', disabledDuringHistoryMode);
   $('#history-container')
     .attr('disabled', enabledDuringHistoryMode)
     .attr('aria-disabled', enabledDuringHistoryMode);
@@ -301,11 +319,46 @@ function addPoiSourceAndLayer(pois, layerId) {
   if (layerId === 'default-pois' && map.getLayer('chosen-pois')) {
     map.setLayoutProperty('chosen-pois', 'visibility', 'none');
     map.setLayoutProperty('default-pois', 'visibility', 'visible');
+
+    map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
+    map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
+
+    changeExitButton(true);
+
+    $('#category-panel > *').attr('aria-checked', 'false');
   }
 
   if (layerId === 'chosen-pois' && map.getLayer('default-pois')) {
     map.setLayoutProperty('default-pois', 'visibility', 'none');
     map.setLayoutProperty('chosen-pois', 'visibility', 'visible');
+
+    if (chosenCountryISO) {
+      map.setFeatureState(
+        {
+          source: 'country-borders',
+          sourceLayer: 'country_bordersgeo',
+          id: chosenCountryISO,
+        },
+        { chosen: false }
+      );
+    }
+
+    if (map.getSource('markers-source')) {
+      map.getSource('markers-source').setData({
+        type: 'FeatureCollection',
+        features: [],
+      });
+    }
+    currentMarker = null;
+
+    chosenCountryISO = null;
+
+    disableMapInteraction(false);
+
+    map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
+    map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
+
+    changeExitButton(false, 'Exit selected points of interest');
   }
 
   if (!map.getLayer(layerId)) {
@@ -576,6 +629,30 @@ function disableMapInteraction(disable) {
     map.keyboard.enable();
     map.doubleClickZoom.enable();
     map.touchZoomRotate.enable();
+  }
+}
+
+let exitButtonTimer;
+
+function changeExitButton(disabled, title = '') {
+  clearTimeout(exitButtonTimer);
+
+  if (disabled) {
+    $('#exit-container').attr('aria-disabled', 'true');
+    $('#exit-button').attr('title', title);
+    $('#exit-button').attr('aria-label', title);
+
+    exitButtonTimer = setTimeout(() => {
+      $('#exit-container').addClass('invisible');
+      $('#exit-button').addClass('invisible');
+    }, 300);
+  } else {
+    $('#exit-container').removeClass('invisible');
+    $('#exit-button').removeClass('invisible');
+
+    $('#exit-container').attr('aria-disabled', 'false');
+    $('#exit-button').attr('title', title);
+    $('#exit-button').attr('aria-label', title);
   }
 }
 

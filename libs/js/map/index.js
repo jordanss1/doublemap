@@ -25,6 +25,8 @@ let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
 let chosenCountryISO = null;
+let currentMarker = null;
+
 let categoryPanelButtons = [
   '#hotel-button',
   '#bank-button',

@@ -268,6 +268,56 @@ mapPromise.then((map) => {
     });
   });
 
+  $('#exit-button').on('click', async () => {
+    if (chosenCountryISO) {
+      currentPoiCategory = 'default';
+
+      updateChosenCountryState();
+
+      await flyToPromise({
+        speed: 0.5,
+        zoom: map.getZoom() - 0.5,
+        duration: 1000,
+      });
+
+      return;
+    }
+
+    if (currentPoiCategory !== 'default') {
+      currentPoiCategory = 'default';
+
+      await flyToPromise({
+        speed: 0.5,
+        zoom: map.getZoom() - 0.5,
+        duration: 1000,
+      });
+
+      addPoiSourceAndLayer([], 'default-pois');
+      return;
+    }
+
+    if (currentMarker) {
+      currentMarker = null;
+
+      if (map.getSource('markers-source')) {
+        map.getSource('markers-source').setData({
+          type: 'FeatureCollection',
+          features: [],
+        });
+      }
+
+      changeExitButton(true);
+
+      await flyToPromise({
+        speed: 0.5,
+        zoom: map.getZoom() - 0.5,
+        duration: 1000,
+      });
+
+      return;
+    }
+  });
+
   $(document).on('click', (event) => {
     if (
       !$(event.target).closest('#country-select-button').length &&
@@ -337,6 +387,8 @@ mapPromise.then((map) => {
   let categoryButtonTimeout;
 
   $('#category-button').on('click', () => {
+    if (historyMode) return;
+
     const isDisabled = $('#category-button').attr('aria-disabled') === 'true';
     clearTimeout(categoryButtonTimeout);
 
@@ -369,12 +421,18 @@ mapPromise.then((map) => {
 
   categoryPanelButtons.forEach((buttonId) => {
     $(buttonId).on('click', async () => {
+      const category = buttonId.replace('#', '').split('-')[0];
+
+      if (historyMode || category === currentPoiCategory) return;
+
+      $('#category-panel > *').attr('aria-checked', 'false');
+
+      $(buttonId).attr('aria-checked', 'true');
+
       const zoom = map.getZoom();
       await appendLocationToCategoryOption();
 
       const { longitude, latitude } = mostRecentLocation;
-
-      const category = buttonId.replace('#', '').split('-')[0];
 
       if (category === currentPoiCategory && zoom < 9) {
         map.fitBounds(
@@ -386,8 +444,6 @@ mapPromise.then((map) => {
         );
         return;
       }
-
-      $('#category-panel > *').attr('aria-checked', 'false');
 
       const bounds = {
         _sw: {
@@ -415,8 +471,6 @@ mapPromise.then((map) => {
       );
 
       addPoiSourceAndLayer(pois, 'chosen-pois');
-
-      $(buttonId).attr('aria-checked', 'true');
     });
   });
 });
@@ -501,14 +555,23 @@ async function changeHistoryMode(map, enabled) {
       historyMode = true;
       localStorage.setItem('historyMode', JSON.stringify(true));
 
+      $('#category-panel > *').attr('aria-checked', 'false');
+
       map.setLayoutProperty('chosen-pois', 'visibility', 'none');
 
       map.setLayoutProperty('default-pois', 'visibility', 'none');
 
-      disableMapInteraction(false);
       updateChosenCountryState();
       removeAllButtons(false);
       currentPois = [];
+      currentMarker = null;
+
+      if (map.getSource('markers-source')) {
+        map.getSource('markers-source').setData({
+          type: 'FeatureCollection',
+          features: [],
+        });
+      }
 
       map.filterByDate('2013-01-01');
       await applyCountryLayers();
@@ -516,6 +579,7 @@ async function changeHistoryMode(map, enabled) {
 
       timeout = setTimeout(() => {
         applyHistoryHtml(enabled);
+        disableMapInteraction(false);
       }, 2000);
     });
   } else {
@@ -543,12 +607,12 @@ async function changeHistoryMode(map, enabled) {
       historyMode = false;
       localStorage.setItem('historyMode', JSON.stringify(false));
 
-      disableMapInteraction(false);
       removeAllButtons(false);
       updateChosenCountryState();
 
       timeout = setTimeout(() => {
         applyHistoryHtml(enabled);
+        disableMapInteraction(false);
       }, 1500);
 
       map.setLayoutProperty('default-pois', 'visibility', 'visible');

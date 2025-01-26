@@ -238,22 +238,34 @@ mapPromise.then((map) => {
   });
 });
 
+let searchTimeout;
+
 function markAndPanToSearchResult(indexInResults) {
+  clearTimeout(searchTimeout);
+
   $('#search-container-inside').removeClass('outline-3');
   $('#search-container-inside').addClass('outline-0');
 
+  searchTimeout = setTimeout(() => {
+    appendLocationToCategoryOption(true);
+  }, 3000);
+
+  currentPoiCategory = 'default';
+
+  addPoiSourceAndLayer([], 'default-pois');
+
   const { coordinates, feature_type, bbox, context } =
     searchResults[indexInResults].properties;
-
-  console.log(feature_type);
-  console.log(indexInResults);
-  console.log(searchResults);
 
   const coords = [coordinates.longitude, coordinates.latitude];
 
   if (feature_type === 'country') {
     updateChosenCountryState(context.country.country_code);
   } else {
+    if (chosenCountryISO) {
+      updateChosenCountryState();
+    }
+
     if (!map.getSource('markers-source')) {
       map.addSource('markers-source', {
         type: 'geojson',
@@ -269,9 +281,14 @@ function markAndPanToSearchResult(indexInResults) {
       });
     }
 
+    currentMarker = searchResults[indexInResults];
+
+    map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
+
+    changeExitButton(false, 'Exit chosen result');
+
     addMarkersLayer();
     map.moveLayer('modern-markers-layer');
-    currentPoiCategory = 'default';
   }
 
   if (bbox && bbox.length) {
@@ -298,9 +315,9 @@ function markAndPanToSearchResult(indexInResults) {
   $('#search-popout').attr('aria-disabled', 'true');
 }
 
-async function appendLocationToCategoryOption() {
+async function appendLocationToCategoryOption(noZoomLimit = null) {
   return setTimeout(async () => {
-    const feature = await reverseLookupFromLatLng();
+    const feature = await reverseLookupFromLatLng(noZoomLimit);
 
     if (!feature) return;
 
@@ -348,12 +365,12 @@ function categorySearchOption(value) {
   return closestMatch;
 }
 
-async function reverseLookupFromLatLng() {
+async function reverseLookupFromLatLng(noZoomLimit = null) {
   const currentZoom = map.getZoom();
   const { lng, lat } = map.getCenter();
   const { latitude, longitude } = mostRecentLocation;
 
-  const zoomLimit = currentPoiCategory === 'default' ? 9 : 7;
+  const zoomLimit = noZoomLimit ? 0 : currentPoiCategory === 'default' ? 9 : 7;
   const threshold = 0.02;
 
   const initiateNewSearch =
