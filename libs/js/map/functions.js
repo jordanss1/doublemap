@@ -260,6 +260,11 @@ function applyHistoryHtml(enabled) {
     $('#category-container').removeClass('animate-end_absolute');
     $('#category-container').removeClass('invisible');
 
+    if ($('#category-panel').attr('aria-disabled') === 'true') {
+      console.log('inside');
+      $('#category-panel > *').addClass('invisible');
+    }
+
     if (isDaySliderEnabled) {
       $('#day-slider-container').attr('aria-disabled', 'true');
       $('#history-container').removeClass('h-20');

@@ -34,7 +34,7 @@ let categoryPanelButtons = [
   '#shopping-button',
   '#food_and_drink-button',
   '#coffee-button',
-  '#outdoors-button',
+  '#park-button',
 ];
 
 let tokenCache = {
