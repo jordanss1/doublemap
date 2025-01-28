@@ -17,6 +17,14 @@ mapPromise.then((map) => {
     }
   });
 
+  $(window).on('resize', function () {
+    if (window.innerWidth <= 768) {
+      $('#search-container').attr('aria-expanded', 'false');
+    } else {
+      $('#search-container').attr('aria-expanded', 'true');
+    }
+  });
+
   $(document).on('click', (e) => {
     const searchContainer = $('#search-container');
 
@@ -28,6 +36,10 @@ mapPromise.then((map) => {
       $('#search-container-inside')
         .removeClass('outline-3')
         .addClass('outline-0');
+
+      if (window.innerWidth <= 768) {
+        $('#search-container').attr('aria-expanded', 'false');
+      }
     }
   });
 
@@ -384,6 +396,22 @@ mapPromise.then((map) => {
     }
   });
 
+  $('#menu-button').on('click', () => {
+    const sidebarDisabled = $('#left-panel').attr('aria-expanded') === 'false';
+
+    if (sidebarDisabled) {
+      $('#left-panel').attr('aria-expanded', 'true');
+      map.setPadding({ left: 295 });
+      $('#menu-icon').removeClass('fa-bars');
+      $('#menu-icon').addClass('fa-minimize');
+    } else {
+      $('#menu-icon').removeClass('fa-minimize');
+      map.setPadding({ left: 0 });
+      $('#menu-icon').addClass('fa-bars');
+      $('#left-panel').attr('aria-expanded', 'false');
+    }
+  });
+
   let categoryButtonTimeout;
 
   $('#category-button').on('click', () => {
@@ -396,6 +424,7 @@ mapPromise.then((map) => {
       activateCategoryButton();
 
       $('#category-button').attr('aria-disabled', 'false');
+      $('#category-container').attr('aria-expanded', 'true');
       $('#category-panel').attr('aria-disabled', 'false');
 
       $('#category-panel > *').removeClass('invisible');
@@ -408,7 +437,9 @@ mapPromise.then((map) => {
       }, 300);
     } else {
       $('#category-button').attr('aria-disabled', 'true');
+      $('#category-container').attr('aria-expanded', 'false');
       $('#category-panel').attr('aria-disabled', 'true');
+
       $('#category-panel > *').removeClass('duration-75');
       $('#category-panel > *').addClass('duration-300');
 
@@ -426,6 +457,7 @@ mapPromise.then((map) => {
       if (historyMode || category === currentPoiCategory) return;
 
       $('#category-panel > *').attr('aria-checked', 'false');
+      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
       $(buttonId).attr('aria-checked', 'true');
 
@@ -440,8 +472,21 @@ mapPromise.then((map) => {
             [longitude - 0.1, latitude - 0.1],
             [longitude + 0.1, latitude + 0.1],
           ],
-          { speed: 0.5, curve: 2, padding: 50, zoom: 9, duration: 2500 }
+          {
+            speed: 0.5,
+            curve: 2,
+            padding: {
+              right: 50,
+              top: 50,
+              bottom: 50,
+              left: isPanelExpanded ? 295 : 50,
+            },
+            retainPadding: false,
+            zoom: 9,
+            duration: 2500,
+          }
         );
+
         return;
       }
 
@@ -467,7 +512,19 @@ mapPromise.then((map) => {
           [longitude - 0.1, latitude - 0.1],
           [longitude + 0.1, latitude + 0.1],
         ],
-        { speed: 0.5, curve: 2, padding: 50, zoom: 9.5, duration: 2500 }
+        {
+          speed: 0.5,
+          curve: 2,
+          padding: {
+            right: 50,
+            top: 50,
+            bottom: 50,
+            left: isPanelExpanded ? 295 : 50,
+          },
+          retainPadding: false,
+          zoom: 9.5,
+          duration: 2500,
+        }
       );
 
       addPoiSourceAndLayer(pois, 'chosen-pois');
@@ -518,6 +575,8 @@ async function changeHistoryMode(map, enabled) {
   let styleJson;
 
   if (enabled) {
+    $('#left-panel').attr('aria-expanded', 'false');
+
     disableMapInteraction(true);
     removeAllButtons(true);
     const previousFog = map.getFog();
@@ -583,6 +642,7 @@ async function changeHistoryMode(map, enabled) {
       }, 2000);
     });
   } else {
+    $('#left-panel').attr('aria-expanded', 'false');
     disableMapInteraction(true);
     removeAllButtons(true);
 

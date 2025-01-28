@@ -134,44 +134,51 @@
         <section
           id="left-panel"
           aria-disabled="false"
-          aria-expanded="true"
+          aria-expanded="false"
           class="opacity-100 transition-all group/whole-panel duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-10 flex items-start gap-1 h-full fixed"
         >
           <div
             id="sidebar"
             aria-disabled="false"
-            class="h-full flex flex-col transition-all ease-in max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_10%_50%,#a100ff_0_7%,#4d9cff_26%,#22062d_26%_34%,#000000_34%_87%,_#22062d_94%_100%)] aria-disabled:opacity-50 opacity-100"
+            class="h-full flex flex-col transition-all ease-in max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_38%_10%,#a100ff_0_7%,#4d9cff_26%,#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_bottom,_black,_#22062d_85%)] aria-disabled:opacity-50 opacity-100"
           >
             <div
               id="menu-button"
               role="button"
               aria-label="Open menu"
-              class="w-full cursor-pointer h-14 flex items-center border-b border-white-800 active:border-white-400 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white-100/0 from-10% via-purple-500/0 via-30% to-100% to-transparent hover:from-white-100/20 hover:via-purple-500/20 hover:to-transparent active:from-transparent group transition-all ease-out duration-75 justify-center"
+              class="w-full cursor-pointer h-14 flex items-center border-b border-white-600 active:border-white-300 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] group-aria-expanded/whole-panel:border-b-[1.5px] group-aria-expanded/whole-panel:border-white-300 active:border-b-[1.5px] from-white-100/0 from-10% via-purple-500/0 via-30% to-100% to-transparent hover:from-white-100/20 hover:via-purple-500/20 hover:to-transparent active:from-transparent group transition-all ease-out duration-75 justify-center"
             >
               <div class="h-7 w-7 rounded-md flex items-center justify-center">
                 <i
-                  class="fa-solid fa-bars group-active:text-white-300 active:text-white-300 text-white-600 transition-all duration-75 ease-out group-active:translate-y-0.5 text-lg"
+                  id="menu-icon"
+                  class="fa-solid fa-bars group-aria-expanded/whole-panel:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all duration-75 ease-out group-active:translate-y-0.5 text-lg"
                 ></i>
               </div>
             </div>
             <div
               id="category-container"
               aria-disabled="false"
-              class="opacity-100 transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-16"
+              aria-expanded="false"
+              class="opacity-100 group/category-container transition-all duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-16"
             >
               <div
                 aria-disabled="true"
                 id="category-button"
                 role="button"
                 aria-label="Show categories"
-                class="w-full h-14 aria-disabled:after:opacity-0 aria-disabled:after:scale-x-75 after:scale-100 after:opacity-100 after:content-[''] after:transition-all after:duration-300 after:ease-out after:absolute after:w-[80%] after:-bottom-3 after:h-[1px] after:bg-white-300 flex cursor-pointer relative items-center bg-[radial-gradient(circle_at_50%_50%,_var(--tw-gradient-stops))] from-white-100/0 from-10% via-purple-500/0 via-30% to-100% to-transparent hover:from-white-100/20 hover:via-purple-500/20 hover:to-transparent active:from-transparent group transition-all ease-out duration-75 justify-center"
+                class="w-full h-14 aria-disabled:after:opacity-0 aria-disabled:after:scale-x-75 after:scale-100 after:opacity-100 after:content-[''] after:transition-all after:duration-300 after:ease-out after:absolute after:w-[80%] after:-bottom-3 after:h-[1px] after:bg-white-300 group flex cursor-pointer relative items-center justify-center"
               >
                 <div
-                  class="h-7 w-7 group-active:after:text-white-300 active:after:text-white-300 after:transition-all after:ease-out group-active:after:translate-y-0.5 after:content-['Categories'] after:bottom-0.5 after:text-xs after:text-white-600 after:font-sans after:absolute after:duration-75 rounded-md flex items-center justify-center"
+                  class="p-1 bg-black/50 transition-all ease-out duration-75 rounded-md flex flex-col gap-1 items-center justify-center"
                 >
                   <i
-                    class="fa-solid fa-list group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-md"
+                    class="fa-solid fa-list group-aria-expanded/category-container:text-white-300 group-active:text-white-300 active:text-white-300 text-white-600 transition-all ease-out duration-75 group-active:translate-y-0.5 text-md"
                   ></i>
+                  <span
+                    class="text-xs transition-all group-aria-expanded/category-container:text-white-300 text-white-600 group-active:translate-y-0.5 ease-out duration-75 font-sans group-active:text-white-300 active:text-white-300"
+                  >
+                    Categories
+                  </span>
                 </div>
               </div>
               <div
@@ -302,16 +309,35 @@
           </div>
           <div
             id="sidebar-expanded"
-            class="group-aria-expanded/whole-panel:opacity-100 border-r border-r-white-300 pointer-events-auto opacity-0 max-w-72 w-full h-full fixed left-20 bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#22062d_25%_30%,_#000000_40%_87%,_#22062d_91%_100%)]"
-          ></div>
+            class="group-aria-expanded/whole-panel:opacity-100 group-aria-expanded/whole-panel:pointer-events-auto group-aria-expanded/whole-panel:scale-x-100 origin-left scale-x-75 border-r border-r-white-300 pointer-events-none opacity-0 max-w-[300px] md:max-w-[295px] w-full h-full fixed left-20 bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] transition-all ease-in-out duration-200"
+          >
+            <div
+              id="content-container"
+              class="w-full h-full flex flex-col gap-2 overflow-y-scroll mt-[50px] px-4"
+            >
+              <div
+                id="content-title"
+                class="w-full relative mb-2 after:content-[''] after:absolute after:w-full after:h-0.5 after:-bottom-2 after:bg-white-600"
+              >
+                <h2 class="font-title font-medium text-lg text-white-300">
+                  Hotels
+                </h2>
+              </div>
+              <div id="content-results">
+                <div class="bg-black/50 rounded-md"></div>
+              </div>
+            </div>
+          </div>
           <div
             id="side-panel"
             aria-disabled="false"
             class="h-full max-w-72 hidden pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           ></div>
-          <div class="w-20"></div>
-          <div class="flex gap-2 relative top-3 left-3">
-            <div class="">
+          <div
+            class="w-16 md:w-20 transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[82px]"
+          ></div>
+          <div class="flex gap-2 md:gap-0 relative top-3 left-3">
+            <div class="md:pl-0 pl-2">
               <a
                 id="country-select-button"
                 class="h-7 p-1 pointer-events-auto gap-1.5 delay-500 md:aria-disabled:delay-0 relative duration-500 ease-out md:aria-disabled:opacity-0 md:aria-disabled:-translate-x-5 translate-x-0 md:aria-disabled:invisible md:aria-disabled:absolute opacity-100 transition-all flex rounded-md border-b-2 border-white-300 justify-center items-center bg-white-50"
@@ -332,25 +358,26 @@
             <div
               aria-disabled=""
               disabled=""
+              aria-expanded="false"
               id="search-container"
-              class="pointer-events-auto rounded-md h-7 w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+              class="pointer-events-auto rounded-md h-7 w-60 md:w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
             >
               <div
                 id="search-container-inside"
                 class="flex outline outline-0 outline-blue-400 items-center w-full rounded-md h-7"
               >
                 <input
-                  class="flex-1 w-full h-full text-sm font-sans px-1 rounded-l-md outline-none"
+                  class="flex-[0] transition-all duration-150 ease-in group-aria-expanded/search-container:flex-1 md:flex-1 w-0 md:w-full group-aria-expanded/search-container:w-full h-full text-sm font-sans md:px-1 group-aria-expanded/search-container:px-1 rounded-l-md outline-none"
                   type="text"
                   id="search"
                 />
                 <div
                   id="search-button"
-                  class="w-7 h-full group rounded-r-md flex justify-center items-center bg-purple-500"
+                  class="w-7 h-full group rounded-md md:rounded-l-none group-aria-expanded/search-container:rounded-r-md group-aria-expanded/search-container:rounded-l-none md:rounded-r-md flex justify-center items-center bg-white-50 group-aria-expanded/search-container:bg-purple-500 md:bg-purple-500 transition-all ease-in duration-150"
                   role="button"
                 >
                   <i
-                    class="fa-solid fa-magnifying-glass group-active:scale-95 text-xs text-white-100"
+                    class="fa-solid fa-magnifying-glass group-aria-expanded/search-container:group-active:scale-95 md:group-active:scale-95 text-xs text-slate-800 group-aria-expanded/search-container:text-white-100 md:text-white-100"
                   ></i>
                 </div>
               </div>

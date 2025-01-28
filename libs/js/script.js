@@ -6,6 +6,8 @@ mapPromise.then((map) => {
     method: 'GET',
     data: 'json',
     success: ({ data }) => {
+      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
+
       userGeo = data;
       const latLong = userGeo.loc.split(',');
       const latitude = parseFloat(latLong[0]);
@@ -101,6 +103,8 @@ async function getCountryDataAndFitBounds(iso_a2) {
       return countryData;
     });
 
+    const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
+
     const bangladesh = iso_a2 === 'BD';
     const russia = iso_a2 === 'RU';
     let bbox;
@@ -129,7 +133,13 @@ async function getCountryDataAndFitBounds(iso_a2) {
     map.fitBounds(bbox, {
       speed: 0.5,
       curve: 2,
-      padding: 50,
+      padding: {
+        right: 50,
+        top: 50,
+        bottom: 50,
+        left: isPanelExpanded ? 295 : 50,
+      },
+      retainPadding: false,
       maxZoom: 8,
       duration: 2500,
     });

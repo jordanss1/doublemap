@@ -3,27 +3,38 @@
 mapPromise.then((map) => {
   let searchLoading = false;
 
-  $('#search').on('keydown', async (e) => {
-    let value = e.target.value;
-
-    if (e.key === 'Enter' && value.length) {
+  const performSearch = (value) => {
+    if (value.length && !searchLoading) {
       if (chosenCountryISO) {
         updateChosenCountryState();
       }
 
-      if (!searchLoading) {
-        markAndPanToSearchResult(0);
-      }
+      markAndPanToSearchResult(0);
+    }
+  };
+
+  $('#search').on('keydown', async (e) => {
+    let value = e.target.value;
+
+    if (e.key === 'Enter') {
+      performSearch(value);
     }
   });
 
   $('#search-button').on('click', async (e) => {
-    if (chosenCountryISO) {
-      updateChosenCountryState();
-    }
+    const value = $('#search').val();
 
-    if (!searchLoading) {
-      markAndPanToSearchResult(0);
+    const searchExpanded =
+      $('#search-container').attr('aria-expanded') === 'true';
+
+    if (window.innerWidth <= 768) {
+      if (searchExpanded) {
+        performSearch(value);
+      } else {
+        $('#search-container').attr('aria-expanded', 'true');
+      }
+    } else {
+      performSearch(value);
     }
   });
 
@@ -147,6 +158,7 @@ mapPromise.then((map) => {
     async function (e) {
       $('#search-container-inside').removeClass('outline-3');
       $('#search-container-inside').addClass('outline-0');
+      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
       const category = $(this).data('value');
       let areaToSearch = $('#search-category-item-appended').text();
@@ -178,12 +190,27 @@ mapPromise.then((map) => {
             [longitude - 0.1, latitude - 0.1],
             [longitude + 0.1, latitude + 0.1],
           ],
-          { speed: 0.5, curve: 2, padding: 50, zoom: 9.5, duration: 2500 }
+          {
+            speed: 0.5,
+            curve: 2,
+            padding: {
+              right: 50,
+              top: 50,
+              bottom: 50,
+              left: isPanelExpanded ? 295 : 50,
+            },
+            zoom: 9.5,
+            duration: 2500,
+          }
         );
 
         addPoiSourceAndLayer(pois, 'chosen-pois');
 
         $('#search-popout').attr('aria-disabled', 'true');
+
+        if (window.innerWidth <= 768) {
+          $('#search-container').attr('aria-expanded', 'false');
+        }
 
         return;
       }
@@ -228,6 +255,10 @@ mapPromise.then((map) => {
         console.log(err);
       } finally {
         $('#search-popout').attr('aria-disabled', 'true');
+
+        if (window.innerWidth <= 768) {
+          $('#search-container').attr('aria-expanded', 'false');
+        }
       }
     }
   );
@@ -242,6 +273,7 @@ let searchTimeout;
 
 function markAndPanToSearchResult(indexInResults) {
   clearTimeout(searchTimeout);
+  const isPanelExpanded = $('#left-panel').attr('aria-expanded');
 
   $('#search-container-inside').removeClass('outline-3');
   $('#search-container-inside').addClass('outline-0');
@@ -293,7 +325,13 @@ function markAndPanToSearchResult(indexInResults) {
 
   if (bbox && bbox.length) {
     map.fitBounds(bbox, {
-      padding: 20,
+      padding: {
+        right: 20,
+        top: 20,
+        bottom: 20,
+        left: isPanelExpanded ? 295 : 20,
+      },
+      retainPadding: false,
       maxZoom: 8,
       speed: 0.5,
       curve: 2,

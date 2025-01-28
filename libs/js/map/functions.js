@@ -238,6 +238,7 @@ function applyHistoryHtml(enabled) {
     $('#history-date').removeClass('animate-end_absolute');
     $('#slider-button').removeClass('animate-end_absolute');
     $('#category-container').addClass('animate-end_absolute');
+    $('#category-container').attr('aria-expanded', 'false');
 
     timeout = setTimeout(
       () => $('#category-container').addClass('invisible'),
@@ -259,6 +260,10 @@ function applyHistoryHtml(enabled) {
     $('#country-select-list').attr('aria-disabled', 'true');
     $('#category-container').removeClass('animate-end_absolute');
     $('#category-container').removeClass('invisible');
+
+    if (window.innerWidth <= 768) {
+      $('#search-container').attr('aria-expanded', 'false');
+    }
 
     if ($('#category-panel').attr('aria-disabled') === 'true') {
       console.log('inside');
