@@ -116,7 +116,7 @@
         return $earthRadius * $c; 
     }
 
-    function normalizeNode ($node, $queryKey, $category, $index)  {
+    function normalizeNode ($node, $queryKey, $category)  {
         $name = $node['tags']['name'] ?? $node['tags']['official_name'] ?? $node['tags']['not:name'] ?? $node['tags']['old_name'] ??  $node['tags']['brand'] ?? null;
 
         if (!$name || !isset($node['tags'][$queryKey])) {
@@ -163,7 +163,7 @@
                 'bbox' => $bbox,
                 'language'=> "need_request_lang",
                 'maki'=> "marker",
-                'index' => $index
+                'id' => bin2hex(random_bytes(8))
                  ],
         ];
 
@@ -172,11 +172,8 @@
     function findNearbyNodesAndNormalize ($nodes, $queryKey, $category, $maxCount) {
         $filteredNodes = [];
 
-        $index = 0;
-
-        $filteredNodes = array_map(function ($node) use ($queryKey, $category, &$index) {
-            $normalizedNode = normalizeNode($node, $queryKey, $category, $index);
-            $index++;
+        $filteredNodes = array_map(function ($node) use ($queryKey, $category, ) {
+            $normalizedNode = normalizeNode($node, $queryKey, $category);
             return $normalizedNode;
         }, $nodes);
 

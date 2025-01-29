@@ -75,8 +75,7 @@ mapPromise.then((map) => {
     dataType: 'json',
     success: (res) => {
       categoryList = res.data;
-      console.log(categoryList);
-      addMarkersLayer();
+      addMarkersSourceAndLayer([]);
       addPoiSourceAndLayer([], 'default-pois');
     },
     error: (xhr) => {
@@ -137,9 +136,8 @@ async function getCountryDataAndFitBounds(iso_a2) {
         right: 50,
         top: 50,
         bottom: 50,
-        left: isPanelExpanded ? 295 : 50,
+        left: 80,
       },
-      retainPadding: false,
       maxZoom: 8,
       duration: 2500,
     });

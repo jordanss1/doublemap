@@ -160,6 +160,9 @@ mapPromise.then((map) => {
       $('#search-container-inside').addClass('outline-0');
       const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
+      clearTimeout(reverseLookupTimeout);
+      clearTimeout(searchTimer);
+
       const category = $(this).data('value');
       let areaToSearch = $('#search-category-item-appended').text();
 
@@ -181,28 +184,17 @@ mapPromise.then((map) => {
 
         activateCategoryButton();
 
+        await flyToPromise({
+          center: [longitude, latitude],
+          speed: 0.5,
+          curve: 2,
+          zoom: 10.5,
+          duration: 2500,
+        });
+
         const pois = await getOverpassPois(bounds, category);
 
         currentPois = pois;
-
-        map.fitBounds(
-          [
-            [longitude - 0.1, latitude - 0.1],
-            [longitude + 0.1, latitude + 0.1],
-          ],
-          {
-            speed: 0.5,
-            curve: 2,
-            padding: {
-              right: 50,
-              top: 50,
-              bottom: 50,
-              left: isPanelExpanded ? 295 : 50,
-            },
-            zoom: 9.5,
-            duration: 2500,
-          }
-        );
 
         addPoiSourceAndLayer(pois, 'chosen-pois');
 
@@ -236,16 +228,17 @@ mapPromise.then((map) => {
 
           activateCategoryButton();
 
-          const pois = await getOverpassPois(bounds, category);
-
-          currentPois = pois;
-
-          map.flyTo({
+          await flyToPromise({
             center: [longitude, latitude],
             speed: 0.5,
             curve: 2,
-            zoom: 9.5,
+            zoom: 10.5,
+            duration: 2500,
           });
+
+          const pois = await getOverpassPois(bounds, category);
+
+          currentPois = pois;
 
           addPoiSourceAndLayer(pois, 'chosen-pois');
         } else {
@@ -275,6 +268,10 @@ function markAndPanToSearchResult(indexInResults) {
   clearTimeout(searchTimeout);
   const isPanelExpanded = $('#left-panel').attr('aria-expanded');
 
+  currentMarker = null;
+  selectedPoi = null;
+  pausePoiSearch = false;
+
   $('#search-container-inside').removeClass('outline-3');
   $('#search-container-inside').addClass('outline-0');
 
@@ -298,20 +295,7 @@ function markAndPanToSearchResult(indexInResults) {
       updateChosenCountryState();
     }
 
-    if (!map.getSource('markers-source')) {
-      map.addSource('markers-source', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: [searchResults[indexInResults]],
-        },
-      });
-    } else {
-      map.getSource('markers-source').setData({
-        type: 'FeatureCollection',
-        features: [searchResults[indexInResults]],
-      });
-    }
+    addMarkersSourceAndLayer([searchResults[indexInResults]]);
 
     currentMarker = searchResults[indexInResults];
 
@@ -319,7 +303,6 @@ function markAndPanToSearchResult(indexInResults) {
 
     changeExitButton(false, 'Exit chosen result');
 
-    addMarkersLayer();
     map.moveLayer('modern-markers-layer');
   }
 
@@ -329,9 +312,8 @@ function markAndPanToSearchResult(indexInResults) {
         right: 20,
         top: 20,
         bottom: 20,
-        left: isPanelExpanded ? 295 : 20,
+        left: 80,
       },
-      retainPadding: false,
       maxZoom: 8,
       speed: 0.5,
       curve: 2,

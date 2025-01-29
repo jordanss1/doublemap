@@ -25,6 +25,8 @@ let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
 let chosenCountryISO = null;
+let pausePoiSearch = false;
+let selectedPoi;
 let currentMarker = null;
 
 let categoryPanelButtons = [
@@ -92,6 +94,7 @@ const initialiseMap = () => {
           projection: 'globe',
           container: 'map',
           zoom: 1,
+          padding: { left: 80, right: 0, top: 0, bottom: 0 },
           minZoom: 0.7,
           maxZoom: 17,
           center: [30, 15],

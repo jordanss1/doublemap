@@ -18,6 +18,14 @@ mapPromise.then((map) => {
   });
 
   $(window).on('resize', function () {
+    if ($('#left-panel').attr('aria-expanded') === 'true') {
+      if (window.innerWidth >= 1024) {
+        map.setPadding({ left: 464 });
+      } else {
+        map.setPadding({ left: 420 });
+      }
+    }
+
     if (window.innerWidth <= 768) {
       $('#search-container').attr('aria-expanded', 'false');
     } else {
@@ -65,7 +73,7 @@ mapPromise.then((map) => {
   let timeout;
 
   map.on('move', async () => {
-    if (historyMode) return;
+    if (historyMode || pausePoiSearch) return;
 
     const zoom = map.getZoom();
 
@@ -102,7 +110,7 @@ mapPromise.then((map) => {
       const pois = currentPois.length ? currentPois : [];
 
       await retrieveAndApplyIcons(token);
-      addMarkersLayer();
+      addMarkersSourceAndLayer([currentMarker]);
       addPoiSourceAndLayer(pois, currentPoiLayer);
 
       if (currentBaseLayer === 'Dark') {
@@ -136,6 +144,56 @@ mapPromise.then((map) => {
     await getCountryDataAndFitBounds(iso_a2);
 
     updateChosenCountryState(iso_a2);
+  });
+
+  map.on('click', ['chosen-pois', 'default-pois'], (e) => {
+    let newId = e.features[0].properties.id;
+    const defaultPois = currentPoiCategory === 'default';
+
+    $('#left-panel').attr('aria-expanded', 'true');
+
+    const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
+
+    pausePoiSearch = true;
+
+    map.flyTo({
+      center: [e.lngLat.lng, e.lngLat.lat],
+      speed: 0.5,
+      zoom: 15,
+      duration: 2000,
+    });
+
+    if (selectedPoi === newId) return;
+
+    selectedPoi = e.features[0].properties.id;
+
+    const poi = currentPois.find((poi) => poi.properties.id === newId);
+
+    addMarkersSourceAndLayer([poi]);
+
+    map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
+
+    map.moveLayer('modern-markers-layer');
+
+    currentMarker = poi;
+
+    let poiType = categoryList
+      .find((cate) => poi.properties.canonical_id === cate.canonical_id)
+      .name.toLowerCase();
+
+    if (defaultPois) {
+      poiType = 'points of interest';
+      addPoisToSidebar();
+    }
+
+    let title = `Exit selected ${poiType}`;
+
+    if (exitEnabled) {
+      $('#exit-button').attr('title', title);
+      $('#exit-button').attr('aria-label', title);
+    } else {
+      changeExitButton(false, title);
+    }
   });
 
   map.on(
@@ -295,37 +353,37 @@ mapPromise.then((map) => {
       return;
     }
 
+    if (currentMarker) {
+      currentMarker = null;
+      selectedPoi = null;
+
+      addMarkersSourceAndLayer([]);
+
+      if (currentPoiCategory === 'default') {
+        clearSidebarContent();
+        pausePoiSearch = false;
+        changeExitButton(true);
+      }
+
+      await flyToPromise({
+        speed: 0.5,
+        zoom: map.getZoom() - 0.5,
+        duration: 1000,
+      });
+
+      return;
+    }
+
     if (currentPoiCategory !== 'default') {
       currentPoiCategory = 'default';
 
-      await flyToPromise({
+      map.flyTo({
         speed: 0.5,
         zoom: map.getZoom() - 0.5,
         duration: 1000,
       });
 
       addPoiSourceAndLayer([], 'default-pois');
-      return;
-    }
-
-    if (currentMarker) {
-      currentMarker = null;
-
-      if (map.getSource('markers-source')) {
-        map.getSource('markers-source').setData({
-          type: 'FeatureCollection',
-          features: [],
-        });
-      }
-
-      changeExitButton(true);
-
-      await flyToPromise({
-        speed: 0.5,
-        zoom: map.getZoom() - 0.5,
-        duration: 1000,
-      });
-
       return;
     }
   });
@@ -395,155 +453,7 @@ mapPromise.then((map) => {
       // }
     }
   });
-
-  $('#menu-button').on('click', () => {
-    const sidebarDisabled = $('#left-panel').attr('aria-expanded') === 'false';
-
-    if (sidebarDisabled) {
-      $('#left-panel').attr('aria-expanded', 'true');
-      map.setPadding({ left: 295 });
-      $('#menu-icon').removeClass('fa-bars');
-      $('#menu-icon').addClass('fa-minimize');
-    } else {
-      $('#menu-icon').removeClass('fa-minimize');
-      map.setPadding({ left: 0 });
-      $('#menu-icon').addClass('fa-bars');
-      $('#left-panel').attr('aria-expanded', 'false');
-    }
-  });
-
-  let categoryButtonTimeout;
-
-  $('#category-button').on('click', () => {
-    if (historyMode) return;
-
-    const isDisabled = $('#category-button').attr('aria-disabled') === 'true';
-    clearTimeout(categoryButtonTimeout);
-
-    if (isDisabled) {
-      activateCategoryButton();
-
-      $('#category-button').attr('aria-disabled', 'false');
-      $('#category-container').attr('aria-expanded', 'true');
-      $('#category-panel').attr('aria-disabled', 'false');
-
-      $('#category-panel > *').removeClass('invisible');
-      $('#category-panel > *').addClass('visible');
-      $('#category-panel > *').addClass('duration-300');
-
-      categoryButtonTimeout = setTimeout(() => {
-        $('#category-panel > *').removeClass('duration-300');
-        $('#category-panel > *').addClass('duration-75');
-      }, 300);
-    } else {
-      $('#category-button').attr('aria-disabled', 'true');
-      $('#category-container').attr('aria-expanded', 'false');
-      $('#category-panel').attr('aria-disabled', 'true');
-
-      $('#category-panel > *').removeClass('duration-75');
-      $('#category-panel > *').addClass('duration-300');
-
-      categoryButtonTimeout = setTimeout(() => {
-        $('#category-panel > *').removeClass('visible');
-        $('#category-panel > *').addClass('invisible');
-      }, 300);
-    }
-  });
-
-  categoryPanelButtons.forEach((buttonId) => {
-    $(buttonId).on('click', async () => {
-      const category = buttonId.replace('#', '').split('-')[0];
-
-      if (historyMode || category === currentPoiCategory) return;
-
-      $('#category-panel > *').attr('aria-checked', 'false');
-      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
-
-      $(buttonId).attr('aria-checked', 'true');
-
-      const zoom = map.getZoom();
-      await appendLocationToCategoryOption();
-
-      const { longitude, latitude } = mostRecentLocation;
-
-      if (category === currentPoiCategory && zoom < 9) {
-        map.fitBounds(
-          [
-            [longitude - 0.1, latitude - 0.1],
-            [longitude + 0.1, latitude + 0.1],
-          ],
-          {
-            speed: 0.5,
-            curve: 2,
-            padding: {
-              right: 50,
-              top: 50,
-              bottom: 50,
-              left: isPanelExpanded ? 295 : 50,
-            },
-            retainPadding: false,
-            zoom: 9,
-            duration: 2500,
-          }
-        );
-
-        return;
-      }
-
-      const bounds = {
-        _sw: {
-          lng: longitude - 0.1,
-          lat: latitude - 0.1,
-        },
-        _ne: {
-          lng: longitude + 0.1,
-          lat: latitude + 0.1,
-        },
-      };
-
-      currentPoiCategory = category;
-
-      const pois = await getOverpassPois(bounds, category);
-
-      currentPois = pois;
-
-      map.fitBounds(
-        [
-          [longitude - 0.1, latitude - 0.1],
-          [longitude + 0.1, latitude + 0.1],
-        ],
-        {
-          speed: 0.5,
-          curve: 2,
-          padding: {
-            right: 50,
-            top: 50,
-            bottom: 50,
-            left: isPanelExpanded ? 295 : 50,
-          },
-          retainPadding: false,
-          zoom: 9.5,
-          duration: 2500,
-        }
-      );
-
-      addPoiSourceAndLayer(pois, 'chosen-pois');
-    });
-  });
 });
-
-function activateCategoryButton() {
-  let matchingCategory = categoryPanelButtons.find((button) => {
-    const category = button.replace('#', '').split('-')[0];
-    return category === currentPoiCategory;
-  });
-
-  $('#category-panel > *').attr('aria-checked', 'false');
-
-  if (matchingCategory) {
-    $(matchingCategory).attr('aria-checked', 'true');
-  }
-}
 
 async function getOverpassPois(bounds, category) {
   try {
@@ -624,6 +534,8 @@ async function changeHistoryMode(map, enabled) {
       removeAllButtons(false);
       currentPois = [];
       currentMarker = null;
+      selectedPoi = null;
+      pausePoiSearch = false;
 
       if (map.getSource('markers-source')) {
         map.getSource('markers-source').setData({

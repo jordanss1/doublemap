@@ -333,6 +333,13 @@ function addPoiSourceAndLayer(pois, layerId) {
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
     map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
 
+    $('#content-results').empty();
+
+    $('#content-title').text('');
+
+    selectedPoi = null;
+    pausePoiSearch = false;
+
     changeExitButton(true);
 
     $('#category-panel > *').attr('aria-checked', 'false');
@@ -359,11 +366,17 @@ function addPoiSourceAndLayer(pois, layerId) {
         features: [],
       });
     }
+
+    selectedPoi = null;
+    pausePoiSearch = true;
+
     currentMarker = null;
 
     chosenCountryISO = null;
 
     disableMapInteraction(false);
+    addPoisToSidebar();
+    $('#left-panel').attr('aria-expanded', 'true');
 
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
     map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
@@ -403,7 +416,168 @@ function addPoiSourceAndLayer(pois, layerId) {
   }
 }
 
-function addMarkersLayer() {
+function clearSidebarContent() {
+  $('#content-results').empty();
+  $('#content-title').text('');
+}
+
+function addPoisToSidebar() {
+  clearSidebarContent();
+
+  if (!currentPois.length) {
+  } else {
+    if (currentPoiCategory === 'default') {
+      $('#content-title').text('Points of Interest');
+    } else {
+      const category = categoryList.find(
+        (cate) => cate.canonical_id === currentPoiCategory
+      );
+
+      $('#content-title').text(
+        `${category.name}${category.name.slice(-1) === 's' ? '' : 's'}`
+      );
+    }
+
+    let poiElements = currentPois
+      .map(({ properties }) => {
+        const name = properties.name ?? properties.name_preferred ?? 'Unknown';
+        const email = properties.email ?? null;
+        const openingHours = properties.opening_hours ?? null;
+        const place = properties.place_formatted ?? null;
+        const rating = properties.rating ?? null;
+        const phone = properties.phone ?? null;
+        const website = properties.website ?? null;
+
+        return {
+          html: /*html*/ `<div
+      id="poi-content-item"
+      aria-hidden="true"
+      class="bg-black/70 p-4 mb-4 w-full shadow-[rgba(209,_214,_225,.3)_0px_5px_15px] rounded-md flex group transition-all duration-300 ease-in flex-col gap-2 *:text-white-400"
+    >
+      <span
+      id="content-expand"
+
+        class="group-aria-hidden:truncate cursor-pointer gap-1 flex items-baseline"
+      >
+        <div
+          class="w-6 h-6 flex-shrink-0 relative right-2 justify-center items-center inline-flex text-white-300"
+          role="button"
+        >
+          <i class="fa-solid fa-caret-right relative text-lg"></i>
+        </div>
+        <h3
+          class="font-title text-lg font-medium inline -ml-3"
+          title="${name}"
+          aria-labelledby="${name}"
+        >
+          ${name}
+        </h3>
+      </span>
+      <div class="ml-4 flex max-w-full flex-col gap-2">
+        ${
+          place
+            ? `<div
+              title="${place}"
+              aria-labelledby="${place}"
+              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-location-dot text-xs"></i>
+              <p class="[word-break:break-word]">${place}</p>
+            </div>`
+            : ``
+        }
+        ${
+          rating
+            ? `<div
+              title="Rating: ${rating} stars"
+              aria-labelledby="Rating ${rating} stars"
+              class="font-sans flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-star text-[#ffd700] text-xs"></i>${rating}
+              <p class="[word-break:break-word]">${rating}</p>
+              
+            </div>`
+            : ``
+        }
+        ${
+          openingHours
+            ? `<div
+              title="${openingHours}"
+              aria-labelledby="${openingHours}"
+              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-clock text-xs"></i>
+              <p class="[word-break:break-word]">${openingHours}</p>
+            </div>`
+            : ``
+        }
+        ${
+          phone
+            ? `<div
+              title="Phone number: ${phone}"
+              aria-labelledby="Phone number: ${phone}"
+              class="font-sans flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-phone text-xs"></i>
+              <p class="[word-break:break-word]">${phone}</p>
+            </div>`
+            : ``
+        }
+        ${
+          email
+            ? `<div
+              title="Email address: ${email}"
+              aria-labelledby="Email address: ${email}"
+              class="font-sans flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-envelope text-xs"></i>
+              <p class="[word-break:break-word]">${email}</p>
+            </div>`
+            : ``
+        }
+        ${
+          website
+            ? `<div
+              title="${website}"
+              aria-labelledby="${website}"
+              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+            >
+              <i class="fa-solid fa-wifi text-xs"></i>
+              <p class="[word-break:break-word]">${website}</p>
+            </div>`
+            : ``
+        }
+      </div>
+    </div>
+  </div>`,
+          count: [email, openingHours, place, rating, phone, website].filter(
+            (val) => val !== null
+          ).length,
+        };
+      })
+      .sort((a, b) => b.count - a.count)
+      .map((item) => item.html);
+
+    $('#content-results').append(poiElements);
+  }
+}
+
+function addMarkersSourceAndLayer(features) {
+  if (!map.getSource('markers-source')) {
+    map.addSource('markers-source', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: features,
+      },
+    });
+  } else {
+    map.getSource('markers-source').setData({
+      type: 'FeatureCollection',
+      features: features,
+    });
+  }
+
   if (!map.getLayer('modern-markers-layer')) {
     map.addLayer({
       id: 'modern-markers-layer',
@@ -436,6 +610,19 @@ function addMarkersLayer() {
         'icon-color': '#FF0000', // Red color
       },
     });
+  }
+}
+
+function activateCategoryButton() {
+  let matchingCategory = categoryPanelButtons.find((button) => {
+    const category = button.replace('#', '').split('-')[0];
+    return category === currentPoiCategory;
+  });
+
+  $('#category-panel > *').attr('aria-checked', 'false');
+
+  if (matchingCategory) {
+    $(matchingCategory).attr('aria-checked', 'true');
   }
 }
 

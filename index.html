@@ -140,7 +140,7 @@
           <div
             id="sidebar"
             aria-disabled="false"
-            class="h-full flex flex-col transition-all ease-in max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_38%_10%,#a100ff_0_7%,#4d9cff_26%,#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_bottom,_black,_#22062d_85%)] aria-disabled:opacity-50 opacity-100"
+            class="h-full flex flex-col transition-all ease-in max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_38%_10%,#a100ff_0_7%,#4d9cff_26%,#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_bottom,_black,_#22062d_85%)] aria-disabled:opacity-50 opacity-100 z-20"
           >
             <div
               id="menu-button"
@@ -166,7 +166,7 @@
                 id="category-button"
                 role="button"
                 aria-label="Show categories"
-                class="w-full h-14 aria-disabled:after:opacity-0 aria-disabled:after:scale-x-75 after:scale-100 after:opacity-100 after:content-[''] after:transition-all after:duration-300 after:ease-out after:absolute after:w-[80%] after:-bottom-3 after:h-[1px] after:bg-white-300 group flex cursor-pointer relative items-center justify-center"
+                class="w-full mt-2 h-14 aria-disabled:after:opacity-0 aria-disabled:after:scale-x-75 after:scale-100 after:opacity-100 after:content-[''] after:transition-all after:duration-300 after:ease-out after:absolute after:w-[80%] after:-bottom-2 after:h-[1px] after:bg-white-300 group flex cursor-pointer relative items-center justify-center"
               >
                 <div
                   class="p-1 bg-black/50 transition-all ease-out duration-75 rounded-md flex flex-col gap-1 items-center justify-center"
@@ -309,23 +309,22 @@
           </div>
           <div
             id="sidebar-expanded"
-            class="group-aria-expanded/whole-panel:opacity-100 group-aria-expanded/whole-panel:pointer-events-auto group-aria-expanded/whole-panel:scale-x-100 origin-left scale-x-75 border-r border-r-white-300 pointer-events-none opacity-0 max-w-[300px] md:max-w-[295px] w-full h-full fixed left-20 bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] transition-all ease-in-out duration-200"
+            class="group-aria-expanded/whole-panel:pointer-events-auto group-aria-expanded/whole-panel:scale-x-100 group-aria-expanded/whole-panel:left-20 -left-72 origin-left scale-x-75 border-r border-r-white-300 pointer-events-none max-w-xs lg:max-w-sm w-full h-full fixed bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] lg:bg-[conic-gradient(from_230deg_at_50%_68%,_#a100ff_0_7%,_#4d9cff_26%,_#0000_26%_95%,_#5c2970_90%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] transition-all ease-in-out duration-300 z-10 after:content-[''] after:absolute after:w-[91%] after:left-4 lg:after:left-5 after:h-[1px] after:top-[55px] after:bg-white-600"
           >
             <div
               id="content-container"
-              class="w-full h-full flex flex-col gap-2 overflow-y-scroll mt-[50px] px-4"
+              class="w-full h-full flex flex-col gap-2 overflow-y-scroll mt-[74px] px-4"
             >
               <div
-                id="content-title"
-                class="w-full relative mb-2 after:content-[''] after:absolute after:w-full after:h-0.5 after:-bottom-2 after:bg-white-600"
+                id="content-title-container"
+                class="w-full relative mb-2 after:content-[''] transition-all ease-in after:absolute after:w-full after:h-[1px] after:-bottom-6 after:bg-white-600 after:opacity-0"
               >
-                <h2 class="font-title font-medium text-lg text-white-300">
-                  Hotels
-                </h2>
+                <h2
+                  id="content-title"
+                  class="font-title w-fit relative font-medium text-xl text-white-300"
+                ></h2>
               </div>
-              <div id="content-results">
-                <div class="bg-black/50 rounded-md"></div>
-              </div>
+              <div id="content-results" class="mt-1 pb-24"></div>
             </div>
           </div>
           <div
@@ -334,9 +333,9 @@
             class="h-full max-w-72 hidden pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           ></div>
           <div
-            class="w-16 md:w-20 transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[82px]"
+            class="w-[4.2rem] md:w-20 transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[100px]"
           ></div>
-          <div class="flex gap-2 md:gap-0 relative top-3 left-3">
+          <div class="flex gap-2 md:gap-0 relative top-4 left-3 z-30">
             <div class="md:pl-0 pl-2">
               <a
                 id="country-select-button"
@@ -360,7 +359,7 @@
               disabled=""
               aria-expanded="false"
               id="search-container"
-              class="pointer-events-auto rounded-md h-7 w-60 md:w-64 relative delay-500 duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+              class="pointer-events-auto rounded-md h-7 w-60 md:w-64 md:group-aria-expanded/whole-panel:w-64 group-aria-expanded/whole-panel:delay-0 lg:group-aria-expanded/whole-panel:w-80 relative duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
             >
               <div
                 id="search-container-inside"
@@ -467,6 +466,7 @@
     <script src="./libs/js/map/functions.js"></script>
     <script src="./libs/js/map/events/index.js"></script>
     <script src="./libs/js/map/events/search.js"></script>
+    <script src="./libs/js/map/events/sidebar.js"></script>
     <script src="./libs/js/map/events/slider.js"></script>
     <script src="./libs/js/script.js"></script>
   </body>

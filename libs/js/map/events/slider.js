@@ -6,6 +6,8 @@ mapPromise.then((map) => {
   const popupContainer = $('#popup-container');
 
   $('#slider-button').on('click', async () => {
+    if (!historyMode) return;
+
     clearTimeout(positionSliderTimer);
 
     if (chosenCountryISO) {
@@ -57,6 +59,8 @@ mapPromise.then((map) => {
   });
 
   slider.on('input', function () {
+    if (!historyMode) return;
+
     const dayOfYear = $(this).val();
     const textBox = $('#popup-text');
     const progress = ((dayOfYear - this.min) / (this.max - this.min)) * 100;
@@ -84,6 +88,8 @@ mapPromise.then((map) => {
   let wikipediaTimer;
 
   slider.on('mousedown', function () {
+    if (!historyMode) return;
+
     clearTimeout(sliderMouseUpTimer);
     clearTimeout(wikipediaTimer);
 
@@ -91,6 +97,8 @@ mapPromise.then((map) => {
   });
 
   slider.on('mouseup', async function () {
+    if (!historyMode) return;
+
     if (chosenCountryISO) {
       updateChosenCountryState();
     }
@@ -161,6 +169,8 @@ function applySliderStyles(mouseDown) {
 }
 
 async function getWikipediaEvents(day, month) {
+  if (!historyMode) return;
+
   $('#day-slider').prop('disabled', true);
 
   try {
