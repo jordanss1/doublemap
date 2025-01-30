@@ -48,107 +48,106 @@ const tokenIsValid = () => {
   return tokenCache.token && Date.now() < tokenCache.expiresAt;
 };
 
-const getToken = () => {
-  return new Promise(async (resolve, reject) => {
-    if (tokenIsValid()) {
-      resolve(tokenCache.token);
-      return;
-    }
+const getToken = async () => {
+  if (tokenIsValid()) {
+    return tokenCache.token;
+  }
 
-    $.ajax({
-      url: '/api/mapboxgljs/token',
-      method: 'GET',
-      dataType: 'json',
-      success: ({ data }) => {
-        mapboxgl.accessToken = data.token;
-        tokenCache.token = data.token;
-        tokenCache.expiresAt = Date.now() + 60 * 1000;
-
-        resolve(data.token);
-      },
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(`Error Status: ${xhr.status} - Error Message: ${res}`);
-        console.log(`Response Text: ${res.details}`);
-      },
-    });
+  const response = await $.ajax({
+    url: '/api/mapboxgljs/token',
+    method: 'GET',
+    dataType: 'json',
   });
+
+  mapboxgl.accessToken = response.data.token;
+  tokenCache.token = response.data.token;
+  tokenCache.expiresAt = Date.now() + 60 * 1000;
+
+  return response.data.token;
+};
+
+const showBigError = (title, subtitle) => {
+  $('#error-screen').attr('aria-disabled', 'false');
+  $('#big-error-title').text(title);
+  $('#big-error-subtitle').text(subtitle);
 };
 
 const initialiseMap = () => {
   return new Promise(async (resolve, reject) => {
-    $.ajax({
-      url: '/api/mapboxgljs/map',
-      dataType: 'json',
-      method: 'GET',
-      success: async () => {
-        let url = styles[2].url;
-        const token = await getToken();
+    try {
+      await $.ajax({
+        url: '/api/mapboxgljs/map',
+        dataType: 'json',
+        method: 'GET',
+      });
 
-        if (!historyMode) {
-          url = styles.find((style) => currentBaseLayer === style.name).url;
+      let url = styles[2].url;
+      let token;
+
+      try {
+        token = await getToken();
+      } catch (error) {
+        throw error;
+      }
+
+      if (!historyMode) {
+        url = styles.find((style) => currentBaseLayer === style.name).url;
+      }
+
+      map = new mapboxgl.Map({
+        style: url,
+        projection: 'globe',
+        container: 'map',
+        zoom: 1,
+        padding: { left: 80, right: 0, top: 0, bottom: 0 },
+        minZoom: 0.7,
+        maxZoom: 17,
+        center: [30, 15],
+      });
+
+      map.on('load', async () => {
+        $('#search').val('');
+
+        if ($('#preloader').length) {
+          $('#preloader').fadeOut('slow', function () {
+            $(this).remove();
+          });
         }
 
-        map = new mapboxgl.Map({
-          style: url,
-          projection: 'globe',
-          container: 'map',
-          zoom: 1,
-          padding: { left: 80, right: 0, top: 0, bottom: 0 },
-          minZoom: 0.7,
-          maxZoom: 17,
-          center: [30, 15],
-        });
+        if (historyMode) {
+          applyHistoryHtml(true);
+          applyHistoryStyles();
+          applyCountryLayers();
+          map.filterByDate('2020-01-01');
+          return resolve(map);
+        }
 
-        map.on('load', async () => {
-          $('#search').val('');
+        applyHistoryHtml(false);
 
-          if ($('#preloader').length) {
-            $('#preloader').fadeOut('slow', function () {
-              $(this).remove();
-            });
-          }
+        if (currentBaseLayer === 'Dark') {
+          nightNavStyles(map);
+        } else {
+          map.setConfigProperty('basemap', 'showPointOfInterestLabels', false);
+          map.setFog({
+            color: 'rgb(11, 11, 25)',
+            'high-color': 'rgb(36, 92, 223)',
+            'horizon-blend': 0.02,
+            'space-color': 'rgb(11, 11, 25)',
+            'star-intensity': 0.6,
+          });
+        }
 
-          if (historyMode) {
-            applyHistoryHtml(true);
-            applyHistoryStyles();
-            applyCountryLayers();
-            map.filterByDate('2020-01-01');
-            return resolve(map);
-          }
+        await applyCountryLayers();
+        await retrieveAndApplyIcons(token);
 
-          applyHistoryHtml(false);
+        resolve(map);
+      });
+    } catch (error) {
+      const details = error.responseJSON.details;
 
-          if (currentBaseLayer === 'Dark') {
-            nightNavStyles(map);
-          } else {
-            map.setConfigProperty(
-              'basemap',
-              'showPointOfInterestLabels',
-              false
-            );
-            map.setFog({
-              color: 'rgb(11, 11, 25)',
-              'high-color': 'rgb(36, 92, 223)',
-              'horizon-blend': 0.02,
-              'space-color': 'rgb(11, 11, 25)',
-              'star-intensity': 0.6,
-            });
-          }
-
-          await applyCountryLayers();
-          await retrieveAndApplyIcons(token);
-
-          resolve(map);
-        });
-      },
-
-      error: (xhr) => {
-        const res = JSON.parse(xhr.responseText);
-        console.log(`Error Status: ${xhr.status} - Error Message: ${res}`);
-        console.log(`Response Text: ${res.details}`);
-      },
-    });
+      showBigError("Can't load map", details);
+      reject('Token could not be retrieved');
+    }
   });
 };
 

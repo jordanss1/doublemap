@@ -152,16 +152,18 @@ mapPromise.then((map) => {
     }
   });
 
+  let flyToTimer3;
+
   $('#search-category').on(
     'click',
     '#search-category-item',
     async function (e) {
       $('#search-container-inside').removeClass('outline-3');
       $('#search-container-inside').addClass('outline-0');
-      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
       clearTimeout(reverseLookupTimeout);
       clearTimeout(searchTimer);
+      clearTimeout(flyToTimer3);
 
       const category = $(this).data('value');
       let areaToSearch = $('#search-category-item-appended').text();
@@ -184,19 +186,25 @@ mapPromise.then((map) => {
 
         activateCategoryButton();
 
-        await flyToPromise({
-          center: [longitude, latitude],
-          speed: 0.5,
-          curve: 2,
-          zoom: 10.5,
-          duration: 2500,
-        });
+        if (window.innerWidth > 640) {
+          expandSidebar(true);
+        }
 
-        const pois = await getOverpassPois(bounds, category);
+        flyToTimer3 = setTimeout(async () => {
+          await flyToPromise({
+            center: [longitude, latitude],
+            speed: 0.5,
+            curve: 2,
+            zoom: 10.5,
+            duration: 2500,
+          });
 
-        currentPois = pois;
+          pois = await getOverpassPois(bounds, category);
 
-        addPoiSourceAndLayer(pois, 'chosen-pois');
+          currentPois = pois;
+
+          addPoiSourceAndLayer(pois, 'chosen-pois');
+        }, 50);
 
         $('#search-popout').attr('aria-disabled', 'true');
 
@@ -216,6 +224,10 @@ mapPromise.then((map) => {
           dataType: 'json',
         });
 
+        if (window.innerWidth > 640) {
+          expandSidebar(true);
+        }
+
         if (data.length) {
           const { latitude, longitude } = data[0].properties.coordinates;
 
@@ -228,19 +240,21 @@ mapPromise.then((map) => {
 
           activateCategoryButton();
 
-          await flyToPromise({
-            center: [longitude, latitude],
-            speed: 0.5,
-            curve: 2,
-            zoom: 10.5,
-            duration: 2500,
-          });
+          flyToTimer3 = setTimeout(async () => {
+            await flyToPromise({
+              center: [longitude, latitude],
+              speed: 0.5,
+              curve: 2,
+              zoom: 10.5,
+              duration: 2500,
+            });
 
-          const pois = await getOverpassPois(bounds, category);
+            pois = await getOverpassPois(bounds, category);
 
-          currentPois = pois;
+            currentPois = pois;
 
-          addPoiSourceAndLayer(pois, 'chosen-pois');
+            addPoiSourceAndLayer(pois, 'chosen-pois');
+          }, 50);
         } else {
           // couldn't find area to search
         }
@@ -266,8 +280,11 @@ let searchTimeout;
 
 function markAndPanToSearchResult(indexInResults) {
   clearTimeout(searchTimeout);
-  const isPanelExpanded = $('#left-panel').attr('aria-expanded');
 
+  if (window.innerWidth > 640) {
+    expandSidebar(true);
+  }
+  
   currentMarker = null;
   selectedPoi = null;
   pausePoiSearch = false;
@@ -307,7 +324,7 @@ function markAndPanToSearchResult(indexInResults) {
   }
 
   if (bbox && bbox.length) {
-    map.fitBounds(bbox, {
+    fitBoundsDelayed(bbox, {
       padding: {
         right: 20,
         top: 20,
@@ -322,7 +339,7 @@ function markAndPanToSearchResult(indexInResults) {
   } else {
     const zoom = zoomForFeatureType(feature_type);
 
-    map.flyTo({
+    flyToDelayed({
       center: coords,
       speed: 0.5,
       curve: 1,

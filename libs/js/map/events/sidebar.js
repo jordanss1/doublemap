@@ -14,16 +14,12 @@ $('#content-results').on('click', '#content-expand', function () {
 });
 
 $('#menu-button').on('click', () => {
-  const sidebarDisabled = $('#left-panel').attr('aria-expanded') === 'false';
+  const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
-  if (sidebarDisabled) {
-    $('#left-panel').attr('aria-expanded', 'true');
-    $('#menu-icon').removeClass('fa-bars');
-    $('#menu-icon').addClass('fa-minimize');
+  if (isPanelExpanded) {
+    expandSidebar(false);
   } else {
-    $('#menu-icon').removeClass('fa-minimize');
-    $('#menu-icon').addClass('fa-bars');
-    $('#left-panel').attr('aria-expanded', 'false');
+    expandSidebar(true);
   }
 });
 
@@ -65,14 +61,20 @@ $('#category-button').on('click', () => {
   }
 });
 
+let flyToTimer2;
+
 categoryPanelButtons.forEach((buttonId) => {
   $(buttonId).on('click', async () => {
+    clearTimeout(flyToTimer2);
     const category = buttonId.replace('#', '').split('-')[0];
 
-    if (historyMode || category === currentPoiCategory) return;
+    if (historyMode) return;
 
     $('#category-panel > *').attr('aria-checked', 'false');
-    const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
+
+    if (window.innerWidth > 640) {
+      expandSidebar(true);
+    }
 
     $(buttonId).attr('aria-checked', 'true');
 
@@ -82,7 +84,7 @@ categoryPanelButtons.forEach((buttonId) => {
     const { longitude, latitude } = mostRecentLocation;
 
     if (category === currentPoiCategory && zoom < 9.5) {
-      map.flyTo({
+      flyToTimer2 = flyToDelayed({
         center: [longitude, latitude],
         speed: 0.5,
         curve: 2,
@@ -107,19 +109,23 @@ categoryPanelButtons.forEach((buttonId) => {
     currentPoiCategory = category;
     pausePoiSearch = true;
 
-    await flyToPromise({
-      center: [longitude, latitude],
-      speed: 0.5,
-      curve: 2,
-      zoom: 10.5,
-      duration: 2500,
-    });
+    let pois;
 
-    const pois = await getOverpassPois(bounds, category);
+    flyToTimer2 = setTimeout(async () => {
+      await flyToPromise({
+        center: [longitude, latitude],
+        speed: 0.5,
+        curve: 2,
+        zoom: 10.5,
+        duration: 2500,
+      });
 
-    currentPois = pois;
+      pois = await getOverpassPois(bounds, category);
 
-    addPoiSourceAndLayer(pois, 'chosen-pois');
+      currentPois = pois;
+
+      addPoiSourceAndLayer(pois, 'chosen-pois');
+    }, 50);
   });
 });
 

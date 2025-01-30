@@ -17,11 +17,29 @@
     <main class="min-h-screen">
       <div class="visible" id="preloader"></div>
       <div
-        id="error-modal"
-        class="fixed hidden z-50 rounded-md top-1/2 left-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 px-1 border-slate-300 border"
+        id="error-screen"
+        aria-disabled="true"
+        class="fixed z-[9999] p-3 aria-disabled:invisible visible flex items-center justify-center rounded-md h-screen w-screen bg-white-300 border-slate-300 group border"
       >
-        <div class="w-full h-full flex items-center justify-center">
-          <h5>Error</h5>
+        <div
+          class="max-w-lg w-full h-80
+           group-aria-disabled:translate-x-5 group-aria-disabled:opacity-0 gap-2 translate-x-0 transition-all opacity-100 delay-150 duration-1000 ease-in-out grid grid-rows-[1fr] sm:grid-cols-[auto,1fr] p-2 rounded-lg items-center justify-items-center"
+        >
+          <div
+            class="flex justify-center items-center rounded-[40px] shadow-[10px_1px_40px_10px_rgba(0,0,0,.5)_inset,_-10px_-10px_40px_5px_rgba(255,255,255,1)_inset] bg-[url('/libs/css/assets/error_icon.svg')] bg-center w-36 h-36 bg-no-repeat"
+          ></div>
+          <div
+            class="flex flex-col text-center items-center p-2 w-full justify-center max-w-xs"
+          >
+            <h2
+              id="big-error-title"
+              class="font-title text-3xl w-full text-red-600 font-semibold"
+            ></h2>
+            <p
+              id="big-error-subtitle"
+              class="font-title font-semibold text-lg text-white-900 sm:text-lg"
+            ></p>
+          </div>
         </div>
       </div>
       <div class="absolute h-full w-full pointer-events-none z-[8000]">
@@ -323,6 +341,10 @@
                   id="content-title"
                   class="font-title w-fit relative font-medium text-xl text-white-300"
                 ></h2>
+                <div id="content-subtitle-container" class="flex">
+                  <h3 id="content-subtitle"></h3>
+                  <div id="'content-subtitle-extra"></div>
+                </div>
               </div>
               <div id="content-results" class="mt-1 pb-24"></div>
             </div>
@@ -333,9 +355,12 @@
             class="h-full max-w-72 hidden pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           ></div>
           <div
-            class="w-[4.2rem] md:w-20 transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[100px]"
+            class="w-[4.2rem] md:w-20 group-aria-expanded/whole-panel:w-[5rem] transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[100px]"
           ></div>
-          <div class="flex gap-2 md:gap-0 relative top-4 left-3 z-30">
+          <div
+            id="search-select-container"
+            class="flex gap-2 md:gap-0 relative top-4 left-3 z-30"
+          >
             <div class="md:pl-0 pl-2">
               <a
                 id="country-select-button"
@@ -359,7 +384,7 @@
               disabled=""
               aria-expanded="false"
               id="search-container"
-              class="pointer-events-auto rounded-md h-7 w-60 md:w-64 md:group-aria-expanded/whole-panel:w-64 group-aria-expanded/whole-panel:delay-0 lg:group-aria-expanded/whole-panel:w-80 relative duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+              class="pointer-events-auto rounded-md h-7 w-full max-w-64 md:max-w-full md:w-64 md:group-aria-expanded/whole-panel:w-64 group-aria-expanded/whole-panel:delay-0 lg:group-aria-expanded/whole-panel:w-80 relative duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
             >
               <div
                 id="search-container-inside"

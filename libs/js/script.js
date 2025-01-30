@@ -102,8 +102,6 @@ async function getCountryDataAndFitBounds(iso_a2) {
       return countryData;
     });
 
-    const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
-
     const bangladesh = iso_a2 === 'BD';
     const russia = iso_a2 === 'RU';
     let bbox;
@@ -145,5 +143,7 @@ async function getCountryDataAndFitBounds(iso_a2) {
     return [restCountries, geonames];
   } catch (err) {
     console.log(err);
+  } finally {
+    changeButtonSpinners(false);
   }
 }

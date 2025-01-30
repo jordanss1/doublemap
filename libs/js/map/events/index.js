@@ -150,16 +150,17 @@ mapPromise.then((map) => {
     let newId = e.features[0].properties.id;
     const defaultPois = currentPoiCategory === 'default';
 
-    $('#left-panel').attr('aria-expanded', 'true');
+    expandSidebar(true);
 
     const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
 
     pausePoiSearch = true;
 
-    map.flyTo({
+    flyToDelayed({
       center: [e.lngLat.lng, e.lngLat.lat],
       speed: 0.5,
-      zoom: 15,
+      curve: 2,
+      zoom: 14,
       duration: 2000,
     });
 
@@ -286,13 +287,23 @@ mapPromise.then((map) => {
       updateChosenCountryState();
     }
 
+    changeButtonSpinners(true);
+
     if (historyMode) await getToken();
 
     await changeHistoryMode(map, !historyMode);
   });
 
   $('#style-control').on('click', async () => {
-    await getToken();
+    changeButtonSpinners(true);
+
+    try {
+      await getToken();
+    } catch {
+      // make notification message
+      changeButtonSpinners(false);
+      return;
+    }
 
     if (historyMode) {
       await changeHistoryMode(map, false);
@@ -318,6 +329,7 @@ mapPromise.then((map) => {
     map.once('style.load', async () => {
       const currentPoiLayer =
         currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
+      changeButtonSpinners(false);
 
       if (chosenCountryISO) {
         setTimeout(() => {
@@ -411,6 +423,7 @@ mapPromise.then((map) => {
     '#country-list-option',
     async ({ target }) => {
       $('#country-select-list').attr('aria-disabled', 'true');
+      changeButtonSpinners(true);
 
       if (historyMode) {
         await getHistoryOfCountry(target.textContent);
@@ -423,6 +436,8 @@ mapPromise.then((map) => {
   );
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
+    changeButtonSpinners(true);
+
     updateChosenCountryState(target.value);
 
     const [restCountryData, geonames] = await getCountryDataAndFitBounds(
@@ -440,6 +455,7 @@ mapPromise.then((map) => {
     let value = e.target.value;
 
     if (e.key === 'Enter' && value.length) {
+      changeButtonSpinners(true);
       updateChosenCountryState(value);
 
       const [restCountryData, geonames] = await getCountryDataAndFitBounds(
@@ -466,7 +482,7 @@ async function getOverpassPois(bounds, category) {
     });
 
     return data;
-  } catch (xhr) {
+  } catch (error) {
     const res = JSON.parse(xhr.responseText);
     console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
     console.log(`Response Text: ${res.details}`);
@@ -485,8 +501,7 @@ async function changeHistoryMode(map, enabled) {
   let styleJson;
 
   if (enabled) {
-    $('#left-panel').attr('aria-expanded', 'false');
-
+    expandSidebar(false);
     disableMapInteraction(true);
     removeAllButtons(true);
     const previousFog = map.getFog();
@@ -554,7 +569,7 @@ async function changeHistoryMode(map, enabled) {
       }, 2000);
     });
   } else {
-    $('#left-panel').attr('aria-expanded', 'false');
+    expandSidebar(false);
     disableMapInteraction(true);
     removeAllButtons(true);
 

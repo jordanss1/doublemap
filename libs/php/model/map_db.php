@@ -35,7 +35,7 @@
         
         switch ($api_name) {
             case "mapboxgljs":
-                $limit = 50000;
+                $limit = 46000;
                 $rejectRequest = $requests >= $limit - 1;  
 
 
@@ -48,13 +48,13 @@
 
                 break;
             case "search":
-                $limit = 50000;
+                $limit = 46000;
                 $rejectRequest = $requests >= $limit - 1;  
 
 
                 if ($rejectRequest) {
                     http_response_code(429);
-                    echo json_encode(['error' => 'Request limit for mapbox gl reached', 'details' => 'Request limit reached map will not render']);
+                    echo json_encode(['error' => 'Request limit for searching reached', 'details' => 'Search request limit reached: wait until end of month']);
                     exit;
                 }
 
@@ -111,7 +111,7 @@
 
         if (empty($results)) {
             http_response_code(404);
-            echo json_encode(["error" => "", "Empty array from DB", "details" => "API will not request from mapbox until request count is known"]);
+            echo json_encode(["error" => "", "Empty array from DB", "details" => "Cannot show  map until request count is known"]);
             exit;
         }
 

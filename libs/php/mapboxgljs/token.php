@@ -9,7 +9,7 @@
 
     if (!$parsedUrl) {
         http_response_code(401);
-        echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
+        echo json_encode(['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']]);
         exit;
     }
 
@@ -27,7 +27,7 @@
 
         if ($ch === false) {
             http_response_code(500);
-            echo json_encode(["error" => "Error initializing curl session", "Error retrieving token due to server error"]);
+            echo json_encode(["error" => "Error initializing curl session", 'details' => "Error retrieving token needed for map due to server error"]);
             exit;
         }
 

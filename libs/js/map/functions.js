@@ -376,7 +376,10 @@ function addPoiSourceAndLayer(pois, layerId) {
 
     disableMapInteraction(false);
     addPoisToSidebar();
-    $('#left-panel').attr('aria-expanded', 'true');
+
+    if (window.innerWidth > 640) {
+      expandSidebar(true);
+    }
 
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
     map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
@@ -416,9 +419,48 @@ function addPoiSourceAndLayer(pois, layerId) {
   }
 }
 
+function expandSidebar(enabled) {
+  const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
+
+  if (enabled) {
+    if (!isPanelExpanded) {
+      $('#left-panel').attr('aria-expanded', 'true');
+      $('#menu-icon').removeClass('fa-bars').addClass('fa-minimize');
+    }
+  } else {
+    if (isPanelExpanded) {
+      $('#menu-icon').removeClass('fa-minimize').addClass('fa-bars');
+      $('#left-panel').attr('aria-expanded', 'false');
+    }
+  }
+}
+
 function clearSidebarContent() {
   $('#content-results').empty();
   $('#content-title').text('');
+  $('#content-subtitle').text('');
+  $('#content-subtitle-extra').empty();
+}
+
+function changeButtonSpinners(enabled, size = 7) {
+  if (enabled) {
+    const spinner = /*html*/ `<div id='spinner' aria-disabled="true"
+    class="ml-2 bg-purple-500/50 aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 transition-all duration-150 ease-in rounded-md p-0.5">
+    <div
+      class="border-4 rounded-full border-slate-400 border-t-white-300 w-${size} h-${size} animate-spin"
+    ></div>
+  </div>`;
+
+    $('#content-title').append(spinner);
+    $('#search-select-container').append(spinner);
+    $('#spinner').attr('aria-disabled', 'false');
+  } else {
+    $('#spinner').attr('aria-disabled', 'true');
+
+    setTimeout(() => {
+      $('[id="spinner"]').remove();
+    }, 150);
+  }
 }
 
 function addPoisToSidebar() {
@@ -611,6 +653,27 @@ function addMarkersSourceAndLayer(features) {
       },
     });
   }
+}
+
+let flyToTimer;
+let fitBoundsTimer;
+
+function flyToDelayed(options) {
+  clearTimeout(flyToTimer);
+  clearTimeout(fitBoundsTimer);
+
+  flyToTimer = setTimeout(() => {
+    map.flyTo(options);
+  }, 50);
+}
+
+function fitBoundsDelayed(options) {
+  clearTimeout(flyToTimer);
+  clearTimeout(fitBoundsTimer);
+
+  fitBoundsTimer = setTimeout(() => {
+    map.fitBounds(options);
+  }, 50);
 }
 
 function activateCategoryButton() {

@@ -9,7 +9,7 @@
 
     if (!$parsedUrl) {
         http_response_code(401);
-        echo ['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']];
+        echo json_encode(['data' => ['error' => 'Malformed url', 'details' => 'Please correct URL format']]);
         exit;
     }
 

@@ -28,6 +28,13 @@ module.exports = {
         sans: ['Lato', 'Arial', 'sans-serif'],
         title: ['Montserrat', 'Arial', 'sans-serif'],
       },
+      screens: {
+        xs: '424px',
+        sm: '640px',
+        md: '1024px',
+        lg: '1280px',
+        xl: '1920px',
+      },
       colors: {
         white: {
           50: '#F9FBFC', // very light white
