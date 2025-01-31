@@ -65,10 +65,14 @@ let flyToTimer2;
 
 categoryPanelButtons.forEach((buttonId) => {
   $(buttonId).on('click', async () => {
-    clearTimeout(flyToTimer2);
-    const category = buttonId.replace('#', '').split('-')[0];
+    if (disableAllButtons || historyMode) return;
 
-    if (historyMode) return;
+    clearTimeout(flyToTimer2);
+
+    disableAllButtons = true;
+    changePanelSpinners(true);
+
+    const category = buttonId.replace('#', '').split('-')[0];
 
     $('#category-panel > *').attr('aria-checked', 'false');
 
@@ -79,7 +83,8 @@ categoryPanelButtons.forEach((buttonId) => {
     $(buttonId).attr('aria-checked', 'true');
 
     const zoom = map.getZoom();
-    await appendLocationToCategoryOption();
+
+    appendLocationToCategoryOption();
 
     const { longitude, latitude } = mostRecentLocation;
 
@@ -107,9 +112,7 @@ categoryPanelButtons.forEach((buttonId) => {
     };
 
     currentPoiCategory = category;
-    pausePoiSearch = true;
-
-    let pois;
+    pausingPoiSearch(false);
 
     flyToTimer2 = setTimeout(async () => {
       await flyToPromise({
@@ -120,13 +123,31 @@ categoryPanelButtons.forEach((buttonId) => {
         duration: 2500,
       });
 
-      pois = await getOverpassPois(bounds, category);
+      try {
+        const newPois = await getOverpassPois(bounds, category);
 
-      currentPois = pois;
+        previousPois = [...currentPois];
+        currentPois = newPois;
 
-      addPoiSourceAndLayer(pois, 'chosen-pois');
+        addPoiSourceAndLayer(newPois, 'chosen-pois');
+      } catch (err) {
+        // make notification
+      } finally {
+        disableAllButtons = false;
+        changePanelSpinners(false);
+      }
     }, 50);
   });
+});
+
+$('#content-subtitle-extra').on('click', '#continue-search', ({ target }) => {
+  if (disableAllButtons || historyMode) return;
+
+  if (pausePoiSearch) {
+    pausingPoiSearch(false);
+  } else {
+    pausingPoiSearch(true);
+  }
 });
 
 const sidebarContainer = $('#left-panel');

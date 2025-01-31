@@ -1,8 +1,8 @@
 /// <reference path="../../jquery.js" />
 
-mapPromise.then((map) => {
-  let searchLoading = false;
+let locToCategoryTimer;
 
+mapPromise.then((map) => {
   const performSearch = (value) => {
     if (value.length && !searchLoading) {
       if (chosenCountryISO) {
@@ -14,6 +14,8 @@ mapPromise.then((map) => {
   };
 
   $('#search').on('keydown', async (e) => {
+    if (disableAllButtons) return;
+
     let value = e.target.value;
 
     if (e.key === 'Enter') {
@@ -22,6 +24,10 @@ mapPromise.then((map) => {
   });
 
   $('#search-button').on('click', async (e) => {
+    if (disableAllButtons) return;
+
+    clearTimeout(locToCategoryTimer);
+
     const value = $('#search').val();
 
     const searchExpanded =
@@ -42,6 +48,8 @@ mapPromise.then((map) => {
   let searchTimer;
 
   $('#search').on('focus', ({ target }) => {
+    if (disableAllButtons) return;
+
     $('#search-container-inside').removeClass('outline-0');
     $('#search-container-inside').addClass('outline-3');
 
@@ -53,11 +61,20 @@ mapPromise.then((map) => {
     }
   });
 
+  const searchSpinner = renderSpinner(
+    'bg-black/50 h-full w-full',
+    'h-full w-full absolute z-[30] inset-0 rounded-r-md',
+    'full'
+  );
+
   $('#search').on('input', async (e) => {
+    if (disableAllButtons) return;
+
     let value = e.target.value.trim();
 
     clearTimeout(reverseLookupTimeout);
     clearTimeout(searchTimer);
+    clearTimeout(locToCategoryTimer);
 
     const isPopoutDisabled =
       $('#search-popout').attr('aria-disabled') === 'true';
@@ -73,10 +90,15 @@ mapPromise.then((map) => {
         .replace(/[\u0300-\u036f]/g, '');
 
       if (searchTerm !== normalizedValue) {
-        searchTimer = setTimeout(
-          () => getSearchResults(normalizedValue, searchLoading),
-          1500
-        );
+        searchTimer = setTimeout(async () => {
+          try {
+            $('#search-button').append(searchSpinner);
+            await getSearchResults(normalizedValue);
+          } catch (err) {
+          } finally {
+            // $('#search-button #spinner').remove();
+          }
+        }, 1500);
       }
 
       const closestMatch = categorySearchOption(value);
@@ -158,12 +180,17 @@ mapPromise.then((map) => {
     'click',
     '#search-category-item',
     async function (e) {
+      if (disableAllButtons) return;
+
       $('#search-container-inside').removeClass('outline-3');
       $('#search-container-inside').addClass('outline-0');
 
       clearTimeout(reverseLookupTimeout);
       clearTimeout(searchTimer);
       clearTimeout(flyToTimer3);
+      clearTimeout(locToCategoryTimer);
+
+      changePanelSpinners(true);
 
       const category = $(this).data('value');
       let areaToSearch = $('#search-category-item-appended').text();
@@ -199,18 +226,24 @@ mapPromise.then((map) => {
             duration: 2500,
           });
 
-          pois = await getOverpassPois(bounds, category);
+          try {
+            const newPois = await getOverpassPois(bounds, category);
 
-          currentPois = pois;
+            previousPois = [...currentPois];
+            currentPois = pois;
 
-          addPoiSourceAndLayer(pois, 'chosen-pois');
+            addPoiSourceAndLayer(newPois, 'chosen-pois');
+          } catch (err) {
+            console.log(err);
+          } finally {
+            changePanelSpinners(false);
+            $('#search-popout').attr('aria-disabled', 'true');
+
+            if (window.innerWidth <= 768) {
+              $('#search-container').attr('aria-expanded', 'false');
+            }
+          }
         }, 50);
-
-        $('#search-popout').attr('aria-disabled', 'true');
-
-        if (window.innerWidth <= 768) {
-          $('#search-container').attr('aria-expanded', 'false');
-        }
 
         return;
       }
@@ -249,18 +282,22 @@ mapPromise.then((map) => {
               duration: 2500,
             });
 
-            pois = await getOverpassPois(bounds, category);
+            const newPois = await getOverpassPois(bounds, category);
 
-            currentPois = pois;
+            previousPois = [...currentPois];
+            currentPois = newPois;
 
-            addPoiSourceAndLayer(pois, 'chosen-pois');
+            addPoiSourceAndLayer(newPois, 'chosen-pois');
           }, 50);
         } else {
           // couldn't find area to search
+          // use mostRecentLocation
         }
       } catch (err) {
-        console.log(err);
+        //
       } finally {
+        changePanelSpinners();
+
         $('#search-popout').attr('aria-disabled', 'true');
 
         if (window.innerWidth <= 768) {
@@ -271,28 +308,28 @@ mapPromise.then((map) => {
   );
 
   $('#search-normal').on('click', '#search-normal-item', function (e) {
+    if (disableAllButtons) return;
+
     markAndPanToSearchResult($(this).data('value'));
     console.log($(this).data('value'));
   });
 });
 
-let searchTimeout;
-
 function markAndPanToSearchResult(indexInResults) {
-  clearTimeout(searchTimeout);
+  clearTimeout(locToCategoryTimer);
 
   if (window.innerWidth > 640) {
     expandSidebar(true);
   }
-  
+
   currentMarker = null;
   selectedPoi = null;
-  pausePoiSearch = false;
+  pausingPoiSearch(true);
 
   $('#search-container-inside').removeClass('outline-3');
   $('#search-container-inside').addClass('outline-0');
 
-  searchTimeout = setTimeout(() => {
+  locToCategoryTimer = setTimeout(() => {
     appendLocationToCategoryOption(true);
   }, 3000);
 
@@ -302,6 +339,8 @@ function markAndPanToSearchResult(indexInResults) {
 
   const { coordinates, feature_type, bbox, context } =
     searchResults[indexInResults].properties;
+
+  console.log(searchResults);
 
   const coords = [coordinates.longitude, coordinates.latitude];
 
@@ -325,12 +364,6 @@ function markAndPanToSearchResult(indexInResults) {
 
   if (bbox && bbox.length) {
     fitBoundsDelayed(bbox, {
-      padding: {
-        right: 20,
-        top: 20,
-        bottom: 20,
-        left: 80,
-      },
       maxZoom: 8,
       speed: 0.5,
       curve: 2,
@@ -342,7 +375,7 @@ function markAndPanToSearchResult(indexInResults) {
     flyToDelayed({
       center: coords,
       speed: 0.5,
-      curve: 1,
+      curve: 2,
       zoom,
       essential: true,
       duration: 2500,
@@ -352,8 +385,12 @@ function markAndPanToSearchResult(indexInResults) {
   $('#search-popout').attr('aria-disabled', 'true');
 }
 
+let appendTimer;
+
 async function appendLocationToCategoryOption(noZoomLimit = null) {
-  return setTimeout(async () => {
+  clearTimeout(appendTimer);
+
+  appendTimer = setTimeout(async () => {
     const feature = await reverseLookupFromLatLng(noZoomLimit);
 
     if (!feature) return;
@@ -425,9 +462,10 @@ async function reverseLookupFromLatLng(noZoomLimit = null) {
         method: 'GET',
         dataType: 'json',
       });
+
       return data;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      throw err;
     }
   }
 

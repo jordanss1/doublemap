@@ -6,7 +6,7 @@ mapPromise.then((map) => {
   const popupContainer = $('#popup-container');
 
   $('#slider-button').on('click', async () => {
-    if (!historyMode) return;
+    if (!historyMode || disableAllButtons) return;
 
     clearTimeout(positionSliderTimer);
 
@@ -59,7 +59,7 @@ mapPromise.then((map) => {
   });
 
   slider.on('input', function () {
-    if (!historyMode) return;
+    if (!historyMode || disableAllButtons) return;
 
     const dayOfYear = $(this).val();
     const textBox = $('#popup-text');
@@ -88,7 +88,7 @@ mapPromise.then((map) => {
   let wikipediaTimer;
 
   slider.on('mousedown', function () {
-    if (!historyMode) return;
+    if (!historyMode || disableAllButtons) return;
 
     clearTimeout(sliderMouseUpTimer);
     clearTimeout(wikipediaTimer);
@@ -97,7 +97,7 @@ mapPromise.then((map) => {
   });
 
   slider.on('mouseup', async function () {
-    if (!historyMode) return;
+    if (!historyMode || disableAllButtons) return;
 
     if (chosenCountryISO) {
       updateChosenCountryState();

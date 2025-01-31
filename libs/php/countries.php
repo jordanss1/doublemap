@@ -38,7 +38,7 @@
 
         if ($countriesArray === null || json_last_error() !== JSON_ERROR_NONE) {
             http_response_code(500);
-            echo json_encode(['details' => "Error retrieving data from server"]);
+            echo json_encode(['error' => "Error retrieving countries from server", 'details' => 'Issue retrieving all countries']);
             exit;
         }
         

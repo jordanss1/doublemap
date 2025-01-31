@@ -91,9 +91,27 @@ mapPromise.then((map) => {
 
         await appendLocationToCategoryOption();
 
-        currentPois = await getOverpassPois(bounds, currentPoiCategory);
+        if (
+          currentPoiLayer === 'chosen-pois' &&
+          $('#spinner-panel').attr('aria-disabled') === 'false'
+        ) {
+          changePanelSpinners(true);
+        }
 
-        addPoiSourceAndLayer(currentPois, currentPoiLayer);
+        try {
+          const newPois = await getOverpassPois(bounds, currentPoiCategory);
+
+          previousPois = [...currentPois];
+          currentPois = newPois;
+
+          if (currentPoiLayer === 'chosen-pois') {
+            changePanelSpinners(false);
+            addPoiSourceAndLayer(newPois, currentPoiLayer, true);
+            return;
+          }
+
+          addPoiSourceAndLayer(newPois, currentPoiLayer);
+        } catch (err) {}
       }, 800);
     }
   });
@@ -135,26 +153,42 @@ mapPromise.then((map) => {
   });
 
   map.on('click', 'hovered-country-fill', async (e) => {
+    if (disableAllButtons) return;
+
+    disableAllButtons = true;
+    changePanelSpinners(true);
+
     const iso_a2 = e.features[0].properties.iso_a2;
 
-    if (historyMode) {
-      await getHistoryOfCountry(e.features[0].properties.name);
+    try {
+      if (historyMode) {
+        await getHistoryOfCountry(e.features[0].properties.name);
+      }
+    } catch (err) {
+      console.log(err);
     }
 
-    await getCountryDataAndFitBounds(iso_a2);
-
-    updateChosenCountryState(iso_a2);
+    try {
+      await getCountryDataAndFitBounds(iso_a2);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      disableAllButtons = false;
+      updateChosenCountryState(iso_a2);
+      // changePanelSpinners(false);
+    }
   });
 
   map.on('click', ['chosen-pois', 'default-pois'], (e) => {
+    if (disableAllButtons) return;
+
     let newId = e.features[0].properties.id;
-    const defaultPois = currentPoiCategory === 'default';
 
     expandSidebar(true);
 
     const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
 
-    pausePoiSearch = true;
+    pausingPoiSearch(true);
 
     flyToDelayed({
       center: [e.lngLat.lng, e.lngLat.lat],
@@ -182,7 +216,7 @@ mapPromise.then((map) => {
       .find((cate) => poi.properties.canonical_id === cate.canonical_id)
       .name.toLowerCase();
 
-    if (defaultPois) {
+    if (currentPoiCategory === 'default') {
       poiType = 'points of interest';
       addPoisToSidebar();
     }
@@ -264,6 +298,8 @@ mapPromise.then((map) => {
   });
 
   $('#zoom-in').on('click', () => {
+    if (disableAllButtons) return;
+
     if (chosenCountryISO) {
       updateChosenCountryState();
     }
@@ -273,6 +309,8 @@ mapPromise.then((map) => {
   });
 
   $('#zoom-out').on('click', () => {
+    if (disableAllButtons) return;
+
     if (chosenCountryISO) {
       updateChosenCountryState();
     }
@@ -283,25 +321,44 @@ mapPromise.then((map) => {
   });
 
   $('#history-control').on('click', async () => {
+    if (disableAllButtons) return;
+
+    disableAllButtons = true;
+
     if (chosenCountryISO) {
       updateChosenCountryState();
     }
 
-    changeButtonSpinners(true);
+    changePanelSpinners(true);
 
-    if (historyMode) await getToken();
+    if (historyMode) {
+      try {
+        await getToken();
+      } catch (err) {
+        console.log(err);
+        disableAllButtons = false;
+        changePanelSpinners(false);
+        return;
+      }
+    }
 
     await changeHistoryMode(map, !historyMode);
   });
 
   $('#style-control').on('click', async () => {
-    changeButtonSpinners(true);
+    if (disableAllButtons) return;
+
+    disableAllButtons = true;
+    changePanelSpinners(true);
+    disableMapInteraction(true);
 
     try {
       await getToken();
     } catch {
       // make notification message
-      changeButtonSpinners(false);
+      disableAllButtons = false;
+      changePanelSpinners(false);
+      disableMapInteraction(false);
       return;
     }
 
@@ -318,39 +375,52 @@ mapPromise.then((map) => {
 
     const nextIndex = currentIndex === 0 ? 1 : 0;
 
-    map.setStyle(styles[nextIndex].url, {
-      diff: true,
-    });
+    try {
+      map.setStyle(styles[nextIndex].url, {
+        diff: true,
+      });
 
-    currentBaseLayer = styles[nextIndex].name;
+      currentBaseLayer = styles[nextIndex].name;
 
-    localStorage.setItem('currentBaseLayer', JSON.stringify(currentBaseLayer));
+      localStorage.setItem(
+        'currentBaseLayer',
+        JSON.stringify(currentBaseLayer)
+      );
 
-    map.once('style.load', async () => {
-      const currentPoiLayer =
-        currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
-      changeButtonSpinners(false);
+      map.once('style.load', async () => {
+        const currentPoiLayer =
+          currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-      if (chosenCountryISO) {
-        setTimeout(() => {
-          map.setFeatureState(
-            {
-              source: 'country-borders',
-              sourceLayer: 'country_bordersgeo',
-              id: chosenCountryISO,
-            },
-            { chosen: true }
-          );
-        }, 500);
-      }
+        if (chosenCountryISO) {
+          setTimeout(() => {
+            map.setFeatureState(
+              {
+                source: 'country-borders',
+                sourceLayer: 'country_bordersgeo',
+                id: chosenCountryISO,
+              },
+              { chosen: true }
+            );
+          }, 500);
+        }
 
-      if (zoom >= 9 && currentPois) {
-        addPoiSourceAndLayer(currentPois, currentPoiLayer);
-      }
-    });
+        if (zoom >= 9 && currentPois) {
+          addPoiSourceAndLayer(currentPois, currentPoiLayer);
+        }
+      });
+    } catch (err) {
+      // make notification message
+      console.log(err);
+    } finally {
+      disableAllButtons = false;
+      disableMapInteraction(false);
+      changePanelSpinners(false);
+    }
   });
 
   $('#exit-button').on('click', async () => {
+    if (disableAllButtons) return;
+
     if (chosenCountryISO) {
       currentPoiCategory = 'default';
 
@@ -373,7 +443,7 @@ mapPromise.then((map) => {
 
       if (currentPoiCategory === 'default') {
         clearSidebarContent();
-        pausePoiSearch = false;
+        pausingPoiSearch(false);
         changeExitButton(true);
       }
 
@@ -410,6 +480,8 @@ mapPromise.then((map) => {
   });
 
   $('#country-select-button').on('click', async ({ target }) => {
+    if (disableAllButtons) return;
+
     const selectListStatus =
       $('#country-select-list').attr('aria-disabled') === 'false'
         ? 'true'
@@ -422,53 +494,116 @@ mapPromise.then((map) => {
     'click',
     '#country-list-option',
     async ({ target }) => {
+      if (disableAllButtons) return;
+
+      changePanelSpinners(true);
+      disableAllButtons = true;
+
       $('#country-select-list').attr('aria-disabled', 'true');
-      changeButtonSpinners(true);
+      let countryHistory;
 
       if (historyMode) {
-        await getHistoryOfCountry(target.textContent);
+        try {
+          countryHistory = await getHistoryOfCountry(target.textContent);
+        } catch (err) {
+          console.log(err);
+        }
       }
 
-      updateChosenCountryState(target.getAttribute('value'));
+      try {
+        const { restCountries, geonames } = await getCountryDataAndFitBounds(
+          target.getAttribute('value')
+        );
 
-      await getCountryDataAndFitBounds(target.getAttribute('value'));
+        updateChosenCountryState(target.getAttribute('value'));
+
+        if (!historyMode) {
+          if (restCountries.error || geonames.error) {
+            // notification message
+          }
+
+          //pass data to function to process marker
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        disableAllButtons = false;
+        changePanelSpinners(false);
+
+        if (historyMode) {
+          if (countryHistory) {
+          }
+        } else {
+        }
+      }
     }
   );
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
-    changeButtonSpinners(true);
+    if (disableAllButtons) return;
 
-    updateChosenCountryState(target.value);
+    disableAllButtons = true;
+    changePanelSpinners(true);
 
-    const [restCountryData, geonames] = await getCountryDataAndFitBounds(
-      target.value
-    );
+    try {
+      const { restCountries, geonames } = await getCountryDataAndFitBounds(
+        target.value
+      );
 
-    if (geonames) {
+      updateChosenCountryState(target.value);
+
+      if (restCountries.error || geonames.error) {
+        // notification message
+      }
+
+      //pass data to function to process marker
+    } catch (err) {
+      console.log(err);
+    } finally {
+      disableAllButtons = false;
+      // changePanelSpinners(false);
     }
-
-    // if (restCountryData) {
-    // }
   });
 
   $('#country-select').on('keydown', '#country-option', async (e) => {
+    if (disableAllButtons) return;
+
     let value = e.target.value;
 
     if (e.key === 'Enter' && value.length) {
-      changeButtonSpinners(true);
-      updateChosenCountryState(value);
+      changePanelSpinners(true);
+      disableAllButtons = true;
 
-      const [restCountryData, geonames] = await getCountryDataAndFitBounds(
-        value
-      );
+      try {
+        const { restCountries, geonames } = await getCountryDataAndFitBounds(
+          value
+        );
 
-      if (geonames) {
+        updateChosenCountryState(value);
+
+        if (restCountries.error || geonames.error) {
+          // notification message
+        }
+
+        //pass data to function to process marker
+      } catch (err) {
+        console.log(err);
+      } finally {
+        disableAllButtons = false;
+        changePanelSpinners(false);
       }
-
-      // if (restCountryData) {
-      // }
     }
   });
+});
+
+$('#continue-search-map').on('click', () => {
+  if (disableAllButtons || historyMode) return;
+
+  if (pausePoiSearch) {
+    pausingPoiSearch(false);
+  } else {
+    pausingPoiSearch(true);
+  }
 });
 
 async function getOverpassPois(bounds, category) {
@@ -483,9 +618,7 @@ async function getOverpassPois(bounds, category) {
 
     return data;
   } catch (error) {
-    const res = JSON.parse(xhr.responseText);
-    console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
+    throw error;
   }
 }
 
@@ -503,6 +636,7 @@ async function changeHistoryMode(map, enabled) {
   if (enabled) {
     expandSidebar(false);
     disableMapInteraction(true);
+    changePanelSpinners(false);
     removeAllButtons(true);
     const previousFog = map.getFog();
 
@@ -517,60 +651,60 @@ async function changeHistoryMode(map, enabled) {
 
     try {
       styleJson = await fetchStyleBeforeApply(styles[2].url);
+
+      map.flyTo({
+        center: [-15.81099973, 41.8295758],
+        speed: 0.5,
+        zoom: 1.5,
+        duration: 2000,
+      });
+
+      await animateFog(previousFog, historyFog, 1500);
+
+      map.setStyle(styleJson);
+
+      map.once('style.load', async () => {
+        historyMode = true;
+        localStorage.setItem('historyMode', JSON.stringify(true));
+
+        $('#category-panel > *').attr('aria-checked', 'false');
+
+        map.setLayoutProperty('chosen-pois', 'visibility', 'none');
+
+        map.setLayoutProperty('default-pois', 'visibility', 'none');
+
+        if (map.getSource('markers-source')) {
+          map.getSource('markers-source').setData({
+            type: 'FeatureCollection',
+            features: [],
+          });
+        }
+
+        map.filterByDate('2013-01-01');
+        await applyCountryLayers();
+        applyHistoryStyles();
+
+        timeout = setTimeout(() => {
+          applyHistoryHtml(enabled);
+          disableMapInteraction(false);
+        }, 2000);
+      });
     } catch (err) {
       console.log(err);
       disableMapInteraction(false);
-      removeAllButtons(false);
-      return;
-    }
-
-    map.flyTo({
-      center: [-15.81099973, 41.8295758],
-      speed: 0.5,
-      zoom: 1.5,
-      duration: 2000,
-    });
-
-    await animateFog(previousFog, historyFog, 1500);
-
-    map.setStyle(styleJson);
-
-    map.once('style.load', async () => {
-      historyMode = true;
-      localStorage.setItem('historyMode', JSON.stringify(true));
-
-      $('#category-panel > *').attr('aria-checked', 'false');
-
-      map.setLayoutProperty('chosen-pois', 'visibility', 'none');
-
-      map.setLayoutProperty('default-pois', 'visibility', 'none');
-
+    } finally {
+      disableAllButtons = false;
       updateChosenCountryState();
       removeAllButtons(false);
       currentPois = [];
       currentMarker = null;
       selectedPoi = null;
-      pausePoiSearch = false;
-
-      if (map.getSource('markers-source')) {
-        map.getSource('markers-source').setData({
-          type: 'FeatureCollection',
-          features: [],
-        });
-      }
-
-      map.filterByDate('2013-01-01');
-      await applyCountryLayers();
-      applyHistoryStyles();
-
-      timeout = setTimeout(() => {
-        applyHistoryHtml(enabled);
-        disableMapInteraction(false);
-      }, 2000);
-    });
+      pausingPoiSearch(true);
+    }
   } else {
     expandSidebar(false);
     disableMapInteraction(true);
+    changePanelSpinners(false);
     removeAllButtons(true);
 
     if (zoom !== 1.5 || centeredIncorrect) {
@@ -586,25 +720,31 @@ async function changeHistoryMode(map, enabled) {
 
     await animateFog(historyFog, previousFog);
 
-    map.setStyle(url, {
-      diff: true,
-    });
+    try {
+      map.setStyle(url, {
+        diff: true,
+      });
 
-    map.once('style.load', async () => {
-      historyMode = false;
-      localStorage.setItem('historyMode', JSON.stringify(false));
+      map.once('style.load', async () => {
+        historyMode = false;
+        localStorage.setItem('historyMode', JSON.stringify(false));
 
+        timeout = setTimeout(() => {
+          applyHistoryHtml(enabled);
+          disableMapInteraction(false);
+        }, 1500);
+
+        map.setLayoutProperty('default-pois', 'visibility', 'visible');
+        currentPoiCategory = 'default';
+      });
+    } catch (err) {
+      console.log(err);
+      disableMapInteraction(false);
+    } finally {
       removeAllButtons(false);
+      disableAllButtons = false;
       updateChosenCountryState();
-
-      timeout = setTimeout(() => {
-        applyHistoryHtml(enabled);
-        disableMapInteraction(false);
-      }, 1500);
-
-      map.setLayoutProperty('default-pois', 'visibility', 'visible');
-      currentPoiCategory = 'default';
-    });
+    }
   }
 }
 

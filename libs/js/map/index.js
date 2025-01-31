@@ -21,6 +21,7 @@ let mostRecentLocation;
 let searchResults = [];
 let searchTerm;
 let currentPois = [];
+let previousPois = [];
 let currentPoiCategory = 'default';
 let countryList = [];
 let hoveredCountryId = null;
@@ -28,6 +29,7 @@ let chosenCountryISO = null;
 let pausePoiSearch = false;
 let selectedPoi;
 let currentMarker = null;
+let disableAllButtons = false;
 
 let categoryPanelButtons = [
   '#hotel-button',

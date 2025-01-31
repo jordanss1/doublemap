@@ -6,8 +6,6 @@ mapPromise.then((map) => {
     method: 'GET',
     data: 'json',
     success: ({ data }) => {
-      const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
-
       userGeo = data;
       const latLong = userGeo.loc.split(',');
       const latitude = parseFloat(latLong[0]);
@@ -95,10 +93,6 @@ async function getCountryDataAndFitBounds(iso_a2) {
     });
 
     const [restCountries, geonames] = data.map((countryData) => {
-      if (countryData.error) {
-        return false;
-      }
-
       return countryData;
     });
 
@@ -140,10 +134,8 @@ async function getCountryDataAndFitBounds(iso_a2) {
       duration: 2500,
     });
 
-    return [restCountries, geonames];
+    return { restCountries, geonames };
   } catch (err) {
-    console.log(err);
-  } finally {
-    changeButtonSpinners(false);
+    throw err;
   }
 }

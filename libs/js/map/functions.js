@@ -239,6 +239,7 @@ function applyHistoryHtml(enabled) {
     $('#slider-button').removeClass('animate-end_absolute');
     $('#category-container').addClass('animate-end_absolute');
     $('#category-container').attr('aria-expanded', 'false');
+    $('#continue-container').attr('aria-disabled', 'true');
 
     timeout = setTimeout(
       () => $('#category-container').addClass('invisible'),
@@ -297,8 +298,11 @@ function applyHistoryHtml(enabled) {
 function applyHistoryStyles() {
   map.setFog(historyFog);
 }
+let pausingTimer;
 
-function addPoiSourceAndLayer(pois, layerId) {
+function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
+  clearTimeout(pausingTimer);
+
   if (!map.getSource('poi-source')) {
     map.addSource('poi-source', {
       type: 'geojson',
@@ -333,14 +337,14 @@ function addPoiSourceAndLayer(pois, layerId) {
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
     map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
 
-    $('#content-results').empty();
-
-    $('#content-title').text('');
+    clearSidebarContent();
 
     selectedPoi = null;
-    pausePoiSearch = false;
+    pausingTimer = setTimeout(() => pausingPoiSearch(false), 750);
 
     changeExitButton(true);
+
+    $('#continue-container').attr('aria-disabled', 'true');
 
     $('#category-panel > *').attr('aria-checked', 'false');
   }
@@ -368,7 +372,11 @@ function addPoiSourceAndLayer(pois, layerId) {
     }
 
     selectedPoi = null;
-    pausePoiSearch = true;
+    pausingPoiSearch(overridePause ? pausePoiSearch : true);
+
+    if ($('#continue-container').attr('aria-disabled') === 'true') {
+      $('#continue-container').attr('aria-disabled', 'false');
+    }
 
     currentMarker = null;
 
@@ -435,51 +443,75 @@ function expandSidebar(enabled) {
   }
 }
 
+let clearSidebarTimeout;
+
+function renderSpinner(bgClass, containerClass = '', size = 7) {
+  return /*html*/ `<div id='spinner' aria-disabled="true"
+    class="aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 transition-all duration-150 ease-in ${containerClass}">
+      <div class='${bgClass}'>
+        <div
+          class="border-4 rounded-full border-slate-400 border-t-white-300 w-${size} h-${size} animate-spin"
+        ></div>
+      </div>
+  </div>`;
+}
+
+function changePanelSpinners(enabled) {
+  if (enabled) {
+    $('#spinner-panel').attr('aria-disabled', 'false');
+    $('#spinner-panel-expanded').attr('aria-disabled', 'false');
+  } else {
+    $('#spinner-panel-expanded').attr('aria-disabled', 'true');
+    $('#spinner-panel').attr('aria-disabled', 'true');
+  }
+}
+
 function clearSidebarContent() {
   $('#content-results').empty();
   $('#content-title').text('');
+  $('#content-subtitle-container').addClass('invisible');
   $('#content-subtitle').text('');
   $('#content-subtitle-extra').empty();
 }
 
-function changeButtonSpinners(enabled, size = 7) {
-  if (enabled) {
-    const spinner = /*html*/ `<div id='spinner' aria-disabled="true"
-    class="ml-2 bg-purple-500/50 aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 transition-all duration-150 ease-in rounded-md p-0.5">
-    <div
-      class="border-4 rounded-full border-slate-400 border-t-white-300 w-${size} h-${size} animate-spin"
-    ></div>
-  </div>`;
+function arePoisEqual(pois1, pois2) {
+  if (pois1.length !== pois2.length) return false;
 
-    $('#content-title').append(spinner);
-    $('#search-select-container').append(spinner);
-    $('#spinner').attr('aria-disabled', 'false');
-  } else {
-    $('#spinner').attr('aria-disabled', 'true');
+  return pois1.every((poi, index) => {
+    const prevPoi = pois2[index];
 
-    setTimeout(() => {
-      $('[id="spinner"]').remove();
-    }, 150);
-  }
+    return (
+      poi.properties.name === prevPoi.properties.name &&
+      poi.properties.email === prevPoi.properties.email &&
+      poi.properties.place_formatted === prevPoi.properties.place_formatted &&
+      poi.properties.rating === prevPoi.properties.rating &&
+      poi.properties.phone === prevPoi.properties.phone &&
+      poi.properties.website === prevPoi.properties.website
+    );
+  });
 }
 
 function addPoisToSidebar() {
+  if (arePoisEqual(currentPois, previousPois)) {
+    return;
+  }
+
   clearSidebarContent();
+
+  if (currentPoiCategory === 'default') {
+    $('#content-title').text('Points of Interest');
+  } else {
+    const category = categoryList.find(
+      (cate) => cate.canonical_id === currentPoiCategory
+    );
+
+    $('#content-title').text(
+      `${category.name}${category.name.slice(-1) === 's' ? '' : 's'}`
+    );
+  }
 
   if (!currentPois.length) {
   } else {
-    if (currentPoiCategory === 'default') {
-      $('#content-title').text('Points of Interest');
-    } else {
-      const category = categoryList.find(
-        (cate) => cate.canonical_id === currentPoiCategory
-      );
-
-      $('#content-title').text(
-        `${category.name}${category.name.slice(-1) === 's' ? '' : 's'}`
-      );
-    }
-
     let poiElements = currentPois
       .map(({ properties }) => {
         const name = properties.name ?? properties.name_preferred ?? 'Unknown';
@@ -492,106 +524,107 @@ function addPoisToSidebar() {
 
         return {
           html: /*html*/ `<div
-      id="poi-content-item"
-      aria-hidden="true"
-      class="bg-black/70 p-4 mb-4 w-full shadow-[rgba(209,_214,_225,.3)_0px_5px_15px] rounded-md flex group transition-all duration-300 ease-in flex-col gap-2 *:text-white-400"
-    >
-      <span
-      id="content-expand"
+            id="poi-content-item"
+            aria-hidden="true"
+            aria-disabled="true"
+            class="bg-black/70 p-4 aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 mb-4 w-full shadow-[rgba(209,_214,_225,.3)_0px_5px_15px] rounded-md flex group transition-all duration-300  ease-in flex-col gap-2 *:text-white-400"
+          >
+            <span
+            id="content-expand"
 
-        class="group-aria-hidden:truncate cursor-pointer gap-1 flex items-baseline"
-      >
-        <div
-          class="w-6 h-6 flex-shrink-0 relative right-2 justify-center items-center inline-flex text-white-300"
-          role="button"
-        >
-          <i class="fa-solid fa-caret-right relative text-lg"></i>
-        </div>
-        <h3
-          class="font-title text-lg font-medium inline -ml-3"
-          title="${name}"
-          aria-labelledby="${name}"
-        >
-          ${name}
-        </h3>
-      </span>
-      <div class="ml-4 flex max-w-full flex-col gap-2">
-        ${
-          place
-            ? `<div
-              title="${place}"
-              aria-labelledby="${place}"
-              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+              class="cursor-pointer gap-1 flex items-baseline"
             >
-              <i class="fa-solid fa-location-dot text-xs"></i>
-              <p class="[word-break:break-word]">${place}</p>
-            </div>`
-            : ``
-        }
-        ${
-          rating
-            ? `<div
-              title="Rating: ${rating} stars"
-              aria-labelledby="Rating ${rating} stars"
-              class="font-sans flex items-baseline gap-2"
-            >
-              <i class="fa-solid fa-star text-[#ffd700] text-xs"></i>${rating}
-              <p class="[word-break:break-word]">${rating}</p>
-              
-            </div>`
-            : ``
-        }
-        ${
-          openingHours
-            ? `<div
-              title="${openingHours}"
-              aria-labelledby="${openingHours}"
-              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
-            >
-              <i class="fa-solid fa-clock text-xs"></i>
-              <p class="[word-break:break-word]">${openingHours}</p>
-            </div>`
-            : ``
-        }
-        ${
-          phone
-            ? `<div
-              title="Phone number: ${phone}"
-              aria-labelledby="Phone number: ${phone}"
-              class="font-sans flex items-baseline gap-2"
-            >
-              <i class="fa-solid fa-phone text-xs"></i>
-              <p class="[word-break:break-word]">${phone}</p>
-            </div>`
-            : ``
-        }
-        ${
-          email
-            ? `<div
-              title="Email address: ${email}"
-              aria-labelledby="Email address: ${email}"
-              class="font-sans flex items-baseline gap-2"
-            >
-              <i class="fa-solid fa-envelope text-xs"></i>
-              <p class="[word-break:break-word]">${email}</p>
-            </div>`
-            : ``
-        }
-        ${
-          website
-            ? `<div
-              title="${website}"
-              aria-labelledby="${website}"
-              class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
-            >
-              <i class="fa-solid fa-wifi text-xs"></i>
-              <p class="[word-break:break-word]">${website}</p>
-            </div>`
-            : ``
-        }
-      </div>
-    </div>
-  </div>`,
+              <div
+                class="w-6 h-6 flex-shrink-0 relative right-2 justify-center items-center inline-flex text-white-300"
+                role="button"
+              >
+                <i class="fa-solid fa-caret-right relative text-lg"></i>
+              </div>
+              <h3
+                class="font-title text-lg group-aria-hidden:truncate transition-all duration-1000 font-medium inline -ml-3"
+                title="${name}"
+                aria-labelledby="${name}"
+              >
+                ${name}
+              </h3>
+            </span>
+            <div class="ml-4 flex max-w-full flex-col gap-2">
+              ${
+                place
+                  ? `<div
+                    title="${place}"
+                    aria-labelledby="${place}"
+                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-location-dot text-xs"></i>
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${place}</p>
+                  </div>`
+                  : ``
+              }
+              ${
+                rating
+                  ? `<div
+                    title="Rating: ${rating} stars"
+                    aria-labelledby="Rating ${rating} stars"
+                    class="font-sans flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-star text-[#ffd700] text-xs"></i>${rating}
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${rating}</p>
+                    
+                  </div>`
+                  : ``
+              }
+              ${
+                openingHours
+                  ? `<div
+                    title="${openingHours}"
+                    aria-labelledby="${openingHours}"
+                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-clock text-xs"></i>
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${openingHours}</p>
+                  </div>`
+                  : ``
+              }
+              ${
+                phone
+                  ? `<div
+                    title="Phone number: ${phone}"
+                    aria-labelledby="Phone number: ${phone}"
+                    class="font-sans flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-phone text-xs"></i>
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${phone}</p>
+                  </div>`
+                  : ``
+              }
+              ${
+                email
+                  ? `<div
+                    title="Email address: ${email}"
+                    aria-labelledby="Email address: ${email}"
+                    class="font-sans flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-envelope text-xs"></i>
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${email}</p>
+                  </div>`
+                  : ``
+              }
+              ${
+                website
+                  ? `<div
+                    title="${website}"
+                    aria-labelledby="${website}"
+                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+                  >
+                    <i class="fa-solid fa-wifi text-xs"></i>
+                    <p class="[word-break:break-word] group-aria-hidden:truncate">${website}</p>
+                  </div>`
+                  : ``
+              }
+            </div>
+          </div>
+        </div>`,
           count: [email, openingHours, place, rating, phone, website].filter(
             (val) => val !== null
           ).length,
@@ -601,6 +634,43 @@ function addPoisToSidebar() {
       .map((item) => item.html);
 
     $('#content-results').append(poiElements);
+
+    $('#content-subtitle-container').removeClass('invisible');
+
+    $('#content-subtitle').text(`${poiElements.length} results`);
+
+    if (currentPoiCategory !== 'default') {
+      $('#content-subtitle-extra')
+        .append(/*html*/ `<div id='continue-search' title="Continue search when map moves"
+            role="button"
+            aria-label="Continue search when map moves"
+            aria-disabled="${
+              pausingPoiSearch ? 'true' : 'false'
+            }" class='flex items-center h-7 w-7 justify-center border-2 rounded-md border-red-600/60 bg-gradient-to-r from-blue-300 aria-disabled:border-white-600 border-white-600 via-purple-500 to-pink-500 group'>
+            <i
+            class="fa-solid fa-expand group-aria-disabled/button:text-slate-800 text-white-300"
+          ></i>
+          </div>
+        `);
+    }
+
+    setTimeout(() => {
+      $('[id="poi-content-item"]').attr('aria-disabled', 'false');
+    }, 50);
+  }
+}
+
+function pausingPoiSearch(paused) {
+  if (paused) {
+    pausePoiSearch = true;
+
+    $('#continue-search').attr('aria-disabled', 'true');
+    $('#continue-search-map').attr('aria-disabled', 'true');
+  } else {
+    pausePoiSearch = false;
+
+    $('#continue-search').attr('aria-disabled', 'false');
+    $('#continue-search-map').attr('aria-disabled', 'false');
   }
 }
 
@@ -764,15 +834,13 @@ function zoomForFeatureType(feature_type) {
     feature_type === 'street' ||
     feature_type === 'place'
   ) {
-    return 16;
+    return 12;
   }
 
   return 10;
 }
 
-async function getSearchResults(value, loading) {
-  loading = true;
-
+async function getSearchResults(value) {
   let proximity = 'ip';
 
   if (
@@ -811,11 +879,7 @@ async function getSearchResults(value, loading) {
       });
     }
   } catch (err) {
-    const res = JSON.parse(err.responseText);
-    console.log(`Error Status: ${err.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
-  } finally {
-    loading = false;
+    throw err;
   }
 }
 
@@ -854,11 +918,9 @@ async function getHistoryOfCountry(country) {
       method: 'GET',
     });
 
-    console.log(data);
+    return data;
   } catch (err) {
-    const res = JSON.parse(err.responseText);
-    console.log(`Error Status: ${err.status} - Error Message: ${res.error}`);
-    console.log(`Response Text: ${res.details}`);
+    throw err;
   }
 }
 
