@@ -1,16 +1,11 @@
 /// <reference path="../../jquery.js" />
 
 $('#content-results').on('click', '#content-expand', function () {
-  const parentItem = $(this).closest('#poi-content-item');
-  const isExpanded = parentItem.attr('aria-hidden') === 'false';
+  expandItem(this, '#poi-content-item');
+});
 
-  if (isExpanded) {
-    $(this).find('i').removeClass('fa-caret-down').addClass('fa-caret-right');
-    parentItem.attr('aria-hidden', 'true');
-  } else {
-    $(this).find('i').removeClass('fa-caret-right').addClass('fa-caret-down');
-    parentItem.attr('aria-hidden', 'false');
-  }
+$('#content-chosen').on('click', '#content-expand', function () {
+  expandItem(this, '#poi-chosen');
 });
 
 $('#menu-button').on('click', () => {
@@ -65,14 +60,15 @@ let flyToTimer2;
 
 categoryPanelButtons.forEach((buttonId) => {
   $(buttonId).on('click', async () => {
-    if (disableAllButtons || historyMode) return;
+    const category = buttonId.replace('#', '').split('-')[0];
+
+    if (disableAllButtons || historyMode || category === currentPoiCategory)
+      return;
 
     clearTimeout(flyToTimer2);
 
     disableAllButtons = true;
     changePanelSpinners(true);
-
-    const category = buttonId.replace('#', '').split('-')[0];
 
     $('#category-panel > *').attr('aria-checked', 'false');
 
@@ -88,18 +84,6 @@ categoryPanelButtons.forEach((buttonId) => {
 
     const { longitude, latitude } = mostRecentLocation;
 
-    if (category === currentPoiCategory && zoom < 9.5) {
-      flyToTimer2 = flyToDelayed({
-        center: [longitude, latitude],
-        speed: 0.5,
-        curve: 2,
-        zoom: 10.5,
-        duration: 2500,
-      });
-
-      return;
-    }
-
     const bounds = {
       _sw: {
         lng: longitude - 0.1,
@@ -112,7 +96,7 @@ categoryPanelButtons.forEach((buttonId) => {
     };
 
     currentPoiCategory = category;
-    pausingPoiSearch(false);
+    pausingPoiSearch(true);
 
     flyToTimer2 = setTimeout(async () => {
       await flyToPromise({
@@ -127,11 +111,12 @@ categoryPanelButtons.forEach((buttonId) => {
         const newPois = await getOverpassPois(bounds, category);
 
         previousPois = [...currentPois];
+
         currentPois = newPois;
 
         addPoiSourceAndLayer(newPois, 'chosen-pois');
       } catch (err) {
-        // make notification
+        console.log(err);
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);
@@ -148,6 +133,22 @@ $('#content-subtitle-extra').on('click', '#continue-search', ({ target }) => {
   } else {
     pausingPoiSearch(true);
   }
+});
+
+$('#content-results').on('click', '#pin-poi', function (e) {
+  e.stopPropagation();
+
+  const id = $(this).closest('#poi-content-item').attr('data-poi-id');
+
+  markPoiFromSidebar(id);
+});
+
+$('#content-chosen').on('click', '#pin-poi', function (e) {
+  e.stopPropagation();
+
+  const id = $(this).closest('#poi-chosen').attr('data-poi-id');
+
+  markPoiFromSidebar(id);
 });
 
 const sidebarContainer = $('#left-panel');
@@ -177,3 +178,69 @@ observer.observe(sidebarContainer[0], {
   attributes: true,
   attributeFilter: ['aria-expanded'],
 });
+
+function expandItem(this1, id) {
+  const parentItem = $(this1).closest(id);
+  const isExpanded = parentItem.attr('aria-hidden') === 'false';
+
+  if (isExpanded) {
+    $(this1).find('i').removeClass('fa-caret-down').addClass('fa-caret-right');
+    parentItem.attr('aria-hidden', 'true');
+  } else {
+    $(this1).find('i').removeClass('fa-caret-right').addClass('fa-caret-down');
+    parentItem.attr('aria-hidden', 'false');
+  }
+}
+
+function markPoiFromSidebar(newId) {
+  if (disableAllButtons) return;
+
+  const poi = currentPois.find((poi) => poi.properties.id === newId);
+
+  flyToDelayed({
+    center: poi.geometry.coordinates,
+    speed: 0.5,
+    curve: 2,
+    zoom: 14,
+    duration: 2000,
+  });
+
+  if (selectedPoi === newId) return;
+
+  $('#content-chosen').attr('aria-hidden', 'true');
+
+  const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
+
+  pausingPoiSearch(true);
+
+  selectedPoi = poi.properties.id;
+
+  addMarkersSourceAndLayer([poi]);
+
+  map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
+
+  map.moveLayer('modern-markers-layer');
+
+  currentMarker = poi;
+
+  let poiType = categoryList
+    .find((cate) => poi.properties.canonical_id === cate.canonical_id)
+    .name.toLowerCase();
+
+  changeSelectedSidebarPoi(true);
+
+  addPoisToSidebar(false);
+
+  if (currentPoiCategory === 'default') {
+    poiType = 'points of interest';
+  }
+
+  let title = `Exit selected ${poiType}`;
+
+  if (exitEnabled) {
+    $('#exit-button').attr('title', title);
+    $('#exit-button').attr('aria-label', title);
+  } else {
+    changeExitButton(false, title);
+  }
+}

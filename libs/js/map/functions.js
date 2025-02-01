@@ -491,8 +491,9 @@ function arePoisEqual(pois1, pois2) {
   });
 }
 
-function addPoisToSidebar() {
+function addPoisToSidebar(initial = true) {
   if (arePoisEqual(currentPois, previousPois)) {
+    console.log('same');
     return;
   }
 
@@ -510,126 +511,46 @@ function addPoisToSidebar() {
     );
   }
 
+  if (currentPoiCategory !== 'default') {
+    $('#content-subtitle-extra')
+      .append(/*html*/ `<div id='continue-search' title="Continue search when map moves"
+          role="button"
+          aria-label="Continue search when map moves"
+          aria-disabled="${
+            pausingPoiSearch ? 'true' : 'false'
+          }" class='flex items-center h-7 w-7 justify-center border-2 rounded-md border-red-600/60 bg-gradient-to-r from-blue-300 aria-disabled:border-white-600 border-white-600 via-purple-500 to-pink-500 group'>
+          <i
+          class="fa-solid fa-expand group-aria-disabled/button:text-slate-800 text-white-300"
+        ></i>
+        </div>
+      `);
+  }
+
   if (!currentPois.length) {
+    $('#content-subtitle-container').removeClass('invisible');
+
+    $('#content-subtitle').text(`0 results`);
   } else {
     let poiElements = currentPois
       .map(({ properties }) => {
-        const name = properties.name ?? properties.name_preferred ?? 'Unknown';
-        const email = properties.email ?? null;
-        const openingHours = properties.opening_hours ?? null;
-        const place = properties.place_formatted ?? null;
-        const rating = properties.rating ?? null;
-        const phone = properties.phone ?? null;
-        const website = properties.website ?? null;
+        if (selectedPoi && selectedPoi === properties.id) return null;
+
+        const { html, count } = renderPoiSidebarItem(properties);
 
         return {
           html: /*html*/ `<div
             id="poi-content-item"
+            data-poi-id="${properties.id}"
             aria-hidden="true"
-            aria-disabled="true"
-            class="bg-black/70 p-4 aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 mb-4 w-full shadow-[rgba(209,_214,_225,.3)_0px_5px_15px] rounded-md flex group transition-all duration-300  ease-in flex-col gap-2 *:text-white-400"
+            aria-disabled=${initial ? 'true' : 'false'}
+            class="bg-black/70 p-4 aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 mb-4 w-full  shadow-[0px_0px_2px_1px_white,_0px_0px_2px_1px_white] rounded-md flex group transition-all duration-300  ease-in flex-col gap-2 *:text-white-400"
           >
-            <span
-            id="content-expand"
-
-              class="cursor-pointer gap-1 flex items-baseline"
-            >
-              <div
-                class="w-6 h-6 flex-shrink-0 relative right-2 justify-center items-center inline-flex text-white-300"
-                role="button"
-              >
-                <i class="fa-solid fa-caret-right relative text-lg"></i>
-              </div>
-              <h3
-                class="font-title text-lg group-aria-hidden:truncate transition-all duration-1000 font-medium inline -ml-3"
-                title="${name}"
-                aria-labelledby="${name}"
-              >
-                ${name}
-              </h3>
-            </span>
-            <div class="ml-4 flex max-w-full flex-col gap-2">
-              ${
-                place
-                  ? `<div
-                    title="${place}"
-                    aria-labelledby="${place}"
-                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-location-dot text-xs"></i>
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${place}</p>
-                  </div>`
-                  : ``
-              }
-              ${
-                rating
-                  ? `<div
-                    title="Rating: ${rating} stars"
-                    aria-labelledby="Rating ${rating} stars"
-                    class="font-sans flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-star text-[#ffd700] text-xs"></i>${rating}
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${rating}</p>
-                    
-                  </div>`
-                  : ``
-              }
-              ${
-                openingHours
-                  ? `<div
-                    title="${openingHours}"
-                    aria-labelledby="${openingHours}"
-                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-clock text-xs"></i>
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${openingHours}</p>
-                  </div>`
-                  : ``
-              }
-              ${
-                phone
-                  ? `<div
-                    title="Phone number: ${phone}"
-                    aria-labelledby="Phone number: ${phone}"
-                    class="font-sans flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-phone text-xs"></i>
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${phone}</p>
-                  </div>`
-                  : ``
-              }
-              ${
-                email
-                  ? `<div
-                    title="Email address: ${email}"
-                    aria-labelledby="Email address: ${email}"
-                    class="font-sans flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-envelope text-xs"></i>
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${email}</p>
-                  </div>`
-                  : ``
-              }
-              ${
-                website
-                  ? `<div
-                    title="${website}"
-                    aria-labelledby="${website}"
-                    class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
-                  >
-                    <i class="fa-solid fa-wifi text-xs"></i>
-                    <p class="[word-break:break-word] group-aria-hidden:truncate">${website}</p>
-                  </div>`
-                  : ``
-              }
-            </div>
-          </div>
+            ${html}
         </div>`,
-          count: [email, openingHours, place, rating, phone, website].filter(
-            (val) => val !== null
-          ).length,
+          count,
         };
       })
+      .filter((poi) => poi)
       .sort((a, b) => b.count - a.count)
       .map((item) => item.html);
 
@@ -637,27 +558,171 @@ function addPoisToSidebar() {
 
     $('#content-subtitle-container').removeClass('invisible');
 
-    $('#content-subtitle').text(`${poiElements.length} results`);
+    $('#content-subtitle').text(`${currentPois.length} results`);
 
-    if (currentPoiCategory !== 'default') {
-      $('#content-subtitle-extra')
-        .append(/*html*/ `<div id='continue-search' title="Continue search when map moves"
-            role="button"
-            aria-label="Continue search when map moves"
-            aria-disabled="${
-              pausingPoiSearch ? 'true' : 'false'
-            }" class='flex items-center h-7 w-7 justify-center border-2 rounded-md border-red-600/60 bg-gradient-to-r from-blue-300 aria-disabled:border-white-600 border-white-600 via-purple-500 to-pink-500 group'>
-            <i
-            class="fa-solid fa-expand group-aria-disabled/button:text-slate-800 text-white-300"
-          ></i>
-          </div>
-        `);
+    if (initial) {
+      setTimeout(() => {
+        $('[id="poi-content-item"]').attr('aria-disabled', 'false');
+      }, 50);
     }
-
-    setTimeout(() => {
-      $('[id="poi-content-item"]').attr('aria-disabled', 'false');
-    }, 50);
   }
+}
+
+let selectedPoiTimer;
+
+function changeSelectedSidebarPoi(enabled) {
+  clearTimeout(selectedPoiTimer);
+
+  const { properties } = currentPois.find(
+    ({ properties }) => properties.id === selectedPoi
+  );
+
+  $('#content-container').animate({ scrollTop: 0 }, 500);
+
+  const alreadyExists =
+    $('#content-chosen').find(`[data-poi-id="${properties.id}"]`).length > 0;
+
+  if (enabled && !alreadyExists) {
+    $('#content-results').find(`[data-poi-id="${properties.id}"]`).remove();
+
+    const { html } = renderPoiSidebarItem(properties);
+
+    $('#content-chosen').empty();
+    $('#content-chosen').attr('aria-disabled', 'false');
+
+    $('#content-chosen').append(/*html*/ `<div
+            id="poi-chosen"
+            data-poi-id="${properties.id}"
+            aria-hidden="true"
+            aria-disabled="true"
+            class="bg-black/70 p-4 aria-disabled:opacity-0 aria-disabled:-translate-x-2 translate-x-0 opacity-100 w-full shadow-[0px_0px_20px_1px_white,_-0px_-0px_0px_1px_white] rounded-md flex group transition-all duration-300 ease-in flex-col gap-2 *:text-white-400"
+          >
+            ${html} 
+        </div>`);
+
+    selectedPoiTimer = setTimeout(() => {
+      $('#poi-chosen').attr('aria-disabled', 'false');
+      $('#content-chosen').attr('aria-hidden', 'false');
+    }, 50);
+  } else {
+    $('#content-chosen').empty();
+    $('#content-chosen').attr('aria-disabled', 'true');
+  }
+}
+
+function renderPoiSidebarItem(properties) {
+  const name = properties.name ?? properties.name_preferred ?? 'Unknown';
+  const email = properties.email ?? null;
+  const openingHours = properties.opening_hours ?? null;
+  const place = properties.place_formatted ?? null;
+  const rating = properties.rating ?? null;
+  const phone = properties.phone ?? null;
+  const website = properties.website ?? null;
+
+  return /*html*/ {
+    html: `<span
+    id="content-expand"
+    class="cursor-pointer gap-1 flex relative items-baseline"
+  >
+    <div id='pin-poi' title='Mark on map'
+    aria-label='Mark on map'
+    role='button' class='absolute z-50 w-7 rounded-md -right-1 text-center border-white-600 border-[1.5px]'>
+      <i class="fa-solid fa-thumbtack text-green-700"></i>
+    </div>
+    <div
+      class="w-6 h-6 flex-shrink-0 relative right-2 justify-center items-center inline-flex text-white-300"
+      role="button"
+    >
+      <i class="fa-solid fa-caret-right relative text-lg"></i>
+    </div>
+    <h3
+      class="font-title text-lg max-w-52 lg:group-aria-hidden:max-w-[265px] group-aria-hidden:truncate transition-all duration-1000 font-medium inline -ml-3"
+      title="${name}"
+      aria-label="${name}"
+    >
+      ${name}
+    </h3>
+  </span>
+  <div class="ml-4 flex max-w-full flex-col gap-2">
+    ${
+      place
+        ? `<div
+          title="${place}"
+          aria-label="${place}"
+          class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-location-dot text-xs"></i>
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${place}</p>
+        </div>`
+        : ``
+    }
+    ${
+      rating
+        ? `<div
+          title="Rating: ${rating} stars"
+          aria-label="Rating ${rating} stars"
+          class="font-sans flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-star text-[#ffd700] text-xs"></i>${rating}
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${rating}</p>
+          
+        </div>`
+        : ``
+    }
+    ${
+      openingHours
+        ? `<div
+          title="${openingHours}"
+          aria-label="${openingHours}"
+          class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-clock text-xs"></i>
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${openingHours}</p>
+        </div>`
+        : ``
+    }
+    ${
+      phone
+        ? `<div
+          title="Phone number: ${phone}"
+          aria-label="Phone number: ${phone}"
+          class="font-sans flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-phone text-xs"></i>
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${phone}</p>
+        </div>`
+        : ``
+    }
+    ${
+      email
+        ? `<div
+          title="Email address: ${email}"
+          aria-label="Email address: ${email}"
+          class="font-sans flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-envelope text-xs"></i>
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${email}</p>
+        </div>`
+        : ``
+    }
+    ${
+      website
+        ? `<div
+          title="${website}"
+          aria-label="${website}"
+          class="font-sans group-aria-hidden:truncate flex items-baseline gap-2"
+        >
+          <i class="fa-solid fa-wifi text-xs"></i>
+          <p class="[word-break:break-word] group-aria-hidden:truncate">${website}</p>
+        </div>`
+        : ``
+    }
+  </div>
+</div>`,
+    count: [email, openingHours, place, rating, phone, website].filter(
+      (val) => val !== null
+    ).length,
+  };
 }
 
 function pausingPoiSearch(paused) {
@@ -672,6 +737,31 @@ function pausingPoiSearch(paused) {
     $('#continue-search').attr('aria-disabled', 'false');
     $('#continue-search-map').attr('aria-disabled', 'false');
   }
+}
+
+function renderSearchResult(result) {
+  return /*html*/ `<div
+      role="button"
+      title="Mark result on map"
+      aria-label="Mark result on map"
+      class="flex gap-4 items-center group mb-3 p-2 rounded-md border-2 odd:border-purple-500 even:border-white-50 odd:bg-black/50 even:bg-purple-700/50"
+    >
+      <i
+        class="fa-solid fa-location-dot text-lg group-odd:text-purple-500 group-even:text-white-50"
+      ></i>
+      <div class="max-w-56 w-full">
+        <span
+          class="text-xl mr-1 font-title font-bold text-white-50"
+        >
+          West,
+        </span>
+        <span
+          class="font-sans font-semibold text-white-300 text-lg"
+        >
+          Amsterdam, North Holland, Netherlands
+        </span>
+      </div>
+    </div>`;
 }
 
 function addMarkersSourceAndLayer(features) {
@@ -848,7 +938,7 @@ async function getSearchResults(value) {
     mostRecentLocation.latitude &&
     mostRecentLocation.longitude
   ) {
-    proximity = `${mostRecentLocation.latitude},${mostRecentLocation.longitude}`;
+    proximity = `${mostRecentLocation.longitude},${mostRecentLocation.latitude}`;
   }
 
   try {
@@ -857,6 +947,8 @@ async function getSearchResults(value) {
       method: 'GET',
       dataType: 'json',
     });
+
+    console.log(data);
 
     searchTerm = value;
 

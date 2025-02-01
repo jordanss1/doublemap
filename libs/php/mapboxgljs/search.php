@@ -30,6 +30,7 @@
             
             $url = "https://api.mapbox.com/search/searchbox/v1/forward?q=$query&limit=$limit&auto_complete=true$proximity&access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
+
             $response = fetchApiCall($url, true);
             
             incrementRequestCount('search');

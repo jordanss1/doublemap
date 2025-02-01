@@ -42,8 +42,14 @@
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
             $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
             
             if ($response === false) throw new Error("Problem retrieving data: " . curl_error($ch) . "url: $url");
+    
+            if ($httpCode !== 200) {
+                throw new Exception("Mapbox API error (HTTP $httpCode): $response");
+            }
 
             return $response;
         } catch (Exception $e) {
@@ -52,7 +58,7 @@
 
             if ($endOnError) {
                 http_response_code(500);
-                echo json_encode($errorResponse);
+                echo json_encode([$errorResponse, $url]);
                 exit;
             }
 

@@ -70,7 +70,7 @@ mapPromise.then((map) => {
     }
   });
 
-  let timeout;
+  let moveTimer;
 
   map.on('move', async () => {
     if (historyMode || pausePoiSearch) return;
@@ -80,13 +80,13 @@ mapPromise.then((map) => {
     const currentPoiLayer =
       currentPoiCategory === 'default' ? 'default-pois' : 'chosen-pois';
 
-    clearTimeout(timeout);
+    clearTimeout(moveTimer);
 
     if (
       (currentPoiLayer === 'default-pois' && zoom >= 9) ||
       currentPoiLayer === 'chosen-pois'
     ) {
-      timeout = setTimeout(async () => {
+      moveTimer = setTimeout(async () => {
         const bounds = map.getBounds();
 
         await appendLocationToCategoryOption();
@@ -182,14 +182,6 @@ mapPromise.then((map) => {
   map.on('click', ['chosen-pois', 'default-pois'], (e) => {
     if (disableAllButtons) return;
 
-    let newId = e.features[0].properties.id;
-
-    expandSidebar(true);
-
-    const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
-
-    pausingPoiSearch(true);
-
     flyToDelayed({
       center: [e.lngLat.lng, e.lngLat.lat],
       speed: 0.5,
@@ -198,7 +190,19 @@ mapPromise.then((map) => {
       duration: 2000,
     });
 
+    let newId = e.features[0].properties.id;
+
     if (selectedPoi === newId) return;
+
+    $('#content-chosen').attr('aria-hidden', 'true');
+
+    clearTimeout(timeout);
+
+    expandSidebar(true);
+
+    const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
+
+    pausingPoiSearch(true);
 
     selectedPoi = e.features[0].properties.id;
 
@@ -216,9 +220,18 @@ mapPromise.then((map) => {
       .find((cate) => poi.properties.canonical_id === cate.canonical_id)
       .name.toLowerCase();
 
+    changeSelectedSidebarPoi(true);
+
     if (currentPoiCategory === 'default') {
       poiType = 'points of interest';
-      addPoisToSidebar();
+
+      const initial = $('#content-title').text() !== 'Points of Interest';
+
+      addPoisToSidebar(initial);
+    }
+
+    if (currentPoiCategory !== 'default') {
+      addPoisToSidebar(false);
     }
 
     let title = `Exit selected ${poiType}`;
@@ -441,6 +454,8 @@ mapPromise.then((map) => {
 
       addMarkersSourceAndLayer([]);
 
+      changeSelectedSidebarPoi(false);
+
       if (currentPoiCategory === 'default') {
         clearSidebarContent();
         pausingPoiSearch(false);
@@ -596,13 +611,27 @@ mapPromise.then((map) => {
   });
 });
 
-$('#continue-search-map').on('click', () => {
+$('#continue-search-map').on('click', async () => {
   if (disableAllButtons || historyMode) return;
+
+  const zoom = map.getZoom();
 
   if (pausePoiSearch) {
     pausingPoiSearch(false);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom - 0.5,
+      duration: 1000,
+    });
   } else {
     pausingPoiSearch(true);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom + 0.5,
+      duration: 1000,
+    });
   }
 });
 
@@ -626,6 +655,7 @@ let previousFog;
 
 async function changeHistoryMode(map, enabled) {
   clearTimeout(timeout);
+  clearTimeout(moveTimer);
 
   const zoom = map.getZoom();
   const { lng, lat } = map.getCenter();
@@ -680,11 +710,16 @@ async function changeHistoryMode(map, enabled) {
           });
         }
 
+        clearSidebarContent();
+        changeSelectedSidebarPoi(false);
+
+        pausingPoiSearch(true);
+
         map.filterByDate('2013-01-01');
         await applyCountryLayers();
         applyHistoryStyles();
 
-        timeout = setTimeout(() => {
+        setTimeout(() => {
           applyHistoryHtml(enabled);
           disableMapInteraction(false);
         }, 2000);
@@ -699,7 +734,6 @@ async function changeHistoryMode(map, enabled) {
       currentPois = [];
       currentMarker = null;
       selectedPoi = null;
-      pausingPoiSearch(true);
     }
   } else {
     expandSidebar(false);
@@ -729,13 +763,17 @@ async function changeHistoryMode(map, enabled) {
         historyMode = false;
         localStorage.setItem('historyMode', JSON.stringify(false));
 
-        timeout = setTimeout(() => {
+        setTimeout(() => {
           applyHistoryHtml(enabled);
           disableMapInteraction(false);
         }, 1500);
 
+        clearSidebarContent();
+        changeSelectedSidebarPoi(false);
+
         map.setLayoutProperty('default-pois', 'visibility', 'visible');
         currentPoiCategory = 'default';
+        pausingPoiSearch(false);
       });
     } catch (err) {
       console.log(err);
