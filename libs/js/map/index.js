@@ -28,6 +28,7 @@ let hoveredCountryId = null;
 let chosenCountryISO = null;
 let pausePoiSearch = false;
 let selectedPoi;
+let selectedSearch;
 let currentMarker = null;
 let disableAllButtons = false;
 
@@ -40,6 +41,12 @@ let categoryPanelButtons = [
   '#coffee-button',
   '#park-button',
 ];
+
+let countryPopup = new mapboxgl.Popup({
+  closeButton: false,
+  closeOnClick: false,
+  className: `country_popup lg:!max-w-xl md:!max-w-lg sm:!max-w-md !w-full`,
+});
 
 let tokenCache = {
   token: null,
@@ -150,6 +157,47 @@ const initialiseMap = () => {
       showBigError("Can't load map", details);
       reject('Token could not be retrieved');
     }
+  });
+};
+
+const createModernCountryPopup = (countryInfo) => {
+  const { restCountries, geonames } = countryInfo;
+  const { flags, name } = restCountries;
+
+  console.log(restCountries);
+  console.log(geonames);
+
+  countryPopup
+    .setLngLat(restCountries.latlng.reverse())
+    .setHTML(
+      /*html*/ `<div class='grid grid-cols-[max-content_auto] gap-2'>
+              <div class='flex'>
+               <img src="${flags.svg ?? flags.png}" alt="${
+        flags.alt
+      }" class='w-44'>
+              </div>
+              <div class='flex flex-col gap-2'>
+                <div id='country-name-button' role='button'  aria-hidden='true' class='grid grid-cols-[max-content_auto] items-baseline gap-2 group/button'>
+                  <div class='group/toggle h-full'>
+                    <i class="fa-solid fa-toggle-off cursor-pointer group-hover/button:text-white-50 group-hover/toggle:text-white-50 text-white-600 text-xl"></i>
+                  </div>
+                  <div>
+                    <h3 id='name-common' class="text-2xl relative group-aria-hidden/button:visible font-title group-active/button:translate-x-2 delay-75 translate-x-0 transition-all duration-200 ease-in-out font-extrabold"
+                    >${name.common}</h3>
+                    <h3 id='name-official' class="text-2xl group-aria-hidden/button:absolute relative group-aria-hidden/button:invisible font-title group-active/button:translate-x-2 delay-75 translate-x-0 transition-all duration-200 ease-in-out font-extrabold"
+                    >${name.official}</h3>
+                  </div>
+                </div>
+                <p>Population: hi</p>
+                <p>Capital: hi</p>
+              </div>
+            </div>
+`
+    )
+    .addTo(map);
+
+  $('#country-name-button').on('click', function () {
+    console.log('click');
   });
 };
 

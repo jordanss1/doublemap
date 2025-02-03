@@ -73,6 +73,7 @@ mapPromise.then((map) => {
   let moveTimer;
 
   map.on('move', async () => {
+    console.log(pausePoiSearch);
     if (historyMode || pausePoiSearch) return;
 
     const zoom = map.getZoom();
@@ -157,25 +158,29 @@ mapPromise.then((map) => {
 
     disableAllButtons = true;
     changePanelSpinners(true);
+    expandSidebar(false);
 
     const iso_a2 = e.features[0].properties.iso_a2;
+    let historyInfo;
 
-    try {
-      if (historyMode) {
-        await getHistoryOfCountry(e.features[0].properties.name);
+    if (historyMode) {
+      try {
+        historyInfo = await getHistoryOfCountry(e.features[0].properties.name);
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
     }
 
     try {
-      await getCountryDataAndFitBounds(iso_a2);
+      const countryInfo = await getCountryDataAndFitBounds(iso_a2);
+
+      createModernCountryPopup(countryInfo);
     } catch (err) {
       console.log(err);
     } finally {
       disableAllButtons = false;
+      changePanelSpinners(false);
       updateChosenCountryState(iso_a2);
-      // changePanelSpinners(false);
     }
   });
 
@@ -205,6 +210,7 @@ mapPromise.then((map) => {
     pausingPoiSearch(true);
 
     selectedPoi = e.features[0].properties.id;
+    selectedSearch = null;
 
     const poi = currentPois.find((poi) => poi.properties.id === newId);
 
@@ -220,7 +226,7 @@ mapPromise.then((map) => {
       .find((cate) => poi.properties.canonical_id === cate.canonical_id)
       .name.toLowerCase();
 
-    changeSelectedSidebarPoi(true);
+    changeSelectedSidebarItem(true, 'poi', poi);
 
     if (currentPoiCategory === 'default') {
       poiType = 'points of interest';
@@ -311,6 +317,7 @@ mapPromise.then((map) => {
   });
 
   $('#zoom-in').on('click', () => {
+    console.log(disableAllButtons);
     if (disableAllButtons) return;
 
     if (chosenCountryISO) {
@@ -332,6 +339,8 @@ mapPromise.then((map) => {
 
     map.easeTo({ zoom: currentZoom - 0.3 });
   });
+
+ 
 
   $('#history-control').on('click', async () => {
     if (disableAllButtons) return;
@@ -435,6 +444,7 @@ mapPromise.then((map) => {
     if (disableAllButtons) return;
 
     if (chosenCountryISO) {
+      clearSidebarContent();
       currentPoiCategory = 'default';
 
       updateChosenCountryState();
@@ -450,15 +460,22 @@ mapPromise.then((map) => {
 
     if (currentMarker) {
       currentMarker = null;
-      selectedPoi = null;
-
       addMarkersSourceAndLayer([]);
+      changeSelectedSidebarItem(false);
+      selectedPoi = null;
+      selectedSearch = null;
 
-      changeSelectedSidebarPoi(false);
-
-      if (currentPoiCategory === 'default') {
+      if (
+        currentPoiCategory === 'default' &&
+        !$('#content-results').find('#search-content-item').length
+      ) {
         clearSidebarContent();
         pausingPoiSearch(false);
+
+        if (searchResults.length) {
+          appendSearchResults(searchResults);
+        }
+
         changeExitButton(true);
       }
 
@@ -473,6 +490,7 @@ mapPromise.then((map) => {
 
     if (currentPoiCategory !== 'default') {
       currentPoiCategory = 'default';
+      changeExitButton(true);
 
       map.flyTo({
         speed: 0.5,
@@ -480,7 +498,13 @@ mapPromise.then((map) => {
         duration: 1000,
       });
 
+      clearSidebarContent();
+
       addPoiSourceAndLayer([], 'default-pois');
+
+      if (searchResults.length) {
+        appendSearchResults(searchResults);
+      }
       return;
     }
   });
@@ -666,6 +690,8 @@ async function changeHistoryMode(map, enabled) {
   if (enabled) {
     expandSidebar(false);
     disableMapInteraction(true);
+    $('#content-chosen').empty();
+    $('#content-chosen').attr('aria-disabled', 'true');
     changePanelSpinners(false);
     removeAllButtons(true);
     const previousFog = map.getFog();
@@ -711,7 +737,7 @@ async function changeHistoryMode(map, enabled) {
         }
 
         clearSidebarContent();
-        changeSelectedSidebarPoi(false);
+        changeSelectedSidebarItem(false);
 
         pausingPoiSearch(true);
 
@@ -734,9 +760,12 @@ async function changeHistoryMode(map, enabled) {
       currentPois = [];
       currentMarker = null;
       selectedPoi = null;
+      selectedSearch = null;
     }
   } else {
     expandSidebar(false);
+    $('#content-chosen').empty();
+    $('#content-chosen').attr('aria-disabled', 'true');
     disableMapInteraction(true);
     changePanelSpinners(false);
     removeAllButtons(true);
@@ -769,7 +798,7 @@ async function changeHistoryMode(map, enabled) {
         }, 1500);
 
         clearSidebarContent();
-        changeSelectedSidebarPoi(false);
+        changeSelectedSidebarItem(false);
 
         map.setLayoutProperty('default-pois', 'visibility', 'visible');
         currentPoiCategory = 'default';

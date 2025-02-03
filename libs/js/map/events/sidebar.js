@@ -151,6 +151,22 @@ $('#content-chosen').on('click', '#pin-poi', function (e) {
   markPoiFromSidebar(id);
 });
 
+$('#content-results').on('click', '#search-content-item', function (e) {
+  const selectedResult = searchResults.find(
+    (res) => res.properties.mapbox_id === $(this).attr('data-poi-id')
+  );
+
+  markAndPanToSearchResult(selectedResult);
+});
+
+$('#content-chosen').on('click', '#search-chosen', function (e) {
+  const selectedResult = searchResults.find(
+    (res) => res.properties.mapbox_id === $(this).attr('data-poi-id')
+  );
+
+  markAndPanToSearchResult(selectedResult);
+});
+
 const sidebarContainer = $('#left-panel');
 
 const observer = new MutationObserver((mutationsList, observer) => {
@@ -227,7 +243,7 @@ function markPoiFromSidebar(newId) {
     .find((cate) => poi.properties.canonical_id === cate.canonical_id)
     .name.toLowerCase();
 
-  changeSelectedSidebarPoi(true);
+  changeSelectedSidebarItem(true, 'poi', poi);
 
   addPoisToSidebar(false);
 

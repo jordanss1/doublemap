@@ -9,7 +9,10 @@ mapPromise.then((map) => {
         updateChosenCountryState();
       }
 
-      markAndPanToSearchResult(0);
+      $('#search-container-inside').removeClass('outline-3');
+      $('#search-container-inside').addClass('outline-0');
+
+      markAndPanToSearchResult(searchResults[0]);
     }
   };
 
@@ -20,6 +23,20 @@ mapPromise.then((map) => {
 
     if (e.key === 'Enter') {
       performSearch(value);
+    }
+
+    if (e.key === 'Backspace') {
+      let value = e.target.value.slice(0, -1).trim();
+
+      const normalizedValue = value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+
+      if (searchTerm === normalizedValue) {
+        $('#search-button-spinner').attr('aria-disabled', 'true');
+        changePanelSpinners(false);
+      }
     }
   });
 
@@ -61,12 +78,6 @@ mapPromise.then((map) => {
     }
   });
 
-  const searchSpinner = renderSpinner(
-    'bg-black/50 h-full w-full',
-    'h-full w-full absolute z-[30] inset-0 rounded-r-md',
-    'full'
-  );
-
   $('#search').on('input', async (e) => {
     if (disableAllButtons) return;
 
@@ -89,17 +100,24 @@ mapPromise.then((map) => {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
 
-      if (searchTerm !== normalizedValue) {
-        searchTimer = setTimeout(async () => {
-          try {
-            $('#search-button').append(searchSpinner);
-            await getSearchResults(normalizedValue);
-          } catch (err) {
-          } finally {
-            // $('#search-button #spinner').remove();
-          }
-        }, 1500);
+      if (searchTerm === normalizedValue) return;
+
+      $('#search-button-spinner').attr('aria-disabled', 'false');
+
+      if (!$('#content-results').find('#poi-content-item').length) {
+        changePanelSpinners(true);
+        expandSidebar(true);
       }
+
+      searchTimer = setTimeout(async () => {
+        try {
+          await getSearchResults(normalizedValue);
+        } catch (err) {
+        } finally {
+          $('#search-button-spinner').attr('aria-disabled', 'true');
+          changePanelSpinners(false);
+        }
+      }, 1500);
 
       const closestMatch = categorySearchOption(value);
 
@@ -164,9 +182,19 @@ mapPromise.then((map) => {
         $('#search-category').children().remove();
       }
     } else {
+      $('#search-button-spinner').attr('aria-disabled', 'true');
+      changePanelSpinners(false);
+
       $('#search-category').children().remove();
       $('#search-normal').children().remove();
       searchResults = [];
+      searchTerm = '';
+
+      if ($('#content-results').find('#search-content-item').length) {
+        clearSidebarContent();
+        $('#content-chosen').empty();
+        $('#content-chosen').attr('aria-disabled', 'true');
+      }
 
       if (!isPopoutDisabled) {
         $('#search-popout').attr('aria-disabled', 'true');
@@ -310,12 +338,16 @@ mapPromise.then((map) => {
   $('#search-normal').on('click', '#search-normal-item', function (e) {
     if (disableAllButtons) return;
 
-    markAndPanToSearchResult($(this).data('value'));
-    console.log($(this).data('value'));
+    const selectedResult = searchResults[$(this).data('value')];
+
+    $('#search-container-inside').removeClass('outline-3');
+    $('#search-container-inside').addClass('outline-0');
+
+    markAndPanToSearchResult(selectedResult);
   });
 });
 
-function markAndPanToSearchResult(indexInResults) {
+function markAndPanToSearchResult(selectedResult) {
   clearTimeout(locToCategoryTimer);
 
   if (window.innerWidth > 640) {
@@ -324,25 +356,25 @@ function markAndPanToSearchResult(indexInResults) {
 
   currentMarker = null;
   selectedPoi = null;
-  pausingPoiSearch(true);
-
-  $('#search-container-inside').removeClass('outline-3');
-  $('#search-container-inside').addClass('outline-0');
-
-  locToCategoryTimer = setTimeout(() => {
-    appendLocationToCategoryOption(true);
-  }, 3000);
 
   currentPoiCategory = 'default';
 
   addPoiSourceAndLayer([], 'default-pois');
 
-  const { coordinates, feature_type, bbox, context } =
-    searchResults[indexInResults].properties;
+  locToCategoryTimer = setTimeout(() => {
+    appendLocationToCategoryOption(true);
+  }, 3000);
 
-  console.log(searchResults);
+  console.log(selectedResult);
+
+  const { coordinates, feature_type, bbox, context, mapbox_id } =
+    selectedResult.properties;
+
+  selectedSearch = mapbox_id;
 
   const coords = [coordinates.longitude, coordinates.latitude];
+
+  appendSearchResults(searchResults);
 
   if (feature_type === 'country') {
     updateChosenCountryState(context.country.country_code);
@@ -351,9 +383,9 @@ function markAndPanToSearchResult(indexInResults) {
       updateChosenCountryState();
     }
 
-    addMarkersSourceAndLayer([searchResults[indexInResults]]);
+    addMarkersSourceAndLayer([selectedResult]);
 
-    currentMarker = searchResults[indexInResults];
+    currentMarker = selectedResult;
 
     map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
 

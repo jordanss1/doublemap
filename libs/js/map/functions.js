@@ -337,12 +337,8 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
     map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
     map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
 
-    clearSidebarContent();
-
     selectedPoi = null;
     pausingTimer = setTimeout(() => pausingPoiSearch(false), 750);
-
-    changeExitButton(true);
 
     $('#continue-container').attr('aria-disabled', 'true');
 
@@ -371,6 +367,7 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
       });
     }
 
+    selectedSearch = null;
     selectedPoi = null;
     pausingPoiSearch(overridePause ? pausePoiSearch : true);
 
@@ -382,7 +379,10 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
 
     chosenCountryISO = null;
 
+    $('#content-container').animate({ scrollTop: 0 }, 500);
+
     disableMapInteraction(false);
+    changeSelectedSidebarItem(false);
     addPoisToSidebar();
 
     if (window.innerWidth > 640) {
@@ -492,8 +492,10 @@ function arePoisEqual(pois1, pois2) {
 }
 
 function addPoisToSidebar(initial = true) {
-  if (arePoisEqual(currentPois, previousPois)) {
-    console.log('same');
+  if (
+    arePoisEqual(currentPois, previousPois) &&
+    !$('#content-results').find('#search-content-item').length
+  ) {
     return;
   }
 
@@ -543,7 +545,7 @@ function addPoisToSidebar(initial = true) {
             data-poi-id="${properties.id}"
             aria-hidden="true"
             aria-disabled=${initial ? 'true' : 'false'}
-            class="bg-black/70 p-4 aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 mb-4 w-full  shadow-[0px_0px_2px_1px_white,_0px_0px_2px_1px_white] rounded-md flex group transition-all duration-300  ease-in flex-col gap-2 *:text-white-400"
+            class="bg-black/70 p-4 aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 mb-4 w-full  rounded-md flex group transition-all duration-300  ease-in flex-col gap-2  even:border odd:border-2 odd:border-purple-500 even:border-white-50 odd:bg-black/50"
           >
             ${html}
         </div>`,
@@ -568,43 +570,89 @@ function addPoisToSidebar(initial = true) {
   }
 }
 
-let selectedPoiTimer;
+let selectedTimer;
 
-function changeSelectedSidebarPoi(enabled) {
-  clearTimeout(selectedPoiTimer);
+function changeSelectedContainerCSS(type) {
+  if (type === 'poi') {
+    $('#content-chosen')
+      .removeClass('outline-[20px]')
+      .removeClass('mt-8')
+      .removeClass('mb-12')
+      .addClass('outline-[40px]')
+      .addClass('mt-12')
+      .addClass('mb-[4rem]');
+  } else {
+    $('#content-chosen')
+      .removeClass('outline-[40px]')
+      .removeClass('mt-12')
+      .removeClass('mb-[4rem]')
+      .addClass('outline-[20px]')
+      .addClass('mt-8')
+      .addClass('mb-12');
+  }
+}
 
-  const { properties } = currentPois.find(
-    ({ properties }) => properties.id === selectedPoi
-  );
+function changeSelectedSidebarItem(enabled, type, item) {
+  clearTimeout(selectedTimer);
+
+  let id;
+
+  if (item) {
+    id = type === 'poi' ? item.properties.id : item.properties.mapbox_id;
+  }
+
+  if (type) {
+    changeSelectedContainerCSS(type);
+  }
 
   $('#content-container').animate({ scrollTop: 0 }, 500);
 
   const alreadyExists =
-    $('#content-chosen').find(`[data-poi-id="${properties.id}"]`).length > 0;
+    $('#content-chosen').find(`[data-poi-id="${id}"]`).length > 0;
 
   if (enabled && !alreadyExists) {
-    $('#content-results').find(`[data-poi-id="${properties.id}"]`).remove();
-
-    const { html } = renderPoiSidebarItem(properties);
-
     $('#content-chosen').empty();
     $('#content-chosen').attr('aria-disabled', 'false');
 
-    $('#content-chosen').append(/*html*/ `<div
+    if (type === 'poi') {
+      const { html } = renderPoiSidebarItem(item.properties);
+
+      $('#content-chosen').append(/*html*/ `<div
             id="poi-chosen"
-            data-poi-id="${properties.id}"
+            data-poi-id="${id}"
             aria-hidden="true"
             aria-disabled="true"
-            class="bg-black/70 p-4 aria-disabled:opacity-0 aria-disabled:-translate-x-2 translate-x-0 opacity-100 w-full shadow-[0px_0px_20px_1px_white,_-0px_-0px_0px_1px_white] rounded-md flex group transition-all duration-300 ease-in flex-col gap-2 *:text-white-400"
+            class="bg-black/70 p-4 aria-disabled:opacity-0 aria-disabled:-translate-x-2 translate-x-0 opacity-100 w-full shadow-[0px_0px_20px_1px_white,_-0px_-0px_0px_1px_white] rounded-md flex group transition-all border-4 border-blue-500 duration-300 ease-in flex-col gap-2 *:text-white-400"
           >
             ${html} 
         </div>`);
 
-    selectedPoiTimer = setTimeout(() => {
-      $('#poi-chosen').attr('aria-disabled', 'false');
-      $('#content-chosen').attr('aria-hidden', 'false');
-    }, 50);
-  } else {
+      selectedTimer = setTimeout(() => {
+        $('#poi-chosen').attr('aria-disabled', 'false');
+        $('#content-chosen').attr('aria-hidden', 'false');
+      }, 50);
+    } else {
+      const html = renderSearchSidebarItem(item.properties);
+
+      $('#content-chosen').append(/*html*/ `<div
+        role="button"
+        aria-hidden="true" 
+        aria-disabled="true" 
+        id="search-chosen" 
+        data-poi-id="${id}"
+        title="Mark result on map"
+        aria-label="Mark result on map"
+        class="flex gap-4 aria-disabled:opacity-0 shadow-[0px_0px_20px_1px_white,_-0px_-0px_0px_1px_white] aria-disabled:-translate-x-2 translate-x-0 opacity-100 transition-all duration-300 ease-in items-center group p-2 rounded-md border-4 border-blue-500  bg-black/50"
+      >${html}</div>`);
+
+      selectedTimer = setTimeout(() => {
+        $('#search-chosen').attr('aria-disabled', 'false');
+        $('#content-chosen').attr('aria-hidden', 'false');
+      }, 50);
+    }
+  }
+
+  if (!enabled) {
     $('#content-chosen').empty();
     $('#content-chosen').attr('aria-disabled', 'true');
   }
@@ -619,8 +667,8 @@ function renderPoiSidebarItem(properties) {
   const phone = properties.phone ?? null;
   const website = properties.website ?? null;
 
-  return /*html*/ {
-    html: `<span
+  return {
+    html: /*html*/ `<span
     id="content-expand"
     class="cursor-pointer gap-1 flex relative items-baseline"
   >
@@ -636,14 +684,14 @@ function renderPoiSidebarItem(properties) {
       <i class="fa-solid fa-caret-right relative text-lg"></i>
     </div>
     <h3
-      class="font-title text-lg max-w-52 lg:group-aria-hidden:max-w-[265px] group-aria-hidden:truncate transition-all duration-1000 font-medium inline -ml-3"
+      class="font-title text-lg max-w-52 lg:group-aria-hidden:max-w-[265px] group-aria-hidden:truncate text-white-50 transition-all duration-1000 font-medium inline -ml-3"
       title="${name}"
       aria-label="${name}"
     >
       ${name}
     </h3>
   </span>
-  <div class="ml-4 flex max-w-full flex-col gap-2">
+  <div class="ml-4 flex max-w-full *:text-white-50 flex-col gap-2">
     ${
       place
         ? `<div
@@ -739,29 +787,17 @@ function pausingPoiSearch(paused) {
   }
 }
 
-function renderSearchResult(result) {
-  return /*html*/ `<div
-      role="button"
-      title="Mark result on map"
-      aria-label="Mark result on map"
-      class="flex gap-4 items-center group mb-3 p-2 rounded-md border-2 odd:border-purple-500 even:border-white-50 odd:bg-black/50 even:bg-purple-700/50"
-    >
+function renderSearchSidebarItem(properties) {
+  const name = createFeatureNameForResults(properties, false);
+
+  return /*html*/ `
       <i
-        class="fa-solid fa-location-dot text-lg group-odd:text-purple-500 group-even:text-white-50"
+        class="fa-solid fa-location-dot text-lg pl-2 group-odd:text-purple-500 group-even:text-white-50"
       ></i>
       <div class="max-w-56 w-full">
-        <span
-          class="text-xl mr-1 font-title font-bold text-white-50"
-        >
-          West,
-        </span>
-        <span
-          class="font-sans font-semibold text-white-300 text-lg"
-        >
-          Amsterdam, North Holland, Netherlands
-        </span>
+        ${name}
       </div>
-    </div>`;
+    `;
 }
 
 function addMarkersSourceAndLayer(features) {
@@ -959,46 +995,145 @@ async function getSearchResults(value) {
 
       data.forEach((results, i) => {
         searchResults.push(results);
-        const name = createFeatureNameForSearch(results.properties);
+
+        const popoutName = createFeatureNameForResults(
+          results.properties,
+          true
+        );
 
         $('#search-normal').append(
           /*html*/
-          `<div id='search-normal-item' class='flex items-baseline gap-1' data-value=${i}>
-          <i class="fa-solid fa-location-dot text-[10px] text-slate-400"></i>
-          <span class='text-sm truncate'>${name}</span>
+          `<div  id='search-normal-item' class='flex group hover:bg-sky-400
+           px-1 items-baseline gap-1 odd:bg-transparent even:bg-white-200' data-value=${i}>
+          <i class="fa-solid fa-location-dot  group-hover:text-purple-500 text-[10px] text-slate-400"></i>
+          <span class='text-sm truncate group-hover:*:text-white-50'>${popoutName}</span>
           </div>`
         );
       });
+
+      if (!selectedPoi && currentPoiCategory === 'default') {
+        appendSearchResults(data);
+      }
+    } else {
+      // show notification no search results
+      if (!selectedPoi && currentPoiCategory === 'default') {
+        appendSearchResults(data);
+      }
     }
   } catch (err) {
     throw err;
   }
 }
 
-function createFeatureNameForSearch(feature) {
+function appendSearchResults(results) {
+  clearSidebarContent();
+
+  $('#content-chosen').empty();
+
+  const title = `'${searchTerm}'`;
+
+  $('#content-title').text(title);
+
+  $('#content-subtitle-container').removeClass('invisible');
+
+  if (results.length) {
+    if (selectedSearch) {
+      const result = results.find(
+        (res) => res.properties.mapbox_id === selectedSearch
+      );
+
+      changeSelectedSidebarItem(true, 'search', result);
+    }
+
+    const searchElements = results
+      .map((res) => {
+        if (selectedSearch && selectedSearch === res.properties.mapbox_id) {
+          return null;
+        }
+
+        console.log(res);
+
+        const html = renderSearchSidebarItem(res.properties);
+
+        return /*html*/ `<div
+            role="button"
+            aria-disabled='true'
+            id="search-content-item"
+            data-poi-id="${res.properties.mapbox_id}"
+            title="Mark result on map"
+            aria-label="Mark result on map"
+            class="flex gap-4 transition-all duration-300  ease-in aria-disabled:scale-75 aria-disabled:opacity-0 scale-100 opacity-100 items-center group mb-3 p-2 rounded-md border-2 odd:border-purple-500 even:border-white-50 bg-black/50"
+          >
+          ${html}
+          </div>`;
+      })
+      .filter((item) => item);
+
+    $('#content-results').append(searchElements);
+
+    $('#content-subtitle').text(`${searchResults.length} results`);
+
+    setTimeout(() => {
+      $('[id="search-content-item"]').attr('aria-disabled', 'false');
+    }, 50);
+  } else {
+    $('#content-subtitle').text(`0 results`);
+  }
+}
+
+function createFeatureNameForResults(feature, popout) {
   const { name, feature_type, full_address, place_formatted, name_preferred } =
     feature;
 
+  let title;
+  let subtitle;
+
+  if (popout) {
+    title = 'text-sm';
+    subtitle = 'text-white-900 text-[13px]';
+  } else {
+    title = 'text-xl mr-1 font-title font-bold text-white-50';
+    subtitle = 'font-sans font-semibold text-white-300 text-lg';
+  }
+
   if (feature_type === 'poi') {
-    return /*html*/ `<span class='text-sm'>${name}, </span><span class='text-white-900 text-[13px]'>${full_address}</span>`;
+    return /*html*/ `<span class='${title}'>${name}, </span><span class='${subtitle}'>${full_address}</span>`;
   } else if (feature_type === 'address') {
-    return full_address;
+    if (popout) {
+      return full_address;
+    } else {
+      return /*html*/ `<span class='${subtitle}'>
+      ${full_address}
+    </span>`;
+    }
   } else if (
     feature_type === 'street' ||
     feature_type === 'place' ||
     feature_type === 'locality'
   ) {
-    return /*html*/ `<span class='text-sm'>${
+    return /*html*/ `<span class='${title}'>${
       name_preferred || name
-    }, </span><span class='text-white-900 text-[13px]'>${place_formatted}</span>`;
+    }, </span><span class='${subtitle}'>${place_formatted}</span>`;
   } else if (feature_type === 'country') {
-    return name;
+    if (popout) {
+      return name;
+    } else {
+      return /*html*/ `<span class='${subtitle}'>
+      ${name}
+    </span>`;
+    }
   } else if (feature_type === 'region' || feature_type === 'district') {
-    return /*html*/ `<span class='text-sm'>${name}, </span><span class='text-white-900 text-[13px]'>${
+    return /*html*/ `<span class='${title}'>${name}, </span><span class='${subtitle}'>${
       place_formatted || name_preferred
     }</span>`;
   } else {
-    return /*html*/ `${place_formatted || name_preferred}`;
+    if (popout) {
+      return `${place_formatted || name_preferred}`;
+    } else {
+      return /*html*/ `<span class='${subtitle}'>
+      ${place_formatted || name_preferred}
+    </span>`;
+    }
   }
 }
 
@@ -1016,13 +1151,22 @@ async function getHistoryOfCountry(country) {
   }
 }
 
-function flyToPromise(options) {
+async function flyToPromise(options) {
   return new Promise((resolve) => {
     map.once('moveend', () => {
       resolve();
     });
 
     map.flyTo(options);
+  });
+}
+async function fitBoundsPromise(options) {
+  return new Promise((resolve) => {
+    map.once('moveend', () => {
+      resolve();
+    });
+
+    map.fitBounds(options);
   });
 }
 

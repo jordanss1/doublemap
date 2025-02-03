@@ -28,7 +28,7 @@
             $proximity = isset($queriesFormatted['proximity']) ? "&proximity={$queriesFormatted['proximity']}" : "";
             $limit = isset($queriesFormatted['limit']) ? $queriesFormatted['limit'] : 10;
             
-            $url = "https://api.mapbox.com/search/searchbox/v1/forward?q=$query&limit=$limit&auto_complete=true$proximity&access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
+            $url = "https://api.mapbox.com/search/searchbox/v1/forward?q=$query&limit=$limit&$proximity&access_token={$_ENV['MAPBOX_TOKEN_DEFAULT']}";
 
 
             $response = fetchApiCall($url, true);

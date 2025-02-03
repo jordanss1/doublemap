@@ -413,53 +413,7 @@
                 aria-hidden="true"
                 class="outline-[40px] aria-hidden:opacity-0 opacity-100 outline aria-disabled:invisible visible aria-disabled:outline-blue-300/0 outline-blue-400/30 transition-all ease-in-out duration-500 aria-disabled:my-0 mt-12 mb-[4rem]"
               ></div>
-              <div id="content-results" class="pb-24">
-                
-                <div
-                  role="button"
-                  title="Mark result on map"
-                  aria-label="Mark result on map"
-                  class="flex gap-4 items-center group mb-3 p-2 rounded-md border-2 odd:border-purple-500 even:border-white-50 odd:bg-black/50 even:bg-purple-700/50"
-                >
-                  <i
-                    class="fa-solid fa-location-dot text-lg group-odd:text-purple-500 group-even:text-white-50"
-                  ></i>
-                  <div class="max-w-56 w-full">
-                    <span
-                      class="text-xl mr-1 font-title font-bold text-white-50"
-                    >
-                      West,
-                    </span>
-                    <span
-                      class="font-sans font-semibold text-white-300 text-lg"
-                    >
-                      Amsterdam, North Holland, Netherlands
-                    </span>
-                  </div>
-                </div>
-                <div
-                  role="button"
-                  title="Mark result on map"
-                  aria-label="Mark result on map"
-                  class="flex gap-4 items-center mb-3 group p-2 rounded-md border-2 odd:border-purple-500 even:border-white-50 odd:bg-black/50 even:bg-purple-700/50"
-                >
-                  <i
-                    class="fa-solid fa-location-dot text-lg group-odd:text-purple-500 group-even:text-white-50"
-                  ></i>
-                  <div class="max-w-56 w-full">
-                    <span
-                      class="text-xl mr-1 font-title font-bold text-white-50"
-                    >
-                      West,
-                    </span>
-                    <span
-                      class="font-sans font-semibold text-white-300 text-lg"
-                    >
-                      Amsterdam, North Holland, Netherlands
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <div id="content-results" class="pb-24"></div>
             </div>
           </div>
           <div
@@ -516,6 +470,15 @@
                   <i
                     class="fa-solid fa-magnifying-glass group-aria-expanded/search-container:group-active:scale-95 md:group-active:scale-95 text-xs text-slate-800 group-aria-expanded/search-container:text-white-100 md:text-white-100"
                   ></i>
+                  <div
+                    id="search-button-spinner"
+                    aria-disabled="true"
+                    class="aria-disabled:opacity-0 w-full aria-disabled:translate-x-2 translate-x-0 rounded-md md:rounded-l-none group-aria-expanded/search-container:rounded-r-md group-aria-expanded/search-container:rounded-l-none md:rounded-r-md opacity-100 absolute inset-0 flex justify-end group bg-black/80 p-1 transition-all duration-150 ease-in"
+                  >
+                    <div
+                      class="border-4 rounded-full w-full border-slate-400 border-t-white-300 animate-spin"
+                    ></div>
+                  </div>
                 </div>
               </div>
               <div
@@ -529,7 +492,7 @@
                 ></div>
                 <div
                   id="search-normal"
-                  class="w-full *:font-sans *:text-sm *:select-none *:cursor-default *:truncate whitespace-nowrap"
+                  class="w-full *:font-sans *:text-sm *:select-none *:cursor-pointer *:truncate whitespace-nowrap"
                 ></div>
               </div>
             </div>

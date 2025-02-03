@@ -124,12 +124,6 @@ async function getCountryDataAndFitBounds(iso_a2) {
     map.fitBounds(bbox, {
       speed: 0.5,
       curve: 2,
-      padding: {
-        right: 50,
-        top: 50,
-        bottom: 50,
-        left: 80,
-      },
       maxZoom: 8,
       duration: 2500,
     });

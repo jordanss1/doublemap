@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 @layer utilities {
-  /* For Webkit browsers */
+  .country_popup .mapboxgl-popup-content {
+    @apply !bg-black !max-w-2xl w-full !text-white-50 !p-2 !rounded-md;
+  }
+
   input[type='range'] {
     @apply appearance-none;
   }
@@ -18,7 +21,6 @@
     @apply bg-[--color-thumb,#80b8ff] border border-white-300;
   }
 
-  /* For Firefox */
   input[type='range']::-moz-range-track {
     @apply h-[--active-height,8px] scale-[--scale-track,1]   transition-all duration-100 delay-100  ease-out  rounded-md;
     background: var(--track-color);
@@ -31,7 +33,6 @@
     @apply bg-[--color-thumb,#80b8ff] border border-white-300;
   }
 
-  /* For Internet Explorer */
   input[type='range']::-ms-track {
     @apply h-[--active-height,8px] scale-[--scale-track,1] from-[--from-track] via-[--via-track] to-[--to-track] transition-all duration-100 delay-100  ease-out bg-[--track-color,rgb(209,214,225)] rounded-md;
     border-color: transparent;
