@@ -4,7 +4,7 @@
 
 @layer utilities {
   .country_popup .mapboxgl-popup-content {
-    @apply !bg-black !max-w-2xl w-full !text-white-50 !p-2 !rounded-md;
+    @apply !bg-[conic-gradient(from_15deg_at_82%_10%,#a100ff_0_7%,#4d9cff_26%,#5c2970_26%_32%,_#0000_30%_100%),_linear-gradient(to_left,_black_45%,_#22062d_75%)] !max-w-2xl w-full !text-white-50 !p-2 !shadow-[0px_0px_20px_rgba(100,100,100)_inset,0px_0px_10px_#fff5_!important] !rounded-md;
   }
 
   input[type='range'] {
