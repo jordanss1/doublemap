@@ -1,5 +1,7 @@
 /// <reference path="../../jquery.js" />
 
+let moveTimer;
+
 mapPromise.then((map) => {
   map.on('error', async (e) => {
     if (
@@ -21,8 +23,18 @@ mapPromise.then((map) => {
     if ($('#left-panel').attr('aria-expanded') === 'true') {
       if (window.innerWidth >= 1024) {
         map.setPadding({ left: 464 });
-      } else {
+      } else if (window.innerWidth >= 424) {
         map.setPadding({ left: 420 });
+      } else if (window.innerWidth <= 424) {
+        map.setPadding({ left: 0 });
+      }
+    }
+
+    if (window.innerWidth <= 424) {
+      if ($('#left-panel').attr('aria-hidden') === 'true') {
+        map.setPadding({ left: 0 });
+      } else {
+        map.setPadding({ left: 80 });
       }
     }
 
@@ -70,10 +82,7 @@ mapPromise.then((map) => {
     }
   });
 
-  let moveTimer;
-
   map.on('move', async () => {
-    console.log(pausePoiSearch);
     if (historyMode || pausePoiSearch) return;
 
     const zoom = map.getZoom();
@@ -158,6 +167,7 @@ mapPromise.then((map) => {
 
     disableAllButtons = true;
     changePanelSpinners(true);
+    disableMapInteraction(true);
     expandSidebar(false);
 
     const iso_a2 = e.features[0].properties.iso_a2;
@@ -172,15 +182,22 @@ mapPromise.then((map) => {
     }
 
     try {
+      updateChosenCountryState(iso_a2);
+
       const countryInfo = await getCountryDataAndFitBounds(iso_a2);
 
-      createModernCountryPopup(countryInfo);
+      if (historyMode) {
+        createHistoryCountryPopup(historyInfo);
+      } else {
+        createModernCountryPopup(countryInfo);
+      }
     } catch (err) {
-      console.log(err);
+      updateChosenCountryState();
+      disableMapInteraction(false);
+      addErrorToMap('Error retrieving country details');
     } finally {
       disableAllButtons = false;
       changePanelSpinners(false);
-      updateChosenCountryState(iso_a2);
     }
   });
 
@@ -339,8 +356,6 @@ mapPromise.then((map) => {
 
     map.easeTo({ zoom: currentZoom - 0.3 });
   });
-
- 
 
   $('#history-control').on('click', async () => {
     if (disableAllButtons) return;
@@ -529,48 +544,89 @@ mapPromise.then((map) => {
     $('#country-select-list').attr('aria-disabled', selectListStatus);
   });
 
+  map.on('click', 'hovered-country-fill', async (e) => {
+    if (disableAllButtons) return;
+
+    disableAllButtons = true;
+    changePanelSpinners(true);
+    disableMapInteraction(true);
+    expandSidebar(false);
+
+    if (chosenCountryISO) {
+      updateChosenCountryState();
+    }
+
+    const iso_a2 = e.features[0].properties.iso_a2;
+    let historyInfo;
+
+    if (historyMode) {
+      try {
+        historyInfo = await getHistoryOfCountry(e.features[0].properties.name);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    try {
+      updateChosenCountryState(iso_a2);
+
+      const countryInfo = await getCountryDataAndFitBounds(iso_a2);
+
+      createModernCountryPopup(countryInfo);
+    } catch (err) {
+      console.log(err);
+      updateChosenCountryState();
+      disableMapInteraction(false);
+    } finally {
+      disableAllButtons = false;
+      changePanelSpinners(false);
+    }
+  });
+
   $('#country-select-list').on(
     'click',
     '#country-list-option',
     async ({ target }) => {
       if (disableAllButtons) return;
 
-      changePanelSpinners(true);
       disableAllButtons = true;
+      changePanelSpinners(true);
+      disableMapInteraction(true);
+      expandSidebar(false);
+
+      if (chosenCountryISO) {
+        updateChosenCountryState();
+      }
 
       $('#country-select-list').attr('aria-disabled', 'true');
-      let countryHistory;
+      let historyInfo;
 
       if (historyMode) {
         try {
-          countryHistory = await getHistoryOfCountry(target.textContent);
+          historyInfo = await getHistoryOfCountry(target.textContent);
         } catch (err) {
           console.log(err);
         }
       }
 
       try {
-        const { restCountries, geonames } = await getCountryDataAndFitBounds(
+        updateChosenCountryState(target.getAttribute('value'));
+
+        const countryInfo = await getCountryDataAndFitBounds(
           target.getAttribute('value')
         );
 
-        updateChosenCountryState(target.getAttribute('value'));
-
-        if (!historyMode) {
-          if (restCountries.error || geonames.error) {
-            // notification message
-          }
-
-          //pass data to function to process marker
-        }
+        createModernCountryPopup(countryInfo);
       } catch (err) {
         console.log(err);
+        updateChosenCountryState();
+        disableMapInteraction(false);
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);
 
         if (historyMode) {
-          if (countryHistory) {
+          if (historyInfo) {
           }
         } else {
         }
@@ -583,24 +639,26 @@ mapPromise.then((map) => {
 
     disableAllButtons = true;
     changePanelSpinners(true);
+    disableMapInteraction(true);
+    expandSidebar(false);
+
+    if (chosenCountryISO) {
+      updateChosenCountryState();
+    }
 
     try {
-      const { restCountries, geonames } = await getCountryDataAndFitBounds(
-        target.value
-      );
-
       updateChosenCountryState(target.value);
 
-      if (restCountries.error || geonames.error) {
-        // notification message
-      }
+      const countryInfo = await getCountryDataAndFitBounds(target.value);
 
-      //pass data to function to process marker
+      createModernCountryPopup(countryInfo);
     } catch (err) {
       console.log(err);
+      updateChosenCountryState();
+      disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
-      // changePanelSpinners(false);
+      changePanelSpinners(false);
     }
   });
 
@@ -610,23 +668,25 @@ mapPromise.then((map) => {
     let value = e.target.value;
 
     if (e.key === 'Enter' && value.length) {
-      changePanelSpinners(true);
       disableAllButtons = true;
+      changePanelSpinners(true);
+      disableMapInteraction(true);
+      expandSidebar(false);
+
+      if (chosenCountryISO) {
+        updateChosenCountryState();
+      }
 
       try {
-        const { restCountries, geonames } = await getCountryDataAndFitBounds(
-          value
-        );
-
         updateChosenCountryState(value);
 
-        if (restCountries.error || geonames.error) {
-          // notification message
-        }
+        const countryInfo = await getCountryDataAndFitBounds(value);
 
-        //pass data to function to process marker
+        createModernCountryPopup(countryInfo);
       } catch (err) {
         console.log(err);
+        updateChosenCountryState();
+        disableMapInteraction(false);
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);
@@ -635,7 +695,43 @@ mapPromise.then((map) => {
   });
 });
 
+$('#error-map').on('mouseenter', () => {
+  if ($('#error-map').attr('aria-disabled') === 'true') return;
+
+  clearTimeout(errorMapTimer);
+});
+
+$('#error-map').on('mouseleave', () => {
+  if ($('#error-map').attr('aria-disabled') === 'true') return;
+
+  errorMapTimer = removeErrorFromMap();
+});
+
 $('#continue-search-map').on('click', async () => {
+  if (disableAllButtons || historyMode) return;
+
+  const zoom = map.getZoom();
+
+  if (pausePoiSearch) {
+    pausingPoiSearch(false);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom - 0.5,
+      duration: 1000,
+    });
+  } else {
+    pausingPoiSearch(true);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom + 0.5,
+      duration: 1000,
+    });
+  }
+});
+
+$('#continue-search-map-sm').on('click', async () => {
   if (disableAllButtons || historyMode) return;
 
   const zoom = map.getZoom();

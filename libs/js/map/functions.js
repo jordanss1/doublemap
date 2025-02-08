@@ -183,7 +183,15 @@ async function updateChosenCountryState(iso_a2) {
 
     changeExitButton(true);
 
-    disableMapInteraction(false);
+    if (window.innerWidth <= 424) {
+      $('#left-panel').attr('aria-hidden', 'false');
+    }
+
+    if (countryPopup) {
+      countryPopup.remove();
+      countryPopup = null;
+    }
+
     chosenCountryISO = null;
     return;
   } else {
@@ -197,14 +205,17 @@ async function updateChosenCountryState(iso_a2) {
       });
     }
 
+    if (window.innerWidth <= 424) {
+      $('#left-panel').attr('aria-expanded', 'false');
+      $('#left-panel').attr('aria-hidden', 'true');
+    }
+
     currentPoiCategory = 'default';
     currentMarker = null;
 
     addPoiSourceAndLayer([], 'default-pois');
 
     changeExitButton(false, 'Exit country information');
-
-    disableMapInteraction(true);
 
     map.setFeatureState(
       {
@@ -228,46 +239,60 @@ function applyHistoryHtml(enabled) {
     $('#day-slider-container').attr('aria-disabled') === 'false';
 
   if (enabled) {
-    $('#top-panel').removeClass('auto-cols-[auto_1fr_1fr]');
-    $('#top-panel').addClass('grid-cols-[150px_1fr_auto]');
-    $('#history-container').addClass('animate-start_absolute');
-    $('#country-select-button').addClass('animate-start_absolute');
+    $('#top-panel')
+      .removeClass('auto-cols-[auto_1fr_1fr]')
+      .addClass('grid-cols-[150px_1fr_auto]');
+
+    $('#history-container, #country-select-button').addClass(
+      'animate-start_absolute'
+    );
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date').removeClass('animate-end_absolute');
-    $('#slider-button').removeClass('animate-end_absolute');
+    $('#history-date, #slider-button').removeClass('animate-end_absolute');
     $('#category-container').addClass('animate-end_absolute');
     $('#category-container').attr('aria-expanded', 'false');
     $('#continue-container').attr('aria-disabled', 'true');
+    $('#continue-container, #continue-container-sm').addClass(
+      'invisible absolute'
+    );
+    $('#continue-container-sm, #continue-container').attr(
+      'aria-disabled',
+      'true'
+    );
 
     timeout = setTimeout(
       () => $('#category-container').addClass('invisible'),
       300
     );
   } else {
-    $('#search-container-inside').removeClass('outline-3');
-    $('#search-container-inside').addClass('outline-0');
-    $('#top-panel').removeClass('grid-cols-[150px_1fr_auto]');
-    $('#top-panel').addClass('auto-cols-[auto_1fr_1fr]');
+    $('#search-container-inside')
+      .removeClass('outline-3')
+      .addClass('outline-0');
+
+    $('#top-panel')
+      .removeClass('grid-cols-[150px_1fr_auto]')
+      .addClass('auto-cols-[auto_1fr_1fr]');
+
     $('#search-container').children().addClass('animate-start_absolute');
     $('#select-container').addClass('animate-start_absolute');
     $('#select-container').removeClass('animate-end_absolute');
-    $('#history-container').removeClass('animate-start_absolute');
-    $('#country-select-button').removeClass('animate-start_absolute');
-    $('#slider-button').addClass('animate-end_absolute');
-    $('#history-date').addClass('animate-end_absolute');
+    $('#history-container, #country-select-button').removeClass(
+      'animate-start_absolute'
+    );
+    $('#slider-button, #history-date').addClass('animate-end_absolute');
     $('#history-date').attr('aria-disabled', 'true');
     $('#country-select-list').attr('aria-disabled', 'true');
     $('#category-container').removeClass('animate-end_absolute');
-    $('#category-container').removeClass('invisible');
+    $(
+      '#category-container, #continue-container, #continue-container-sm'
+    ).removeClass('invisible');
 
     if (window.innerWidth <= 768) {
       $('#search-container').attr('aria-expanded', 'false');
     }
 
     if ($('#category-panel').attr('aria-disabled') === 'true') {
-      console.log('inside');
       $('#category-panel > *').addClass('invisible');
     }
 
@@ -341,6 +366,7 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
     pausingTimer = setTimeout(() => pausingPoiSearch(false), 750);
 
     $('#continue-container').attr('aria-disabled', 'true');
+    $('#continue-container-sm').attr('aria-disabled', 'true');
 
     $('#category-panel > *').attr('aria-checked', 'false');
   }
@@ -371,8 +397,12 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
     selectedPoi = null;
     pausingPoiSearch(overridePause ? pausePoiSearch : true);
 
-    if ($('#continue-container').attr('aria-disabled') === 'true') {
+    if (
+      $('#continue-container').attr('aria-disabled') === 'true' ||
+      $('#continue-container-sm').attr('aria-disabled') === 'true'
+    ) {
       $('#continue-container').attr('aria-disabled', 'false');
+      $('#continue-container-sm').attr('aria-disabled', 'false');
     }
 
     currentMarker = null;
@@ -779,11 +809,13 @@ function pausingPoiSearch(paused) {
 
     $('#continue-search').attr('aria-disabled', 'true');
     $('#continue-search-map').attr('aria-disabled', 'true');
+    $('#continue-search-map-sm').attr('aria-disabled', 'true');
   } else {
     pausePoiSearch = false;
 
     $('#continue-search').attr('aria-disabled', 'false');
     $('#continue-search-map').attr('aria-disabled', 'false');
+    $('#continue-search-map-sm').attr('aria-disabled', 'false');
   }
 }
 
@@ -1212,6 +1244,32 @@ function changeExitButton(disabled, title = '') {
     $('#exit-button').attr('title', title);
     $('#exit-button').attr('aria-label', title);
   }
+}
+
+let erroring = false;
+
+function addErrorToMap(errorMessage) {
+  if (erroring) return;
+
+  $('#error-map').attr('aria-disabled', 'false').addClass('animate-wiggle');
+  $('#error-map').text(errorMessage);
+
+  setTimeout(() => {
+    $('#error-map').removeClass('animate-wiggle');
+
+    errorMapTimer = removeErrorFromMap();
+  }, 1000);
+}
+
+function removeErrorFromMap(withTimeout = true) {
+  return setTimeout(
+    () => {
+      erroring = false;
+
+      $('#error-map').attr('aria-disabled', 'true');
+    },
+    withTimeout ? 3000 : 0
+  );
 }
 
 function removeAllButtons(disable) {

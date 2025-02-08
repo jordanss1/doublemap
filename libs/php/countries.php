@@ -12,9 +12,11 @@
     if ($path[1] === "countries") { 
         $countryISO = $queriesFormatted["country"];
     
-        if ($countryISO !== "all") {            
+        if ($countryISO !== "all") {     
+            $restISO = strtolower($countryISO);
+            
             $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['GEO_USERNAME']}";
-            $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$countryISO";
+            $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$restISO";
 
             $geonamesResponse = fetchApiCall($geonamesUrl, false);
             $restCountriesResponse = fetchApiCall($restCountriesUrl, false);

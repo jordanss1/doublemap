@@ -1,43 +1,49 @@
 /// <reference path="./jquery.js" />
 
-mapPromise.then((map) => {
-  $.ajax({
-    url: '/api/ipinfo',
-    method: 'GET',
-    data: 'json',
-    success: ({ data }) => {
-      userGeo = data;
-      const latLong = userGeo.loc.split(',');
-      const latitude = parseFloat(latLong[0]);
-      const longitude = parseFloat(latLong[1]);
+mapPromise.then(async (map) => {
+  try {
+    changePanelSpinners(true);
+    disableMapInteraction(true);
+    disableAllButtons = true;
 
-      mostRecentLocation = {
-        latitude,
-        longitude,
-        context: {
-          iso_a2: userGeo.country,
-          region: userGeo.region,
-          place: userGeo.city,
-          neighborhood: null,
-          district: null,
-          name: null,
-        },
-      };
+    const { data } = await $.ajax({
+      url: '/api/ipinfo',
+      method: 'GET',
+      data: 'json',
+    });
 
-      map.flyTo({
-        center: [longitude, latitude],
-        speed: 0.5,
-        curve: 2,
-        zoom: 4,
-        duration: 2000,
-      });
-    },
-    error: (xhr) => {
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
-    },
-  });
+    userGeo = data;
+    const latLong = userGeo.loc.split(',');
+    const latitude = parseFloat(latLong[0]);
+    const longitude = parseFloat(latLong[1]);
+
+    mostRecentLocation = {
+      latitude,
+      longitude,
+      context: {
+        iso_a2: userGeo.country,
+        region: userGeo.region,
+        place: userGeo.city,
+        neighborhood: null,
+        district: null,
+        name: null,
+      },
+    };
+
+    map.flyTo({
+      center: [longitude, latitude],
+      speed: 0.5,
+      curve: 2,
+      zoom: 4,
+      duration: 2000,
+    });
+  } catch (err) {
+    console.log(err);
+  } finally {
+    changePanelSpinners(false);
+    disableMapInteraction(false);
+    disableAllButtons = false;
+  }
 
   $.ajax({
     url: `/api/countries?country=all`,

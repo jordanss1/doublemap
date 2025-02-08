@@ -12,7 +12,9 @@ module.exports = {
       animation: {
         start_absolute: 'startAbsolute 500ms forwards',
         end_absolute: 'endAbsolute 1s forwards',
+        wiggle: 'wiggle 250ms forwards 3',
       },
+
       keyframes: {
         startAbsolute: {
           '0%': { position: 'absolute' },
@@ -21,6 +23,33 @@ module.exports = {
         endAbsolute: {
           '0%': { position: 'relative' },
           '100%': { position: 'absolute' },
+        },
+        wiggle: {
+          '0%': {
+            transform: 'translateX(2px)',
+            outline: '1px red solid',
+            opacity: 1,
+          },
+          '25%': {
+            transform: 'translateX(-2px)',
+            outline: '3px red solid',
+            opacity: 1,
+          },
+          '50%': {
+            transform: 'translateX(2px)',
+            outline: '1px red solid',
+            opacity: 1,
+          },
+          '75%': {
+            transform: 'translateX(-2px)',
+            outline: '3px red solid',
+            opacity: 1,
+          },
+          '100%': {
+            transform: 'translateX(2px)',
+            outline: '0px red solid',
+            opacity: 1,
+          },
         },
       },
 

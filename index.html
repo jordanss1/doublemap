@@ -92,7 +92,11 @@
             class="justify-self-end relative items-center flex flex-col gap-3"
           >
             <div class="items-baseline flex gap-3">
-              <div id="continue-container" aria-disabled="true" class="group">
+              <div
+                id="continue-container"
+                aria-disabled="true"
+                class="group sm:block hidden"
+              >
                 <div
                   title="Continue search when map moves"
                   role="button"
@@ -185,18 +189,26 @@
                 ></div>
               </div>
             </div>
+            <div class="flex w-full group relative justify-end pr-[54px]">
+              <div
+                id="error-map"
+                aria-disabled="true"
+                class="max-w-28 w-fit group hover:scale-105 outline-0 outline outline-red-600/0 hover:outline-[3px] hover:outline-red-600 aria-disabled:pointer-events-none pointer-events-auto visible aria-disabled:invisible opacity-70 hover:opacity-100 transition-all flex items-center h-full max-h-20 relative text-[13px] ease-in duration-200 rounded-md bg-black/80  text-white-300 p-2 font-sans overflow-hidden overflow-y-scroll"
+              ></div>
+            </div>
           </div>
         </section>
         <section
           id="left-panel"
-          aria-disabled="false"
           aria-expanded="false"
-          class="opacity-100 transition-all group/whole-panel duration-300 ease-in aria-disabled:opacity-0 aria-disabled:-left-10 flex items-start gap-1 h-full fixed"
+          aria-disabled="false"
+          aria-hidden="false"
+          class="opacity-100 aria-disabled:opacity-0 aria-disabled:-left-10 transition-all group/whole-panel duration-300 ease-in flex items-start gap-1 h-full fixed"
         >
           <div
             id="sidebar"
             aria-disabled="false"
-            class="h-full flex flex-col transition-all ease-in max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_38%_10%,#a100ff_0_7%,#4d9cff_26%,#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_bottom,_black,_#22062d_85%)] aria-disabled:opacity-50 opacity-100 z-20"
+            class="h-full flex flex-col transition-all duration-150 ease-out group-aria-hidden/whole-panel:-left-20 left-0 group-aria-hidden/whole-panel:opacity-0 opacity-100 max-w-20 pointer-events-auto fixed w-full shadow-sm border-white-300 border-r shadow-white-800 shadow bg-[conic-gradient(from_39deg_at_38%_10%,#a100ff_0_7%,#4d9cff_26%,#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_bottom,_black,_#22062d_85%)] group/sidebar aria-disabled:opacity-50 z-20"
           >
             <div
               id="menu-button"
@@ -365,7 +377,7 @@
           </div>
           <div
             id="sidebar-expanded"
-            class="group-aria-expanded/whole-panel:pointer-events-auto group-aria-expanded/whole-panel:scale-x-100 group-aria-expanded/whole-panel:left-20 -left-72 origin-left scale-x-75 border-r border-r-white-300 pointer-events-none max-w-xs lg:max-w-sm w-full h-full fixed bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] lg:bg-[conic-gradient(from_230deg_at_50%_68%,_#a100ff_0_7%,_#4d9cff_26%,_#0000_26%_95%,_#5c2970_90%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] transition-all ease-in-out duration-300 z-10 after:content-[''] after:absolute after:w-[91%] after:left-4 lg:after:left-5 after:h-[1px] after:top-[55px] after:bg-white-600"
+            class="group-aria-expanded/whole-panel:pointer-events-auto group-aria-expanded/whole-panel:scale-x-100 group-aria-expanded/whole-panel:left-20 -left-72 origin-left scale-x-75 border-r border-r-white-300 pointer-events-none max-w-64 xs:max-w-xs lg:max-w-sm w-full h-full fixed bg-[conic-gradient(from_220deg_at_60%_75%,_#a100ff_0%_7%_,_#4d9cff_26%,_#0000_26%_96%,_#5c2970_96%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] lg:bg-[conic-gradient(from_230deg_at_50%_68%,_#a100ff_0_7%,_#4d9cff_26%,_#0000_26%_95%,_#5c2970_90%_100%),_linear-gradient(to_top,_black_35%,_#22062d_95%)] transition-all ease-in-out duration-300 z-10 after:content-[''] after:absolute after:w-[91%] after:left-4 lg:after:left-5 after:h-[1px] after:top-[55px] after:bg-white-600"
           >
             <div
               id="spinner-panel-expanded"
@@ -422,11 +434,12 @@
             class="h-full max-w-72 hidden pointer-events-auto fixed w-full shadow-sm shadow-white-800 shadow bg-gradient-to-b from-[#000000] from-25% to-[#22062d] aria-disabled:opacity-50 opacity-100"
           ></div>
           <div
+            id="left-grid-filler"
             class="w-[4.2rem] md:w-20 group-aria-expanded/whole-panel:w-[5rem] transition-all ease-in duration-150 md:group-aria-expanded/whole-panel:w-[100px]"
           ></div>
           <div
             id="search-select-container"
-            class="flex gap-2 md:gap-0 relative top-4 left-3 z-30"
+            class="flex gap-2 md:gap-0 relative top-4 group-aria-hidden/whole-panel:left-0 left-3 z-30"
           >
             <div class="md:pl-0 pl-2">
               <a
@@ -451,7 +464,7 @@
               disabled=""
               aria-expanded="false"
               id="search-container"
-              class="pointer-events-auto rounded-md h-7 w-full max-w-60 md:max-w-full md:w-64 md:group-aria-expanded/whole-panel:w-64 group-aria-expanded/whole-panel:delay-0 lg:group-aria-expanded/whole-panel:w-80 relative duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
+              class="pointer-events-auto rounded-md h-7 w-7 aria-expanded:w-full max-w-44 xs:aria-expanded:w-full xs:max-w-60 sm:max-w-full sm:aria-expanded:w-full md:w-64 md:group-aria-expanded/whole-panel:w-64 group-aria-expanded/whole-panel:delay-0 lg:group-aria-expanded/whole-panel:w-80 lg:w-64 relative duration-500 aria-disabled:duration-300 ease-out transition-all opacity-100 group/search-container aria-disabled:delay-0 aria-disabled:absolute aria-disabled:invisible aria-disabled:opacity-0 aria-disabled:-translate-x-5"
             >
               <div
                 id="search-container-inside"
@@ -543,17 +556,22 @@
             ></i>
           </div>
           <div
-            id="countries-control"
-            title="Activate country mode"
-            role="button"
-            aria-label="Activate country mode"
-            aria-disabled=""
-            disabled=""
-            class="w-8 h-8 flex items-center pointer-events-auto rounded-md justify-center aria-disabled:bg-white-200 group aria-disabled:cursor-default *:transition-colors transition-colors *:duration-300 duration-300 bg-white-50"
+            id="continue-container-sm"
+            aria-disabled="true"
+            class="group block sm:hidden"
           >
-            <i
-              class="fa-solid fa-globe text-slate-800 text-sm group-aria-disabled:text-white-500"
-            ></i>
+            <div
+              title="Continue search when map moves"
+              role="button"
+              aria-label="Continue search when map moves"
+              aria-disabled="true"
+              id="continue-search-map-sm"
+              class="w-8 h-8 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 origin-top transition-all aria-disabled:t relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 group-aria-disabled:-translate-y-5 translate-y-0 opacity-100 pointer-events-auto border-white-300 border group/button rounded-md p-1 bg-gradient-to-r from-blue-300 via-purple-500 gap-2 to-pink-500 flex items-center justify-center"
+            >
+              <i
+                class="fa-solid fa-expand group-aria-disabled/button:text-slate-700 text-xl text-white-50"
+              ></i>
+            </div>
           </div>
         </section>
       </div>

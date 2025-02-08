@@ -125,13 +125,25 @@ categoryPanelButtons.forEach((buttonId) => {
   });
 });
 
-$('#content-subtitle-extra').on('click', '#continue-search', ({ target }) => {
+$('#content-subtitle-extra').on('click', '#continue-search', async () => {
   if (disableAllButtons || historyMode) return;
 
   if (pausePoiSearch) {
     pausingPoiSearch(false);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom - 0.5,
+      duration: 1000,
+    });
   } else {
     pausingPoiSearch(true);
+
+    await flyToPromise({
+      speed: 0.5,
+      zoom: zoom + 0.5,
+      duration: 1000,
+    });
   }
 });
 
@@ -180,11 +192,39 @@ const observer = new MutationObserver((mutationsList, observer) => {
       if (ariaExpandedValue === 'true') {
         if (window.innerWidth >= 1024) {
           map.setPadding({ left: 464 });
-        } else {
+        } else if (window.innerWidth >= 424) {
           map.setPadding({ left: 420 });
+        } else if (window.innerWidth <= 424) {
+          map.setPadding({ left: 80 });
+          $('#right-panel').addClass('-z-[1]');
         }
       } else {
         map.setPadding({ left: 80 });
+        $('#right-panel').removeClass('-z-[1]');
+      }
+    }
+
+    if (
+      mutation.type === 'attributes' &&
+      mutation.attributeName === 'aria-hidden'
+    ) {
+      const ariaHiddenValue = sidebarContainer.attr('aria-hidden');
+
+      if (ariaHiddenValue === 'true') {
+        map.setPadding({ left: 0 });
+
+        sidebarContainer.attr('aria-expanded', 'false');
+        $('#left-grid-filler').removeClass('w-[4.2rem]');
+        $('#left-grid-filler').addClass('w-0');
+      }
+
+      if (window.innerWidth <= 424) {
+        if (ariaHiddenValue === 'false') {
+          map.setPadding({ left: 80 });
+
+          $('#left-grid-filler').removeClass('w-0');
+          $('#left-grid-filler').addClass('w-[4.2rem]');
+        }
       }
     }
   });
@@ -192,7 +232,7 @@ const observer = new MutationObserver((mutationsList, observer) => {
 
 observer.observe(sidebarContainer[0], {
   attributes: true,
-  attributeFilter: ['aria-expanded'],
+  attributeFilter: ['aria-expanded', 'aria-hidden'],
 });
 
 function expandItem(this1, id) {

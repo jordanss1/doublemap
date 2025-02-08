@@ -55,6 +55,23 @@ mapPromise.then((map) => {
         performSearch(value);
       } else {
         $('#search-container').attr('aria-expanded', 'true');
+
+        if (window.innerWidth <= 424) {
+          if (chosenCountryISO) {
+            clearSidebarContent();
+            currentPoiCategory = 'default';
+
+            updateChosenCountryState();
+
+            await flyToPromise({
+              speed: 0.5,
+              zoom: map.getZoom() - 0.5,
+              duration: 1000,
+            });
+          }
+
+          expandSidebar(true);
+        }
       }
     } else {
       performSearch(value);
@@ -364,8 +381,6 @@ function markAndPanToSearchResult(selectedResult) {
   locToCategoryTimer = setTimeout(() => {
     appendLocationToCategoryOption(true);
   }, 3000);
-
-  console.log(selectedResult);
 
   const { coordinates, feature_type, bbox, context, mapbox_id } =
     selectedResult.properties;
