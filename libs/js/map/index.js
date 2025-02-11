@@ -267,7 +267,7 @@ const createModernCountryPopup = (countryInfo) => {
                 <div role='button' title='Change name translation' aria-label='Change name translation' id='left-arrow' class='group flex items-center justify-end w-8'>
                   <i class="fa-solid fa-caret-left  text-xl scale-100 opacity-60 group-hover:opacity-100 group-hover:scale-110 group-active:scale-100 transition-all ease-in duration-100"></i>
                 </div>
-                <div class='min-w-11'>
+                <div class='min-w-11 text-center'>
                   <span aria-hidden='false' class='text-lg transition-all  ease-in-out duration-150 opacity-100 aria-hidden:opacity-0 font-title font-bold' id='translation-choice'>
                     ${translationsArray[0].code}
                   </span>
@@ -521,37 +521,39 @@ function createHistoryCountryPopup(historyInfo) {
     className: `country_popup lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
   });
 
+  const image = historyInfo.image ?? 'libs/css/assets/history-fallback.jpg';
+
   countryPopup.setHTML(/*html*/ `
-      <div class='grid grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] md:mt-3 mt-6 transition-all duration-300 gap-2 items-center'>
-        <div class=''>
-          <img class='contain' src='${historyInfo.image}'/>
+    <div class='flex flex-col overflow-hidden overflow-y-scroll max-h-[400px]'>
+      <div class='flex relative after:absolute after:content-[""] after:-bottom-3 md:after:-bottom-4 after:left-[1%] after:w-[98%] after:bg-white-300 items-center after:h-[1px] gap-2 md:gap-1 mt-4 md:mb-4 md:mt-4'>
+        <div class='p-1 h-9 flex items-center justify-center rounded-md bg-[#663399] shadow-[0px_0px_3px_white_inset,_0px_0px_10px_#663399]'>
+          <i class="fa-solid fa-timeline text-xl md:text-2xl text-white-300"></i>
         </div>
-        <div class='flex flex-col gap-4'>
-          ${groupedParagraphs.forEach((para) => {
-            return /*html*/ `<div>${para}</div>;`;
-          })}
+        <div class='font-title text-2xl md:text-3xl p-1 text-white-50'>${
+          historyInfo.title
+        }</div>
+      </div>
+      <div class='grid grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] md:px-0 px-1 gap-0 md:gap-4 md:mt-3 mt-6 transition-all duration-300 items-center'>
+        <div class='self-start rounded-tr-md rounded-tl-md border-t-2 border-l-2 md:border-t-0 md:border-l-0  border-2 md:rounded-bl-none md:rounded-tl-none  rounded-br-md md:rounded-tr-none border-white-300 p-2 overflow-hidden w-full relative'>
+          <img class='contain rounded-md' src='${image}' />
+        </div>
+        <div class='flex flex-col gap-4 p-2 mt-4 md:mt-0 rounded-md'>
+          ${groupedParagraphs
+            .map((para) => {
+              return /*html*/ `<div class='font-abel text-lg text-white-300'>${para}</div>`;
+            })
+            .join('')}
         </div>
       </div>
+    </div>
     `);
 
   map.once('moveend', () => {
-    countryPopup.setLngLat(restCountries.latlng.reverse()).addTo(map);
+    const { lng, lat } = map.getCenter();
+
+    countryPopup.setLngLat([lng, lat]).addTo(map);
 
     disableMapInteraction(false);
-
-    setTimeout(() => {
-      const nameCommon = $('#name-common')[0];
-      const nameOfficial = $('#name-official')[0];
-
-      if (nameCommon && nameOfficial) {
-        const maxHeight = Math.max(
-          nameCommon.scrollHeight,
-          nameOfficial.scrollHeight
-        );
-
-        $('#name-container').css('height', `${maxHeight}px`);
-      }
-    }, 100);
   });
 }
 

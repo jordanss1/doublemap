@@ -803,6 +803,170 @@ function renderPoiSidebarItem(properties) {
   };
 }
 
+const historicalData = [
+  {
+    id: 322,
+    title:
+      'A Cessna Citation I/SP crashes into Percy Priest Lake in Tennessee, killing all six people on board, including actor Joe Lara and his wife Gwen Shamblin Lara.',
+    event_date: '2021-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2021,
+    latitude: 36.1627,
+    longitude: -86.7816,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CN_Air_Cessna_501_Citation_I_SP.jpg/320px-CN_Air_Cessna_501_Citation_I_SP.jpg',
+    thumbnail_width: 320,
+    thumbnail_height: 213,
+    gpt_retries: null,
+  },
+  {
+    id: 323,
+    title: 'One World Observatory at One World Trade Center opens.',
+    event_date: '2015-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2015,
+    latitude: 40.7128,
+    longitude: -74.0135,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/One_WTC_logo.svg/320px-One_WTC_logo.svg.png',
+    thumbnail_width: 320,
+    thumbnail_height: 147,
+    gpt_retries: 1,
+  },
+  {
+    id: 324,
+    title:
+      'A 5.8-magnitude earthquake hits northern Italy near Bologna, killing at least 24 people.',
+    event_date: '2012-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2012,
+    latitude: 44.4949,
+    longitude: 11.3426,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/2012_Modena_intensity.jpg/320px-2012_Modena_intensity.jpg',
+    thumbnail_width: 320,
+    thumbnail_height: 404,
+    gpt_retries: 1,
+  },
+  {
+    id: 325,
+    title:
+      'A doublet earthquake, of combined magnitude 6.1, strikes Iceland near the town of Selfoss, injuring 30 people.',
+    event_date: '2008-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2008,
+    latitude: 63.9336,
+    longitude: -20.9976,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/2008_Iceland_earthquake.jpg/320px-2008_Iceland_earthquake.jpg',
+    thumbnail_width: 320,
+    thumbnail_height: 368,
+    gpt_retries: 1,
+  },
+  {
+    id: 326,
+    title:
+      'France rejects the Constitution of the European Union in a national referendum.',
+    event_date: '2005-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2005,
+    latitude: 46.6034,
+    longitude: 1.8883,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png',
+    thumbnail_width: 320,
+    thumbnail_height: 213,
+    gpt_retries: 1,
+  },
+  {
+    id: 327,
+    title:
+      'The National World War II Memorial is dedicated in Washington, D.C.',
+    event_date: '2004-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2004,
+    latitude: 38.8895,
+    longitude: -77.0353,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lincoln_and_WWII_memorials.jpg/320px-Lincoln_and_WWII_memorials.jpg',
+    thumbnail_width: 320,
+    thumbnail_height: 342,
+    gpt_retries: null,
+  },
+  {
+    id: 328,
+    title:
+      'The U.S. Supreme Court rules that the disabled golfer Casey Martin can use a cart to ride in tournaments.',
+    event_date: '2001-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 2001,
+    latitude: 38.9072,
+    longitude: -77.0369,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Seal_of_the_United_States_Supreme_Court.svg/320px-Seal_of_the_United_States_Supreme_Court.svg.png',
+    thumbnail_width: 320,
+    thumbnail_height: 320,
+    gpt_retries: 1,
+  },
+  {
+    id: 329,
+    title:
+      'Olusegun Obasanjo takes office as President of Nigeria, the first elected and civilian head of state in Nigeria after 16 years of military rule.',
+    event_date: '1999-05-29',
+    event_day: 29,
+    event_month: 5,
+    event_year: 1999,
+    latitude: 9.082,
+    longitude: 8.6753,
+    thumbnail:
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Olusegun_Obasanjo_DD-SC-07-14396-cropped.jpg/320px-Olusegun_Obasanjo_DD-SC-07-14396-cropped.jpg',
+    thumbnail_width: 320,
+    thumbnail_height: 437,
+    gpt_retries: 1,
+  },
+];
+
+function renderHistoricalEventItem(event) {
+  const { event_year, thumbnail, title } = event;
+
+  return /*html*/ `<div class='font-title text-xl font-semibold'>
+    ${event_year}
+  </div>
+  <div class='grid grid-cols-[auto_max-content] gap-2'>
+    <div>
+      <img class='' src='${thumbnail}' />
+    </div>
+    <div class='font-abel text-lg'>${title}</div>
+  </div>
+  `;
+}
+
+function addHistoricalEventsToSidebar(events) {
+  const sortedHtmlEvents = events
+    .map((event) => {
+      const html = renderHistoricalEventItem(event);
+
+      return /*html*/ `<div id='event-content-item' class='flex flex-col gap-2'>
+        ${html}
+      </div>`;
+    })
+    .sort((a, b) => {
+      const hasLocationA = a.latitude && a.longitude;
+      const hasLocationB = b.latitude && b.longitude;
+
+      return hasLocationB - hasLocationA;
+    });
+
+    
+}
+
 function pausingPoiSearch(paused) {
   if (paused) {
     pausePoiSearch = true;

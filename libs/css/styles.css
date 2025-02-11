@@ -18,6 +18,13 @@
 }
 
 @font-face {
+  font-family: 'Abel';
+  src: url('./assets/fonts/Abel/Abel-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
   font-family: 'Montserrat';
   src: url('./assets/fonts/Montserrat/Montserrat-Thin.ttf') format('truetype');
   font-weight: 100;
@@ -108,4 +115,18 @@
     -webkit-transform: rotate(1turn);
     transform: rotate(1turn);
   }
+}
+
+::-webkit-scrollbar {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(200, 200, 200);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 8px rgba(255, 255, 255);
 }

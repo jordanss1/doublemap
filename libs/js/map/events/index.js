@@ -170,6 +170,10 @@ mapPromise.then((map) => {
     disableMapInteraction(true);
     expandSidebar(false);
 
+    if (chosenCountryISO) {
+      updateChosenCountryState();
+    }
+
     const iso_a2 = e.features[0].properties.iso_a2;
     let historyInfo;
 
@@ -187,7 +191,7 @@ mapPromise.then((map) => {
       const countryInfo = await getCountryDataAndFitBounds(iso_a2);
 
       if (historyMode) {
-        createHistoryCountryPopup(historyInfo);
+        createHistoryCountryPopup(historyInfo, countryInfo.restCountries.flag);
       } else {
         createModernCountryPopup(countryInfo);
       }
@@ -544,45 +548,6 @@ mapPromise.then((map) => {
     $('#country-select-list').attr('aria-disabled', selectListStatus);
   });
 
-  map.on('click', 'hovered-country-fill', async (e) => {
-    if (disableAllButtons) return;
-
-    disableAllButtons = true;
-    changePanelSpinners(true);
-    disableMapInteraction(true);
-    expandSidebar(false);
-
-    if (chosenCountryISO) {
-      updateChosenCountryState();
-    }
-
-    const iso_a2 = e.features[0].properties.iso_a2;
-    let historyInfo;
-
-    if (historyMode) {
-      try {
-        historyInfo = await getHistoryOfCountry(e.features[0].properties.name);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-
-    try {
-      updateChosenCountryState(iso_a2);
-
-      const countryInfo = await getCountryDataAndFitBounds(iso_a2);
-
-      createModernCountryPopup(countryInfo);
-    } catch (err) {
-      console.log(err);
-      updateChosenCountryState();
-      disableMapInteraction(false);
-    } finally {
-      disableAllButtons = false;
-      changePanelSpinners(false);
-    }
-  });
-
   $('#country-select-list').on(
     'click',
     '#country-list-option',
@@ -616,7 +581,11 @@ mapPromise.then((map) => {
           target.getAttribute('value')
         );
 
-        createModernCountryPopup(countryInfo);
+        if (historyMode) {
+          createHistoryCountryPopup(historyInfo);
+        } else {
+          createModernCountryPopup(countryInfo);
+        }
       } catch (err) {
         console.log(err);
         updateChosenCountryState();
@@ -624,12 +593,6 @@ mapPromise.then((map) => {
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);
-
-        if (historyMode) {
-          if (historyInfo) {
-          }
-        } else {
-        }
       }
     }
   );

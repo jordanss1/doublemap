@@ -56,6 +56,7 @@ module.exports = {
       fontFamily: {
         sans: ['Lato', 'Arial', 'sans-serif'],
         title: ['Montserrat', 'Arial', 'sans-serif'],
+        abel: ['Abel', 'Arial', 'sans-serif'],
       },
       screens: {
         xs: '424px',

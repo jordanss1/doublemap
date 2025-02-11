@@ -79,9 +79,9 @@
         if (!isset($countryImageResponse['error'])) {
             $firstPage = reset($countryImageResponse['query']['pages']);
 
-            $finalCountryHistory['image'] = $firstPage['original']['source'];
-            $finalCountryHistory['imageWidth'] = $firstPage['original']['width'];
-            $finalCountryHistory['imageHeight'] = $firstPage['original']['height'];
+            $finalCountryHistory['image'] = $firstPage['original']['source'] ?? null;
+            $finalCountryHistory['imageWidth'] = $firstPage['original']['width'] ?? null;
+            $finalCountryHistory['imageHeight'] = $firstPage['original']['height'] ?? null;
         }
 
         http_response_code(200);
