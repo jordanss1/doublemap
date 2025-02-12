@@ -205,11 +205,17 @@ async function updateChosenCountryState(iso_a2) {
       });
     }
 
+    if (historyMode) {
+      clearSidebarContent();
+    }
+
+    $('#left-panel').attr('aria-expanded', 'false');
+
     if (window.innerWidth <= 424) {
-      $('#left-panel').attr('aria-expanded', 'false');
       $('#left-panel').attr('aria-hidden', 'true');
     }
 
+    historicalEvents = [];
     currentPoiCategory = 'default';
     currentMarker = null;
 
@@ -235,8 +241,10 @@ let timeout;
 function applyHistoryHtml(enabled) {
   const disabledDuringHistoryMode = enabled ? 'true' : 'false';
   const enabledDuringHistoryMode = enabled ? 'false' : 'true';
+
   const isDaySliderEnabled =
-    $('#day-slider-container').attr('aria-disabled') === 'false';
+    $('#day-slider-container-lg').attr('aria-disabled') === 'false' ||
+    $('#day-slider-container-sm').attr('aria-disabled') === 'false';
 
   if (enabled) {
     $('#top-panel')
@@ -260,6 +268,7 @@ function applyHistoryHtml(enabled) {
       'aria-disabled',
       'true'
     );
+    $('#history-category').removeClass('hidden');
 
     timeout = setTimeout(
       () => $('#category-container').addClass('invisible'),
@@ -287,6 +296,7 @@ function applyHistoryHtml(enabled) {
     $(
       '#category-container, #continue-container, #continue-container-sm'
     ).removeClass('invisible');
+    $('#history-category').addClass('hidden');
 
     if (window.innerWidth <= 768) {
       $('#search-container').attr('aria-expanded', 'false');
@@ -297,7 +307,8 @@ function applyHistoryHtml(enabled) {
     }
 
     if (isDaySliderEnabled) {
-      $('#day-slider-container').attr('aria-disabled', 'true');
+      $('#day-slider-container-lg').attr('aria-disabled', 'true');
+      $('#day-slider-container-sm').attr('aria-disabled', 'true');
       $('#history-container').removeClass('h-20');
       $('#history-container').addClass('h-10');
     }
@@ -497,6 +508,7 @@ function changePanelSpinners(enabled) {
 }
 
 function clearSidebarContent() {
+  $('#history-category').text('');
   $('#content-results').empty();
   $('#content-title').text('');
   $('#content-subtitle-container').addClass('invisible');
@@ -803,157 +815,68 @@ function renderPoiSidebarItem(properties) {
   };
 }
 
-const historicalData = [
-  {
-    id: 322,
-    title:
-      'A Cessna Citation I/SP crashes into Percy Priest Lake in Tennessee, killing all six people on board, including actor Joe Lara and his wife Gwen Shamblin Lara.',
-    event_date: '2021-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2021,
-    latitude: 36.1627,
-    longitude: -86.7816,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CN_Air_Cessna_501_Citation_I_SP.jpg/320px-CN_Air_Cessna_501_Citation_I_SP.jpg',
-    thumbnail_width: 320,
-    thumbnail_height: 213,
-    gpt_retries: null,
-  },
-  {
-    id: 323,
-    title: 'One World Observatory at One World Trade Center opens.',
-    event_date: '2015-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2015,
-    latitude: 40.7128,
-    longitude: -74.0135,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/One_WTC_logo.svg/320px-One_WTC_logo.svg.png',
-    thumbnail_width: 320,
-    thumbnail_height: 147,
-    gpt_retries: 1,
-  },
-  {
-    id: 324,
-    title:
-      'A 5.8-magnitude earthquake hits northern Italy near Bologna, killing at least 24 people.',
-    event_date: '2012-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2012,
-    latitude: 44.4949,
-    longitude: 11.3426,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/2012_Modena_intensity.jpg/320px-2012_Modena_intensity.jpg',
-    thumbnail_width: 320,
-    thumbnail_height: 404,
-    gpt_retries: 1,
-  },
-  {
-    id: 325,
-    title:
-      'A doublet earthquake, of combined magnitude 6.1, strikes Iceland near the town of Selfoss, injuring 30 people.',
-    event_date: '2008-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2008,
-    latitude: 63.9336,
-    longitude: -20.9976,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/2008_Iceland_earthquake.jpg/320px-2008_Iceland_earthquake.jpg',
-    thumbnail_width: 320,
-    thumbnail_height: 368,
-    gpt_retries: 1,
-  },
-  {
-    id: 326,
-    title:
-      'France rejects the Constitution of the European Union in a national referendum.',
-    event_date: '2005-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2005,
-    latitude: 46.6034,
-    longitude: 1.8883,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/en/thumb/c/c3/Flag_of_France.svg/320px-Flag_of_France.svg.png',
-    thumbnail_width: 320,
-    thumbnail_height: 213,
-    gpt_retries: 1,
-  },
-  {
-    id: 327,
-    title:
-      'The National World War II Memorial is dedicated in Washington, D.C.',
-    event_date: '2004-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2004,
-    latitude: 38.8895,
-    longitude: -77.0353,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lincoln_and_WWII_memorials.jpg/320px-Lincoln_and_WWII_memorials.jpg',
-    thumbnail_width: 320,
-    thumbnail_height: 342,
-    gpt_retries: null,
-  },
-  {
-    id: 328,
-    title:
-      'The U.S. Supreme Court rules that the disabled golfer Casey Martin can use a cart to ride in tournaments.',
-    event_date: '2001-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 2001,
-    latitude: 38.9072,
-    longitude: -77.0369,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Seal_of_the_United_States_Supreme_Court.svg/320px-Seal_of_the_United_States_Supreme_Court.svg.png',
-    thumbnail_width: 320,
-    thumbnail_height: 320,
-    gpt_retries: 1,
-  },
-  {
-    id: 329,
-    title:
-      'Olusegun Obasanjo takes office as President of Nigeria, the first elected and civilian head of state in Nigeria after 16 years of military rule.',
-    event_date: '1999-05-29',
-    event_day: 29,
-    event_month: 5,
-    event_year: 1999,
-    latitude: 9.082,
-    longitude: 8.6753,
-    thumbnail:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Olusegun_Obasanjo_DD-SC-07-14396-cropped.jpg/320px-Olusegun_Obasanjo_DD-SC-07-14396-cropped.jpg',
-    thumbnail_width: 320,
-    thumbnail_height: 437,
-    gpt_retries: 1,
-  },
-];
+function formatEventDate(event) {
+  const { event_day, event_month } = event;
+
+  let date = new Date(2024, event_month - 1, event_day);
+
+  let day = event_day;
+  let suffix =
+    day % 10 === 1 && day !== 11
+      ? 'st'
+      : day % 10 === 2 && day !== 12
+      ? 'nd'
+      : day % 10 === 3 && day !== 13
+      ? 'rd'
+      : 'th';
+
+  let month = date.toLocaleString('en-GB', { month: 'long' });
+
+  return `${day}${suffix} ${month}`;
+}
 
 function renderHistoricalEventItem(event) {
   const { event_year, thumbnail, title } = event;
 
-  return /*html*/ `<div class='font-title text-xl font-semibold'>
-    ${event_year}
-  </div>
-  <div class='grid grid-cols-[auto_max-content] gap-2'>
-    <div>
-      <img class='' src='${thumbnail}' />
+  return /*html*/ `<div class='flex sm items-center w-fit p-2 rounded-md gap-2 m-0 xs:m-2 mb-0 ml-0'>
+    <div class='flex items-center justify-center'><i class="fa-solid fa-calendar-days text-white-300"></i></div>
+    <div class='font-title text-2xl text-white-300'>
+      ${event_year}
     </div>
-    <div class='font-abel text-lg'>${title}</div>
+  </div>
+  <div class="rounded-md p-2">
+    <div class='float-left  mt-2 ml-2 mr-2 mb-1 w-24 xs:w-28 items-start rounded-md '>
+      <img class='object-contain w-full h-full rounded-md' src='${
+        thumbnail ?? 'libs/css/assets/history-fallback.jpg'
+      }' />
+    </div>
+    <div class='font-abel text-lg xs:text-xl text-white-300'>${title}</div>
   </div>
   `;
 }
 
 function addHistoricalEventsToSidebar(events) {
+  const eventDateFormatted = formatEventDate(events[0]);
+
+  if ($('#history-category').text() !== 'Historical Events') {
+    $('#history-category').text('Historical Events');
+  }
+
+  if ($('#content-title').text() !== `${eventDateFormatted}`) {
+    $('#content-title').text(`${eventDateFormatted}`);
+  }
+
+  $('#content-container').animate({ scrollTop: 0 }, 500);
+
+  $('#content-chosen').empty();
+
+  $('#content-chosen').attr('aria-disabled', 'true');
+
   const sortedHtmlEvents = events
     .map((event) => {
       const html = renderHistoricalEventItem(event);
 
-      return /*html*/ `<div id='event-content-item' class='flex flex-col gap-2'>
+      return /*html*/ `<div id='event-content-item' aria-disabled='true' class='flex flex-col rounded-md p-2 aria-disabled:opacity-0 bg-black/40 aria-disabled:-translate-x-2 shadow-[20px_20px_30px_0px_rgba(100,_100,_100,_.3)] mb-4 translate-x-0 opacity-100 transition-all duration-300 ease-in border-[.5px] border-[#663399]'>
         ${html}
       </div>`;
     })
@@ -964,7 +887,12 @@ function addHistoricalEventsToSidebar(events) {
       return hasLocationB - hasLocationA;
     });
 
-    
+  $('#content-results').empty();
+  $('#content-results').append(sortedHtmlEvents);
+
+  setTimeout(() => {
+    $('[id="event-content-item"]').attr('aria-disabled', 'false');
+  }, 50);
 }
 
 function pausingPoiSearch(paused) {
@@ -1041,7 +969,7 @@ function addMarkersSourceAndLayer(features) {
         'text-anchor': 'top',
       },
       paint: {
-        'icon-color': '#FF0000', // Red color
+        'icon-color': '#FF0000',
       },
     });
   }
@@ -1356,6 +1284,7 @@ async function flyToPromise(options) {
     map.flyTo(options);
   });
 }
+
 async function fitBoundsPromise(options) {
   return new Promise((resolve) => {
     map.once('moveend', () => {

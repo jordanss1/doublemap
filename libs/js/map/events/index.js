@@ -75,10 +75,10 @@ mapPromise.then((map) => {
     }
 
     if (zoom >= 1.7 && historyMode) {
-      $('#day-slider-bg').css('--bg-range', 'rgb(0,0,0,.2)');
+      $('.day-slider-bg').css('--bg-range', 'rgb(0,0,0,.2)');
     }
     if (zoom < 1.7 && historyMode) {
-      $('#day-slider-bg').css('--bg-range', 'rgb(0,0,0,0)');
+      $('.day-slider-bg').css('--bg-range', 'rgb(0,0,0,0)');
     }
   });
 
@@ -787,6 +787,8 @@ async function changeHistoryMode(map, enabled) {
         map.setLayoutProperty('chosen-pois', 'visibility', 'none');
 
         map.setLayoutProperty('default-pois', 'visibility', 'none');
+        map.setLayoutProperty('modern-markers-layer', 'visibility', 'none');
+        map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
 
         if (map.getSource('markers-source')) {
           map.getSource('markers-source').setData({
@@ -794,6 +796,15 @@ async function changeHistoryMode(map, enabled) {
             features: [],
           });
         }
+
+        map.loadImage(
+          'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+          (error, image) => {
+            if (error) throw error;
+
+            map.addImage('custom-marker', image);
+          }
+        );
 
         clearSidebarContent();
         changeSelectedSidebarItem(false);
@@ -855,6 +866,16 @@ async function changeHistoryMode(map, enabled) {
           applyHistoryHtml(enabled);
           disableMapInteraction(false);
         }, 1500);
+
+        map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
+        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
+
+        if (map.getSource('markers-source')) {
+          map.getSource('markers-source').setData({
+            type: 'FeatureCollection',
+            features: [],
+          });
+        }
 
         clearSidebarContent();
         changeSelectedSidebarItem(false);

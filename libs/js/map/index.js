@@ -32,6 +32,7 @@ let mostRecentLocation = {
 let searchResults = [];
 let searchTerm;
 let currentPois = [];
+let historicalEvents = [];
 let previousPois = [];
 let currentPoiCategory = 'default';
 let countryList = [];

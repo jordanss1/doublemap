@@ -41,6 +41,42 @@
           </div>
         </div>
       </div>
+      <div
+        id="day-slider-container-lg"
+        aria-disabled="true"
+        disabled="true"
+        class="fixed h-full sm:hidden px-2 flex justify-center group items-center aria-disabled:pointer-events-none pointer-events-auto aria-disabled:z-0 z-[9999] w-full aria-disabled:bg-black/0 bg-black/30"
+      >
+        <div
+          id="exit-day-slider"
+          title=""
+          role="button"
+          aria-label=""
+          class="w-7 h-7 absolute top-2 right-2 origin-top transition-all border border-white-300 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 group-aria-disabled:-translate-y-5 translate-y-1 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r bg-white-100"
+        >
+          <i class="fa-solid fa-circle-xmark text-2xl text-red-600"></i>
+        </div>
+        <div
+          class="pointer-events-auto h-5 items-center justify-center flex px-2 group transition-all origin-right scale-100 group-aria-disabled:scale-50 visible duration-700 group-aria-disabled:duration-300 ease-in opacity-100 group-aria-disabled:opacity-0 relative group-aria-disabled:invisible group-aria-disabled:animate-end_absolute group-aria-disabled:translate-x-20 translate-x-0 w-full"
+        >
+          <div
+            class="popup-container absolute flex items-center origin-bottom scale-[--popup-scale,.6] justify-center bg-black/50 opacity-[--opacity-popup,0] transition-[top,opacity,scale] max-w-12 w-full h-8 left-[--left-popup] rounded-md ease-in-out top-[--top-popup,10]"
+          >
+            <span class="popup-text text-white-300 font-bold"></span>
+          </div>
+          <div
+            class="day-slider-bg absolute h-[99%] scale-[--scale-track,1] -z-10 w-full bg-[--bg-range,rgb(0,0,0,0)] transition-all duration-100 delay-100 rounded-md backdrop-blur-2xl"
+          ></div>
+          <input
+            type="range"
+            min="1"
+            max="366"
+            value="150"
+            class="day-slider w-full cursor-pointer transition-all bg-transparent"
+            aria-label="Day slider"
+          />
+        </div>
+      </div>
       <div class="absolute h-full w-full pointer-events-none z-[8000]">
         <section
           id="top-panel"
@@ -62,28 +98,25 @@
             ></select>
           </span>
           <div
-            id="day-slider-container"
+            id="day-slider-container-sm"
             aria-disabled="true"
             disabled="true"
-            class="pointer-events-auto h-5 items-center justify-center flex px-2 group top-5 transition-all origin-right scale-100 aria-disabled:scale-50 visible duration-700 aria-disabled:duration-300 ease-in opacity-100 aria-disabled:opacity-0 relative aria-disabled:invisible aria-disabled:animate-end_absolute aria-disabled:translate-x-20 translate-x-0 w-full"
+            class="pointer-events-auto h-5 items-center hidden justify-center sm:flex px-2 group top-5 transition-all origin-right scale-100 aria-disabled:scale-50 visible duration-700 aria-disabled:duration-300 ease-in opacity-100 aria-disabled:opacity-0 relative aria-disabled:invisible aria-disabled:animate-end_absolute aria-disabled:translate-x-20 translate-x-0 w-full"
           >
             <div
-              id="popup-container"
-              class="absolute flex items-center origin-bottom scale-[--popup-scale,.6] justify-center bg-black/50 opacity-[--opacity-popup,0] transition-[top,opacity,scale] max-w-12 w-full h-8 left-[--left-popup] rounded-md ease-in-out top-[--top-popup,10]"
+              class="popup-container absolute flex items-center origin-bottom scale-[--popup-scale,.6] justify-center bg-black/50 opacity-[--opacity-popup,0] transition-[top,opacity,scale] max-w-12 w-full h-8 left-[--left-popup] rounded-md ease-in-out top-[--top-popup,10]"
             >
-              <span id="popup-text" class="text-white-300 font-bold"></span>
+              <span class="popup-text text-white-300 font-bold"></span>
             </div>
             <div
-              id="day-slider-bg"
-              class="absolute h-[99%] scale-[--scale-track,1] -z-10 w-[99%] bg-[--bg-range,rgb(0,0,0,0)] transition-all duration-100 delay-100 rounded-md backdrop-blur-2xl"
+              class="day-slider-bg absolute h-[99%] scale-[--scale-track,1] -z-10 w-[99%] bg-[--bg-range,rgb(0,0,0,0)] transition-all duration-100 delay-100 rounded-md backdrop-blur-2xl"
             ></div>
             <input
               type="range"
               min="1"
               max="366"
               value="150"
-              class="w-full cursor-pointer transition-all bg-transparent"
-              id="day-slider"
+              class="day-slider w-full cursor-pointer transition-all bg-transparent"
               aria-label="Day slider"
             />
           </div>
@@ -382,7 +415,7 @@
             <div
               id="spinner-panel-expanded"
               aria-disabled="true"
-              class="aria-disabled:opacity-0 z-50 fixed opacity-100 flex justify-center inset-x-1/2 inset-y-1/2 -ml-5 -mt-5 items-center h-fit w-fit aria-disabled:scale-50 scale-100 transition-all duration-150 ease-in"
+              class="aria-disabled:opacity-0 aria-disabled:z-0 z-50 aria-disabled:bg-black/0 bg-black/30 fixed opacity-100 flex justify-center items-center h-full w-full aria-disabled:scale-50 scale-100 transition-all duration-150 ease-in"
             >
               <div
                 class="border-4 rounded-full border-slate-400 border-t-white-300 w-10 h-10 animate-spin"
@@ -400,13 +433,11 @@
                   <h2
                     id="content-title"
                     class="font-title w-fit relative font-medium text-xl text-white-300"
-                  >
-                    Historical Events
-                  </h2>
+                  ></h2>
                 </div>
                 <div
                   id="content-subtitle-container"
-                  class="flex justify-between mx-2 invisible"
+                  class="flex justify-between mx-2 min-h-7 invisible"
                 >
                   <div class="flex items-baseline gap-2">
                     <i
@@ -414,7 +445,7 @@
                     ></i>
                     <h3
                       id="content-subtitle"
-                      class="font-sans text-xl text-white-300"
+                      class="font-sans text-lg xs:text-xl text-white-300"
                     ></h3>
                   </div>
 
@@ -511,6 +542,10 @@
                 ></div>
               </div>
             </div>
+            <div
+              id="history-category"
+              class="text-xl xs:text-2xl w-0 transition-all xs:ml-2 delay-0 group-aria-expanded:delay-100 duration-200 group-aria-expanded/whole-panel:w-fit group-aria-expanded/whole-panel:opacity-100 opacity-0 group-aria-expanded/whole-panel:inline hidden font-title text-white-300"
+            ></div>
           </div>
         </section>
 

@@ -9,6 +9,8 @@ $('#content-chosen').on('click', '#content-expand', function () {
 });
 
 $('#menu-button').on('click', () => {
+  if (disableAllButtons) return;
+  
   const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
   if (isPanelExpanded) {
