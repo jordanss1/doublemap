@@ -47,6 +47,7 @@ mapPromise.then((map) => {
 
   $(document).on('click', (e) => {
     const searchContainer = $('#search-container');
+    const countrySelect = $('#country-select-button');
 
     if (
       !searchContainer.is(e.target) &&
@@ -60,6 +61,13 @@ mapPromise.then((map) => {
       if (window.innerWidth <= 768) {
         $('#search-container').attr('aria-expanded', 'false');
       }
+    }
+
+    if (
+      !countrySelect.is(e.target) &&
+      countrySelect.has(e.target).length === 0
+    ) {
+      $('#country-select-list').attr('aria-disabled', 'true');
     }
   });
 
@@ -278,6 +286,7 @@ mapPromise.then((map) => {
       'chosen-pois',
       'default-pois',
       'modern-markers-layer',
+      'history-markers-layer',
     ],
     () => {
       map.getCanvas().style.cursor = 'pointer';
@@ -291,11 +300,17 @@ mapPromise.then((map) => {
       'chosen-pois',
       'default-pois',
       'modern-markers-layer',
+      'history-markers-layer',
     ],
     () => {
       map.getCanvas().style.cursor = '';
     }
   );
+
+  map.on('mouseenter', 'history-markers-layer', (e) => {
+    console.log(e);
+    console.log(e.features);
+  });
 
   map.on('mousemove', ['hovered-country-fill'], (e) => {
     if (e.features.length > 0) {
@@ -338,7 +353,6 @@ mapPromise.then((map) => {
   });
 
   $('#zoom-in').on('click', () => {
-    console.log(disableAllButtons);
     if (disableAllButtons) return;
 
     if (chosenCountryISO) {
@@ -477,65 +491,151 @@ mapPromise.then((map) => {
       return;
     }
 
-    if (currentMarker) {
-      currentMarker = null;
-      addMarkersSourceAndLayer([]);
-      changeSelectedSidebarItem(false);
-      selectedPoi = null;
-      selectedSearch = null;
+    if (historyMode) {
+      if (selectedHistoricalEvent) {
+        disableAllButtons = true;
+        disableMapInteraction(true);
 
-      if (
-        currentPoiCategory === 'default' &&
-        !$('#content-results').find('#search-content-item').length
-      ) {
+        let zoom = 2;
+
+        if (map.getZoom() <= 2) zoom = map.getZoom() - 0.5;
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom,
+          duration: 1500,
+        });
+
+        try {
+          map.filterByDate('2013-01-01');
+
+          await animateFog(map.getFog(), historyFog, 1500);
+
+          const isDaySliderEnabled =
+            $('#day-slider-container-lg').attr('aria-disabled') === 'false' ||
+            $('#day-slider-container-sm').attr('aria-disabled') === 'false';
+
+          $('#history-year').attr('aria-disabled', 'true');
+          $('#history-year').addClass('animate-end_absolute');
+
+          if (isDaySliderEnabled) {
+            $('#history-container').removeClass('h-30');
+            $('#history-container').addClass('h-20');
+          }
+
+          disableAllButtons = false;
+          disableMapInteraction(false);
+          selectedHistoricalEvent = null;
+          clearSidebarContent();
+
+          const features = await createFeaturesFromHistoricalEvents(
+            historicalEvents
+          );
+
+          addMarkersSourceAndLayer(features);
+
+          addHistoricalEventsToSidebar(historicalEvents);
+
+          expandSidebar(true);
+
+          changeExitButton(false, `Exit events from ${currentDate}`);
+        } catch (err) {
+          addErrorToMap('Problem loading map date - try again');
+          console.log(err);
+        } finally {
+          disableAllButtons = false;
+          disableMapInteraction(false);
+        }
+
+        return;
+      }
+
+      if (historicalEvents.length) {
+        historicalEvents = [];
+        currentDate = null;
+        expandSidebar(false);
         clearSidebarContent();
-        pausingPoiSearch(false);
+        addMarkersSourceAndLayer([]);
+
+        map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
+        map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
+        map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
+        map.setLayoutProperty('chosen-country-line', 'visibility', 'visible');
+
+        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
+        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
+
+        changeExitButton(true);
+
+        await new Promise((resolve) => setTimeout(() => resolve(), 500));
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom: map.getZoom() - 0.5,
+          duration: 1500,
+        });
+      }
+    } else {
+      console.log(currentMarker);
+      console.log(currentPoiCategory);
+
+      if (currentMarker) {
+        currentMarker = null;
+        addMarkersSourceAndLayer([]);
+        changeSelectedSidebarItem(false);
+        selectedPoi = null;
+        selectedSearch = null;
+
+        console.log(currentPoiCategory);
+
+        if (
+          currentPoiCategory === 'default' &&
+          $('#content-results').find('#search-content-item').length !== 0
+        ) {
+          clearSidebarContent();
+          pausingPoiSearch(false);
+
+          if (searchResults.length) {
+            appendSearchResults(searchResults);
+          }
+
+          console.log('in');
+
+          changeExitButton(true);
+        }
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom: map.getZoom() - 0.5,
+          duration: 1000,
+        });
+
+        return;
+      }
+
+      if (currentPoiCategory !== 'default') {
+        currentPoiCategory = 'default';
+        changeExitButton(true);
+
+        map.flyTo({
+          speed: 0.5,
+          zoom: map.getZoom() - 0.5,
+          duration: 1000,
+        });
+
+        clearSidebarContent();
+
+        addPoiSourceAndLayer([], 'default-pois');
 
         if (searchResults.length) {
           appendSearchResults(searchResults);
         }
-
-        changeExitButton(true);
+        return;
       }
-
-      await flyToPromise({
-        speed: 0.5,
-        zoom: map.getZoom() - 0.5,
-        duration: 1000,
-      });
-
-      return;
-    }
-
-    if (currentPoiCategory !== 'default') {
-      currentPoiCategory = 'default';
-      changeExitButton(true);
-
-      map.flyTo({
-        speed: 0.5,
-        zoom: map.getZoom() - 0.5,
-        duration: 1000,
-      });
-
-      clearSidebarContent();
-
-      addPoiSourceAndLayer([], 'default-pois');
-
-      if (searchResults.length) {
-        appendSearchResults(searchResults);
-      }
-      return;
     }
   });
 
-  $(document).on('click', (event) => {
-    if (
-      !$(event.target).closest('#country-select-button').length &&
-      !$(event.target).closest('#country-select-list').length
-    ) {
-      $('#country-select-list').attr('aria-disabled', 'true');
-    }
-  });
+  $(document).on('click', (event) => {});
 
   $('#country-select-button').on('click', async ({ target }) => {
     if (disableAllButtons) return;
@@ -564,9 +664,12 @@ mapPromise.then((map) => {
       }
 
       $('#country-select-list').attr('aria-disabled', 'true');
+
       let historyInfo;
 
       if (historyMode) {
+        returnToDefaultHistoryMap();
+
         try {
           historyInfo = await getHistoryOfCountry(target.textContent);
         } catch (err) {
@@ -598,7 +701,7 @@ mapPromise.then((map) => {
   );
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
-    if (disableAllButtons) return;
+    if (disableAllButtons || historyMode) return;
 
     disableAllButtons = true;
     changePanelSpinners(true);
@@ -626,7 +729,7 @@ mapPromise.then((map) => {
   });
 
   $('#country-select').on('keydown', '#country-option', async (e) => {
-    if (disableAllButtons) return;
+    if (disableAllButtons || historyMode) return;
 
     let value = e.target.value;
 
@@ -848,6 +951,8 @@ async function changeHistoryMode(map, enabled) {
         duration: 2000,
       });
     }
+
+    await returnToDefaultHistoryMap();
 
     let { url } = styles.find(({ name }) => name === currentBaseLayer);
 

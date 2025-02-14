@@ -275,7 +275,7 @@ mapPromise.then((map) => {
             const newPois = await getOverpassPois(bounds, category);
 
             previousPois = [...currentPois];
-            currentPois = pois;
+            currentPois = newPois;
 
             addPoiSourceAndLayer(newPois, 'chosen-pois');
           } catch (err) {

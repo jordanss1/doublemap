@@ -81,7 +81,7 @@ function dateRangeFromISODate(isoDate) {
     endMonth++;
     startDay = endDay = 1;
   }
-  
+
   let startDate = dateFromUTC(startYear, startMonth, startDay);
   let endDate = dateFromUTC(endYear, endMonth, endDay);
   return {
@@ -155,26 +155,46 @@ function constrainFilterByDateRange(filter, dateRange) {
  *  previously been passed into this function, it surgically updates the filter.
  */
 function constrainLegacyFilterByDateRange(filter, dateRange) {
-  if (filter[0] === 'all' &&
-      filter[2] && filter[1][0] === 'any' && filter[2][0] === 'any') {
-    if (filter[1][1] && filter[1][1][0] === 'all' &&
-        filter[1][1][2] && filter[1][1][2][0] === '<' &&
-        filter[1][1][2][1] === 'start_decdate') {
+  if (
+    filter[0] === 'all' &&
+    filter[2] &&
+    filter[1][0] === 'any' &&
+    filter[2][0] === 'any'
+  ) {
+    if (
+      filter[1][1] &&
+      filter[1][1][0] === 'all' &&
+      filter[1][1][2] &&
+      filter[1][1][2][0] === '<' &&
+      filter[1][1][2][1] === 'start_decdate'
+    ) {
       filter[1][1][2][2] = dateRange.endDecimalYear;
     }
-    if (filter[1][2] && filter[1][2][0] === 'all' &&
-        filter[1][2][2] && filter[1][2][2][0] === '<' &&
-        filter[1][2][2][2] === 'start_date') {
+    if (
+      filter[1][2] &&
+      filter[1][2][0] === 'all' &&
+      filter[1][2][2] &&
+      filter[1][2][2][0] === '<' &&
+      filter[1][2][2][2] === 'start_date'
+    ) {
       filter[1][2][2][3] = dateRange.endISODate;
     }
-    if (filter[2][1] && filter[2][1][0] === 'all' &&
-        filter[2][1][2] && filter[2][1][2][0] === '>=' &&
-        filter[2][1][2][1] === 'end_decdate') {
+    if (
+      filter[2][1] &&
+      filter[2][1][0] === 'all' &&
+      filter[2][1][2] &&
+      filter[2][1][2][0] === '>=' &&
+      filter[2][1][2][1] === 'end_decdate'
+    ) {
       filter[2][1][2][2] = dateRange.startDecimalYear;
     }
-    if (filter[2][2] && filter[2][2][0] === 'all' &&
-        filter[2][2][2] && filter[2][2][2][0] === '>=' &&
-        filter[2][2][2][2] === 'end_date') {
+    if (
+      filter[2][2] &&
+      filter[2][2][0] === 'all' &&
+      filter[2][2][2] &&
+      filter[2][2][2][0] === '>=' &&
+      filter[2][2][2][2] === 'end_date'
+    ) {
       filter[2][2][2][3] = dateRange.startISODate;
     }
     return filter;
@@ -195,11 +215,7 @@ function constrainLegacyFilterByDateRange(filter, dateRange) {
         ['has', 'start_date'],
         ['<', 'start_date', dateRange.endISODate],
       ],
-      [
-        'all',
-        ['!has', 'start_decdate'],
-        ['!has', 'start_date'],
-      ],
+      ['all', ['!has', 'start_decdate'], ['!has', 'start_date']],
     ],
     [
       'any',
@@ -214,11 +230,7 @@ function constrainLegacyFilterByDateRange(filter, dateRange) {
         ['has', 'end_date'],
         ['>=', 'end_date', dateRange.startISODate],
       ],
-      [
-        'all',
-        ['!has', 'end_decdate'],
-        ['!has', 'end_date'],
-      ],
+      ['all', ['!has', 'end_decdate'], ['!has', 'end_date']],
     ],
     filter,
   ];
@@ -241,7 +253,11 @@ function constrainExpressionFilterByDateRange(filter, dateRange) {
   const endDecimalYearVariable = `${variablePrefix}__endDecimalYear`;
   const endISODateVariable = `${variablePrefix}__endISODate`;
   if (Array.isArray(filter) && filter[0] === 'let') {
-    updateVariable(filter, startDecimalYearVariable, dateRange.startDecimalYear);
+    updateVariable(
+      filter,
+      startDecimalYearVariable,
+      dateRange.startDecimalYear
+    );
     updateVariable(filter, startISODateVariable, dateRange.startISODate);
     updateVariable(filter, endDecimalYearVariable, dateRange.endDecimalYear);
     updateVariable(filter, endISODateVariable, dateRange.endISODate);
@@ -263,11 +279,7 @@ function constrainExpressionFilterByDateRange(filter, dateRange) {
         ['has', 'start_date'],
         ['<', ['get', 'start_date'], ['var', endISODateVariable]],
       ],
-      [
-        'all',
-        ['!', ['has', 'start_decdate']],
-        ['!', ['has', 'start_date']]
-      ],
+      ['all', ['!', ['has', 'start_decdate']], ['!', ['has', 'start_date']]],
     ],
     [
       'any',
@@ -282,11 +294,7 @@ function constrainExpressionFilterByDateRange(filter, dateRange) {
         ['has', 'end_date'],
         ['>=', ['get', 'end_date'], ['var', startISODateVariable]],
       ],
-      [
-        'all',
-        ['!', ['has', 'end_decdate']],
-        ['!', ['has', 'end_date']]
-      ],
+      ['all', ['!', ['has', 'end_decdate']], ['!', ['has', 'end_date']]],
     ],
   ];
   if (filter) {
@@ -295,10 +303,14 @@ function constrainExpressionFilterByDateRange(filter, dateRange) {
 
   return [
     'let',
-    startDecimalYearVariable, dateRange.startDecimalYear,
-    startISODateVariable, dateRange.startISODate,
-    endDecimalYearVariable, dateRange.endDecimalYear,
-    endISODateVariable, dateRange.endISODate,
+    startDecimalYearVariable,
+    dateRange.startDecimalYear,
+    startISODateVariable,
+    dateRange.startISODate,
+    endDecimalYearVariable,
+    dateRange.endDecimalYear,
+    endISODateVariable,
+    dateRange.endISODate,
     allExpression,
   ];
 }
@@ -327,14 +339,18 @@ function isLegacyFilter(filter) {
       return args[0] === '$id' || args[0] === '$type';
 
     case 'in':
-      return (// The legacy syntax includes all the possible matches inline.
-              args.length > 2 ||
-              // These are unlikely feature properties but are built-in legacy keys.
-              args[0] === '$id' || args[0] === '$type' ||
-              // The `in` expression only allows searching within a string or array.
-              typeof args[1] === 'number' || typeof args[1] === 'boolean' ||
-              // It would be pointless to search for a string literal inside another string literal.
-              (typeof args[0] === 'string' && typeof args[1] === 'string'));
+      return (
+        // The legacy syntax includes all the possible matches inline.
+        args.length > 2 ||
+        // These are unlikely feature properties but are built-in legacy keys.
+        args[0] === '$id' ||
+        args[0] === '$type' ||
+        // The `in` expression only allows searching within a string or array.
+        typeof args[1] === 'number' ||
+        typeof args[1] === 'boolean' ||
+        // It would be pointless to search for a string literal inside another string literal.
+        (typeof args[0] === 'string' && typeof args[1] === 'string')
+      );
 
     case '==':
     case '!=':
@@ -347,7 +363,7 @@ function isLegacyFilter(filter) {
 
     case 'all':
     case 'any':
-      // If any of the arguments is definitely a legacy filter, the whole thing is too. 
+      // If any of the arguments is definitely a legacy filter, the whole thing is too.
       return args.some(isLegacyFilter);
 
     default:
@@ -376,17 +392,12 @@ function updateVariable(letExpression, name, newValue) {
   }
 }
 
-if (typeof window !== 'undefined' && ('maplibregl' in window || 'mapboxgl' in window)) {
-  if ('maplibregl' in window) {
-    maplibregl.Map.prototype.filterByDate = function (date) {
-      filterByDate(this, date);
-    };
-  }
-  if ('mapboxgl' in window) {
-    mapboxgl.Map.prototype.filterByDate = function (date) {
-      filterByDate(this, date);
-    };
-  }
+maplibregl = mapboxgl;
+
+if (typeof window !== 'undefined' && 'maplibregl' in window) {
+  maplibregl.Map.prototype.filterByDate = function (date) {
+    filterByDate(this, date);
+  };
 } else if (typeof module !== 'undefined') {
   module.exports = {
     filterByDate,

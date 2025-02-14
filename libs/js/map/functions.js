@@ -8,6 +8,15 @@ const historyFog = {
   'star-intensity': 0.1,
 };
 
+const selectedEventFog = {
+  range: [0.5, 10],
+  color: '#e0f0ff',
+  'horizon-blend': 0.2,
+  'high-color': '#4682b4',
+  'space-color': '#191970',
+  'star-intensity': 0.4,
+};
+
 function nightNavStyles(map) {
   map.setFog({
     color: 'rgb(11, 11, 25)',
@@ -206,7 +215,7 @@ async function updateChosenCountryState(iso_a2) {
     }
 
     if (historyMode) {
-      clearSidebarContent();
+      returnToDefaultHistoryMap();
     }
 
     $('#left-panel').attr('aria-expanded', 'false');
@@ -257,10 +266,11 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date, #slider-button').removeClass('animate-end_absolute');
+    $('#history-date, #slider-button #history-year').removeClass(
+      'animate-end_absolute'
+    );
     $('#category-container').addClass('animate-end_absolute');
     $('#category-container').attr('aria-expanded', 'false');
-    $('#continue-container').attr('aria-disabled', 'true');
     $('#continue-container, #continue-container-sm').addClass(
       'invisible absolute'
     );
@@ -289,8 +299,14 @@ function applyHistoryHtml(enabled) {
     $('#history-container, #country-select-button').removeClass(
       'animate-start_absolute'
     );
-    $('#slider-button, #history-date').addClass('animate-end_absolute');
+    $('#continue-container, #continue-container-sm').removeClass(
+      'invisible absolute'
+    );
+    $('#slider-button, #history-date, #history-year').addClass(
+      'animate-end_absolute'
+    );
     $('#history-date').attr('aria-disabled', 'true');
+    $('#history-year').attr('aria-disabled', 'true');
     $('#country-select-list').attr('aria-disabled', 'true');
     $('#category-container').removeClass('animate-end_absolute');
     $(
@@ -417,6 +433,8 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
     }
 
     currentMarker = null;
+
+    console.log(currentMarker);
 
     chosenCountryISO = null;
 
@@ -836,12 +854,32 @@ function formatEventDate(event) {
 }
 
 function renderHistoricalEventItem(event) {
-  const { event_year, thumbnail, title } = event;
+  const { event_year, thumbnail, title, latitude, longitude, id } = event;
 
-  return /*html*/ `<div class='flex sm items-center w-fit p-2 rounded-md gap-2 m-0 xs:m-2 mb-0 ml-0'>
-    <div class='flex items-center justify-center'><i class="fa-solid fa-calendar-days text-white-300"></i></div>
-    <div class='font-title text-2xl text-white-300'>
-      ${event_year}
+  const currentlySelected =
+    selectedHistoricalEvent && selectedHistoricalEvent.id === id;
+
+  const noCoords = latitude === null || longitude === null;
+
+  return /*html*/ `
+  <div class='flex items-center justify-between'>
+    <div class='flex sm items-center  w-fit p-2 rounded-md gap-2 m-0 xs:m-2 mb-0 ml-0'>
+      <div class='flex items-center justify-center'><i class="fa-solid fa-calendar-days text-white-300"></i></div>
+      <div class='font-title text-2xl text-white-300'>
+        ${event_year}
+      </div>
+    </div>
+    <div>
+      <div id='event-select-button'
+      data-event-id="${id}"
+      aria-disabled="${
+        noCoords ? 'true' : 'false'
+      }" role='button' aria-label='Highlight event and change time' title='Highlight event and change time' class='relative ${
+    currentlySelected ? 'hidden' : 'block'
+  } bg-gradient-to-r p-1 aria-disabled:cursor-default group/button from-blue-300 font-abel via-purple-500 to-pink-500 aria-disabled:group-hover/whole:text-white-50 text-white-300 z-[25] border-white-300 border rounded-md'>
+        <span >Time travel</span>
+        <div class='absolute inset-0  group-hover/event:group-aria-disabled/button:bg-slate-700/60 group-aria-disabled/button:hover:bg-slate-700/40 w-full h-full rounded-md bg-slate-700/0 z-30'></div>
+      </div>
     </div>
   </div>
   <div class="rounded-md p-2">
@@ -876,8 +914,20 @@ function addHistoricalEventsToSidebar(events) {
     .map((event) => {
       const html = renderHistoricalEventItem(event);
 
-      return /*html*/ `<div id='event-content-item' aria-disabled='true' class='flex flex-col rounded-md p-2 aria-disabled:opacity-0 bg-black/40 aria-disabled:-translate-x-2 shadow-[20px_20px_30px_0px_rgba(100,_100,_100,_.3)] mb-4 translate-x-0 opacity-100 transition-all duration-300 ease-in border-[.5px] border-[#663399]'>
-        ${html}
+      const noCoords = event.latitude === null || event.longitude === null;
+
+      return /*html*/ `
+      <div aria-disabled="${
+        noCoords ? 'true' : 'false'
+      }" class='relative group/whole'>
+        <div class='absolute font-title max-w-28 border bg-black/80 border-white-300 rounded-md top-0 right-0 transition-all duration-150 ease-out translate-y-0 group-aria-disabled/whole:group-hover/whole:opacity-100 opacity-0 group-aria-disabled/whole:group-hover/whole:-translate-y-14 p-2 uppercase text-xs text-white-300 font-light'>Coordinates unknown</div>
+        <div id='event-content-item' data-event-id="${event.id}"
+        aria-disabled='true' class='flex flex-col group/event rounded-md p-2 aria-disabled:opacity-0 bg-black/40 aria-disabled:-translate-x-2 shadow-[20px_20px_30px_0px_rgba(100,_100,_100,_.3)] mb-4 translate-x-0 opacity-100 transition-all duration-300 ease-in border-[.5px] border-[#663399]'>
+          <div class='absolute flex justify-center items-center bg-white-800/30 rounded-md inset-0 w-full h-full transition-all group-aria-disabled/whole:group-hover/whole:scale-100 scale-110 duration-150 ease-out group-aria-disabled/whole:group-hover/whole:opacity-100 opacity-0 z-20'>
+            <img class='w-28 opacity-30' src='libs/css/assets/error_icon.svg'/>
+          </div>
+          ${html}
+        </div>
       </div>`;
     })
     .sort((a, b) => {
@@ -893,6 +943,81 @@ function addHistoricalEventsToSidebar(events) {
   setTimeout(() => {
     $('[id="event-content-item"]').attr('aria-disabled', 'false');
   }, 50);
+}
+
+async function changeYearAndMapEvent(event) {
+  disableAllButtons = true;
+  disableMapInteraction(true);
+  expandSidebar(false);
+  removeAllButtons(true);
+
+  const { event_year, longitude, latitude, event_date } = event;
+
+  let zoom = 2;
+
+  if (map.getZoom() <= 2) zoom = map.getZoom() - 0.5;
+
+  await new Promise((resolve) => setTimeout(() => resolve()), 500);
+
+  await flyToPromise({
+    speed: 0.5,
+    zoom,
+    duration: 1500,
+  });
+
+  await animateFog(map.getFog(), selectedEventFog, 1500);
+
+  try {
+    map.filterByDate(event_date);
+
+    changeExitButton(false, `Exit selected event from ${event_date}`);
+
+    const features = await createFeaturesFromHistoricalEvents([event]);
+
+    addMarkersSourceAndLayer(features);
+
+    clearSidebarContent();
+
+    if (window.innerWidth >= 640) {
+      $('#history-container').removeClass('h-20');
+      $('#history-container').removeClass('h-10');
+      $('#history-container').addClass('h-30');
+
+      $('#history-year').text(`${event_year}`);
+      $('#history-year').attr('aria-disabled', 'false');
+      $('#history-year').removeClass('animate-end_absolute');
+    }
+
+    addHistoricalEventsToSidebar([selectedHistoricalEvent]);
+
+    $('#content-subtitle').text(`Year ${event_year}`);
+    $('#content-subtitle-container').removeClass(`invisible`);
+
+    await flyToPromise({
+      center: [longitude, latitude],
+      speed: 0.5,
+      zoom: 3.5,
+      duration: 2000,
+    });
+
+    disableMapInteraction(false);
+    disableAllButtons = false;
+    removeAllButtons(false);
+  } catch (err) {
+    console.log(err);
+    selectedHistoricalEvent = null;
+    addErrorToMap('Problem changing map date - try again');
+    disableMapInteraction(false);
+    disableAllButtons = false;
+    removeAllButtons(false);
+
+    await animateFog(map.getFog(), historyFog, 1500);
+
+    const features = createFeaturesFromHistoricalEvents(historicalEvents);
+    addMarkersSourceAndLayer(features);
+    addHistoricalEventsToSidebar(historicalEvents);
+    expandSidebar(true);
+  }
 }
 
 function pausingPoiSearch(paused) {
@@ -1261,6 +1386,51 @@ function createFeatureNameForResults(feature, popout) {
   }
 }
 
+async function returnToDefaultHistoryMap() {
+  expandSidebar(false);
+  currentDate = null;
+
+  if (selectedHistoricalEvent) {
+    try {
+      map.filterByDate('2013-01-01');
+
+      await animateFog(map.getFog(), historyFog, 1500);
+
+      const isDaySliderEnabled =
+        $('#day-slider-container-lg').attr('aria-disabled') === 'false' ||
+        $('#day-slider-container-sm').attr('aria-disabled') === 'false';
+
+      $('#history-year').attr('aria-disabled', 'true');
+      $('#history-year').addClass('animate-end_absolute');
+
+      if (isDaySliderEnabled) {
+        $('#history-container').removeClass('h-30');
+        $('#history-container').addClass('h-20');
+      }
+
+      selectedHistoricalEvent = null;
+    } catch (err) {
+      addErrorToMap('Problem loading map - try again');
+      console.log(err);
+      return;
+    }
+  }
+
+  historicalEvents = [];
+
+  clearSidebarContent();
+
+  addMarkersSourceAndLayer([]);
+
+  map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
+  map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
+  map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
+  map.setLayoutProperty('chosen-country-line', 'visibility', 'visible');
+
+  map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
+  map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
+}
+
 async function getHistoryOfCountry(country) {
   try {
     const { data } = await $.ajax({
@@ -1343,6 +1513,8 @@ let erroring = false;
 
 function addErrorToMap(errorMessage) {
   if (erroring) return;
+
+  erroring = true;
 
   $('#error-map').attr('aria-disabled', 'false').addClass('animate-wiggle');
   $('#error-map').text(errorMessage);

@@ -10,7 +10,7 @@ $('#content-chosen').on('click', '#content-expand', function () {
 
 $('#menu-button').on('click', () => {
   if (disableAllButtons) return;
-  
+
   const isPanelExpanded = $('#left-panel').attr('aria-expanded') === 'true';
 
   if (isPanelExpanded) {
@@ -150,6 +150,8 @@ $('#content-subtitle-extra').on('click', '#continue-search', async () => {
 });
 
 $('#content-results').on('click', '#pin-poi', function (e) {
+  if (disableAllButtons) return;
+
   e.stopPropagation();
 
   const id = $(this).closest('#poi-content-item').attr('data-poi-id');
@@ -160,12 +162,16 @@ $('#content-results').on('click', '#pin-poi', function (e) {
 $('#content-chosen').on('click', '#pin-poi', function (e) {
   e.stopPropagation();
 
+  if (disableAllButtons) return;
+
   const id = $(this).closest('#poi-chosen').attr('data-poi-id');
 
   markPoiFromSidebar(id);
 });
 
 $('#content-results').on('click', '#search-content-item', function (e) {
+  if (disableAllButtons) return;
+
   const selectedResult = searchResults.find(
     (res) => res.properties.mapbox_id === $(this).attr('data-poi-id')
   );
@@ -174,11 +180,39 @@ $('#content-results').on('click', '#search-content-item', function (e) {
 });
 
 $('#content-chosen').on('click', '#search-chosen', function (e) {
+  if (disableAllButtons) return;
+
   const selectedResult = searchResults.find(
     (res) => res.properties.mapbox_id === $(this).attr('data-poi-id')
   );
 
   markAndPanToSearchResult(selectedResult);
+});
+
+$('#content-results').on('click', '#event-select-button', function (e) {
+  if (disableAllButtons) return;
+
+  const foundEvent = historicalEvents.find(
+    (event) => event.id === +$(this).attr('data-event-id')
+  );
+
+  let alreadySelected = false;
+
+  if (selectedHistoricalEvent) {
+    alreadySelected = foundEvent.id === selectedHistoricalEvent.id;
+  }
+
+  if (
+    foundEvent.latitude == null ||
+    foundEvent.longitude == null ||
+    alreadySelected
+  )
+    return;
+
+  selectedHistoricalEvent = foundEvent;
+
+
+  changeYearAndMapEvent(selectedHistoricalEvent);
 });
 
 const sidebarContainer = $('#left-panel');

@@ -41,6 +41,8 @@ let chosenCountryISO = null;
 let pausePoiSearch = false;
 let selectedPoi;
 let selectedSearch;
+let selectedHistoricalEvent;
+let currentDate;
 let currentMarker = null;
 let disableAllButtons = false;
 let countryPopup;

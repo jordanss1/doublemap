@@ -164,9 +164,11 @@
                   title=""
                   role="button"
                   aria-label=""
-                  class="w-7 h-7 origin-top transition-all border border-white-300 group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 group-aria-disabled:-translate-y-5 translate-y-1 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-gradient-to-r bg-white-100"
+                  class="origin-top transition-all group-aria-disabled:delay-100 delay-500 group-aria-disabled:duration-500 duration-300 relative group-aria-disabled:opacity-0 group-aria-disabled:scale-50 scale-100 group-aria-disabled:-translate-y-5 translate-y-1 opacity-100 flex items-center pointer-events-auto rounded-full justify-center bg-white-100"
                 >
-                  <i class="fa-solid fa-circle-xmark text-2xl text-red-600"></i>
+                  <i
+                    class="fa-solid fa-circle-xmark text-2xl rounded-full text-red-600"
+                  ></i>
                 </div>
               </div>
 
@@ -205,6 +207,13 @@
                   id="history-date"
                   title="Current date"
                   aria-label="Current date"
+                  aria-disabled="true"
+                  class="h-8 group-aria-disabled/container:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled/container:delay-100 aria-disabled:opacity-0 group-aria-disabled/container:scale-50 aria-disabled:scale-50 group-aria-disabled/container:invisible aria-disabled:invisible group-aria-disabled/container:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled/container:duration-500 duration-300"
+                ></div>
+                <div
+                  id="history-year"
+                  title="Selected year"
+                  aria-label="Selected year"
                   aria-disabled="true"
                   class="h-8 group-aria-disabled/container:opacity-0 delay-500 aria-disabled:delay-100 group-aria-disabled/container:delay-100 aria-disabled:opacity-0 group-aria-disabled/container:scale-50 aria-disabled:scale-50 group-aria-disabled/container:invisible aria-disabled:invisible group-aria-disabled/container:-translate-y-3 opacity-100 aria-disabled:-translate-y-3 origin-top scale-100 flex-grow font-bold text-white-300 translate-y-0 relative flex justify-self-end items-center pointer-events-auto cursor-default justify-center group-aria-disabled/container:duration-500 duration-300"
                 ></div>
@@ -423,11 +432,11 @@
             </div>
             <div
               id="content-container"
-              class="w-full h-full flex flex-col gap-2 overflow-y-scroll mt-[74px] px-4"
+              class="w-full h-full flex flex-col gap-2 overflow-y-scroll mt-[66px] px-4"
             >
               <div
                 id="content-title-container"
-                class="w-full relative flex flex-col gap-4 mb-2 after:content-[''] transition-all ease-in after:absolute after:w-full after:h-[1px] after:-bottom-6 after:bg-white-600 after:opacity-0"
+                class="w-full relative flex flex-col pt-3 gap-4 mb-2 after:content-[''] transition-all ease-in after:absolute after:w-full after:h-[1px] after:-bottom-6 after:bg-white-600 after:opacity-0"
               >
                 <div class="w-full" id="content-title-div">
                   <h2
