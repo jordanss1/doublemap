@@ -211,7 +211,6 @@ $('#content-results').on('click', '#event-select-button', function (e) {
 
   selectedHistoricalEvent = foundEvent;
 
-
   changeYearAndMapEvent(selectedHistoricalEvent);
 });
 

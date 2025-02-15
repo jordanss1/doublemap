@@ -266,7 +266,7 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date, #slider-button #history-year').removeClass(
+    $('#history-date, #slider-button, #history-year').removeClass(
       'animate-end_absolute'
     );
     $('#category-container').addClass('animate-end_absolute');
@@ -948,10 +948,11 @@ function addHistoricalEventsToSidebar(events) {
 async function changeYearAndMapEvent(event) {
   disableAllButtons = true;
   disableMapInteraction(true);
+  changePanelSpinners(true);
   expandSidebar(false);
   removeAllButtons(true);
 
-  const { event_year, longitude, latitude, event_date } = event;
+  const { event_year, longitude, latitude, event_date, id } = event;
 
   let zoom = 2;
 
@@ -972,11 +973,9 @@ async function changeYearAndMapEvent(event) {
 
     changeExitButton(false, `Exit selected event from ${event_date}`);
 
-    const features = await createFeaturesFromHistoricalEvents([event]);
+    removeMarkers();
 
-    addMarkersSourceAndLayer(features);
-
-    clearSidebarContent();
+    new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
 
     if (window.innerWidth >= 640) {
       $('#history-container').removeClass('h-20');
@@ -993,16 +992,19 @@ async function changeYearAndMapEvent(event) {
     $('#content-subtitle').text(`Year ${event_year}`);
     $('#content-subtitle-container').removeClass(`invisible`);
 
-    await flyToPromise({
-      center: [longitude, latitude],
-      speed: 0.5,
-      zoom: 3.5,
-      duration: 2000,
-    });
+    setTimeout(async () => {
+      await flyToPromise({
+        center: [longitude, latitude],
+        speed: 0.5,
+        zoom: 3.5,
+        duration: 2000,
+      });
 
-    disableMapInteraction(false);
-    disableAllButtons = false;
-    removeAllButtons(false);
+      changePanelSpinners(false);
+      disableMapInteraction(false);
+      disableAllButtons = false;
+      removeAllButtons(false);
+    }, 1000);
   } catch (err) {
     console.log(err);
     selectedHistoricalEvent = null;
@@ -1010,14 +1012,32 @@ async function changeYearAndMapEvent(event) {
     disableMapInteraction(false);
     disableAllButtons = false;
     removeAllButtons(false);
+    changePanelSpinners(false);
 
     await animateFog(map.getFog(), historyFog, 1500);
 
-    const features = createFeaturesFromHistoricalEvents(historicalEvents);
-    addMarkersSourceAndLayer(features);
+    await createMarkersFromHistoricalEvents(historicalEvents);
     addHistoricalEventsToSidebar(historicalEvents);
     expandSidebar(true);
   }
+}
+
+function removeMarkers() {
+  $('.mapboxgl-marker').each(function () {
+    $(this).remove();
+  });
+
+  historyMarkerGroup = [];
+}
+
+function toggleMarkers(id) {
+  historyMarkerGroup.forEach((marker) => {
+    if (+$(marker._element).attr('data-event-id') !== id) {
+      marker.getElement().style.display = 'none';
+    } else {
+      marker.getElement().style.display = 'block';
+    }
+  });
 }
 
 function pausingPoiSearch(paused) {
@@ -1077,24 +1097,6 @@ function addMarkersSourceAndLayer(features) {
       },
       paint: {
         'icon-color': 'rgb(168, 85, 247)',
-      },
-    });
-  }
-
-  if (!map.getLayer('history-markers-layer')) {
-    map.addLayer({
-      id: 'history-markers-layer',
-      type: 'symbol',
-      source: 'markers-source',
-      layout: {
-        'icon-image': 'custom-marker',
-        'icon-size': 1,
-        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-        'text-offset': [0, 1.25],
-        'text-anchor': 'top',
-      },
-      paint: {
-        'icon-color': '#FF0000',
       },
     });
   }
@@ -1264,7 +1266,6 @@ async function getSearchResults(value) {
         appendSearchResults(data);
       }
     } else {
-      // show notification no search results
       if (!selectedPoi && currentPoiCategory === 'default') {
         appendSearchResults(data);
       }
@@ -1416,19 +1417,16 @@ async function returnToDefaultHistoryMap() {
     }
   }
 
+  removeMarkers();
+
   historicalEvents = [];
 
   clearSidebarContent();
-
-  addMarkersSourceAndLayer([]);
 
   map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
   map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
   map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
   map.setLayoutProperty('chosen-country-line', 'visibility', 'visible');
-
-  map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
-  map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
 }
 
 async function getHistoryOfCountry(country) {

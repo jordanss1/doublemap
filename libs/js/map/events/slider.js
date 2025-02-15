@@ -4,7 +4,6 @@ mapPromise.then((map) => {
   let positionSliderTimer;
 
   let sliderMouseUpTimer;
-  let wikipediaTimer;
 
   const slider = $('.day-slider');
   const popupContainer = $('.popup-container');
@@ -126,7 +125,7 @@ mapPromise.then((map) => {
     textBox.text(dateString);
   });
 
-  slider.on('mousedown', function (e) {
+  slider.on('pointerdown', function (e) {
     e.stopPropagation();
 
     if (!historyMode || disableAllButtons) return;
@@ -163,7 +162,7 @@ mapPromise.then((map) => {
 
   let preventClick = false;
 
-  slider.on('mouseup', async function (e) {
+  slider.on('pointerup', async function (e) {
     e.stopPropagation();
 
     preventClick = true;
@@ -339,43 +338,60 @@ function appendHistoricalEventsSpinner(message) {
   $('#historical-spinner').attr('aria-disabled', 'false');
 }
 
-async function createFeaturesFromHistoricalEvents(data) {
-  if (!map.hasImage('custom-marker')) {
-    await getToken();
+async function createMarkersFromHistoricalEvents(data) {
+  removeMarkers();
 
-    map.loadImage(
-      'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
-      (error, image) => {
-        if (error) throw error;
+  const loadImageManually = (url) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(url);
+      img.onerror = () => resolve('libs/css/assets/history-fallback.jpg');
+      img.src = url;
+    });
+  };
 
-        map.addImage('custom-marker', image);
-      }
-    );
+  for (const event of data) {
+    const imageSource = event.thumbnail
+      ? await loadImageManually(event.thumbnail)
+      : 'libs/css/assets/history-fallback.jpg';
+
+    const markerElement = document.createElement('div');
+
+    markerElement.innerHTML = /*html*/ `
+    <div data-event-id='${event.id}' id='history-marker' class='group relative cursor-pointer  pointer-events-auto' aria-expanded='false'>
+      <div class='absolute h-24 w-20 sm:w-32 flex items-center justify-center origin-left left-0 group-aria-expanded:delay-300 duration-300 group-aria-expanded:left-36 inset-y-1/2 opacity-0 group-aria-expanded:opacity-100 font-abel text-white-50 -translate-y-1/2 bg-black text-white border border-white/50 rounded-md p-2 transition-all ease-out delay-0'>
+        <p class='line-clamp-3 text-sm sm:text-lg'>
+          ${event.title}
+       </p>
+      </div>
+      <div class='sm:w-9 w-7 p-1 transition-all delay-200 group-aria-expanded:delay-0 scale-100 group-aria-expanded:scale-[3.5] ease-out opacity-90 duration-300 group-aria-expanded:shadow-[0px_0px_4px_0px_rgba(255,255,255,1),_3px_3px_6px_0px_rgba(87,148,254,1)] shadow-[0px_0px_2px_rgba(87,148,254,0),_0px_0px_60px_0px_rgba(87,148,254,0)] group-aria-expanded:opacity-100 sm:group-aria-expanded:w-14 group-aria-expanded:w-9 bg-black items-start rounded-md'>
+        <img class='object-contain transition-all shadow-[10px_1px_40px_10px_rgba(0,0,0,.5)_inset,_-10px_-10px_40px_5px_rgba(255,255,255,1)_inset] ease-out delay-75 h-full' src='${imageSource}' alt='Event thumbnail' /> 
+      </div>
+  </div>
+
+    `;
+
+    const $markerElement = $(markerElement.firstElementChild);
+
+    $markerElement.on('click', function (e) {
+      e.stopPropagation();
+    });
+
+    const marker = new mapboxgl.Marker({
+      element: markerElement.firstElementChild,
+    })
+      .setLngLat([event.longitude, event.latitude])
+      .addTo(map);
+
+    historyMarkerGroup.push(marker);
   }
-
-  return data
-    .filter(({ latitude, longitude }) => latitude != null && longitude != null)
-    .map((item) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [item.longitude, item.latitude],
-      },
-      properties: {
-        id: item.id,
-        event_date: item.event_date,
-        event_day: item.event_day,
-        event_month: item.event_month,
-        event_year: item.event_year,
-        thumbnail: item.thumbnail,
-        thumbnail_height: item.thumbnail_height,
-        thumbnail_width: item.thumbnail_width,
-      },
-    }));
 }
 
 async function getWikipediaEvents(day, month) {
   if (!historyMode) return;
+
+  disableAllButtons = true;
 
   clearSidebarContent();
   selectedHistoricalEvent = null;
@@ -383,7 +399,6 @@ async function getWikipediaEvents(day, month) {
   disableMapInteraction(true);
   expandSidebar(true);
   changePanelSpinners(true);
-  disableAllButtons = true;
   appendHistoricalEventsSpinner('Gathering events...');
 
   $('.day-slider').prop('disabled', true);
@@ -413,18 +428,12 @@ async function getWikipediaEvents(day, month) {
         duration: 2000,
       });
 
-      const features = await createFeaturesFromHistoricalEvents(data);
-
-      addMarkersSourceAndLayer(features);
+      await createMarkersFromHistoricalEvents(data);
 
       map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
       map.setLayoutProperty('hovered-country-line', 'visibility', 'none');
       map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
       map.setLayoutProperty('chosen-country-line', 'visibility', 'none');
-
-      map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
-      map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
-      map.moveLayer('history-markers-layer');
     }
 
     if (complete === false) {
@@ -449,17 +458,12 @@ async function getWikipediaEvents(day, month) {
           duration: 2000,
         });
 
-        const features = createFeaturesFromHistoricalEvents(data);
-        addMarkersSourceAndLayer(features);
+        await createMarkersFromHistoricalEvents(data);
 
         map.setLayoutProperty('hovered-country-fill', 'visibility', 'none');
         map.setLayoutProperty('hovered-country-line', 'visibility', 'none');
         map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
         map.setLayoutProperty('chosen-country-line', 'visibility', 'none');
-
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
-        map.moveLayer('history-markers-layer');
 
         console.log(data);
       } catch (err) {

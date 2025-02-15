@@ -173,6 +173,8 @@ mapPromise.then((map) => {
   map.on('click', 'hovered-country-fill', async (e) => {
     if (disableAllButtons) return;
 
+    clearTimeout(wikipediaTimer);
+
     disableAllButtons = true;
     changePanelSpinners(true);
     disableMapInteraction(true);
@@ -199,9 +201,12 @@ mapPromise.then((map) => {
       const countryInfo = await getCountryDataAndFitBounds(iso_a2);
 
       if (historyMode) {
-        createHistoryCountryPopup(historyInfo, countryInfo.restCountries.flag);
+        await createHistoryCountryPopup(
+          historyInfo,
+          countryInfo.restCountries.flag
+        );
       } else {
-        createModernCountryPopup(countryInfo);
+        await createModernCountryPopup(countryInfo);
       }
     } catch (err) {
       updateChosenCountryState();
@@ -279,41 +284,66 @@ mapPromise.then((map) => {
     }
   });
 
-  map.on(
-    'mouseenter',
-    [
-      'hovered-country-fill',
-      'chosen-pois',
-      'default-pois',
-      'modern-markers-layer',
-      'history-markers-layer',
-    ],
-    () => {
-      map.getCanvas().style.cursor = 'pointer';
-    }
-  );
-
-  map.on(
-    'mouseleave',
-    [
-      'hovered-country-fill',
-      'chosen-pois',
-      'default-pois',
-      'modern-markers-layer',
-      'history-markers-layer',
-    ],
-    () => {
-      map.getCanvas().style.cursor = '';
-    }
-  );
-
-  map.on('mouseenter', 'history-markers-layer', (e) => {
-    console.log(e);
-    console.log(e.features);
+  ['mouseenter', 'touchstart'].forEach((eventType) => {
+    map.on(
+      eventType,
+      [
+        'hovered-country-fill',
+        'chosen-pois',
+        'default-pois',
+        'modern-markers-layer',
+      ],
+      () => {
+        map.getCanvas().style.cursor = 'pointer';
+      }
+    );
   });
 
-  map.on('mousemove', ['hovered-country-fill'], (e) => {
-    if (e.features.length > 0) {
+  ['mouseleave', 'touchend'].forEach((eventType) => {
+    map.on(
+      eventType,
+      [
+        'hovered-country-fill',
+        'chosen-pois',
+        'default-pois',
+        'modern-markers-layer',
+      ],
+      () => {
+        map.getCanvas().style.cursor = '';
+      }
+    );
+  });
+
+  ['mousemove', 'touchmove'].forEach((eventType) => {
+    map.on(eventType, ['hovered-country-fill'], (e) => {
+      if (e.features.length > 0) {
+        if (hoveredCountryId !== null) {
+          map.setFeatureState(
+            {
+              source: 'country-borders',
+              sourceLayer: 'country_bordersgeo',
+              id: hoveredCountryId,
+            },
+            { hover: false }
+          );
+        }
+
+        hoveredCountryId = e.features[0].properties.iso_a2;
+
+        map.setFeatureState(
+          {
+            source: 'country-borders',
+            sourceLayer: 'country_bordersgeo',
+            id: hoveredCountryId,
+          },
+          { hover: true }
+        );
+      }
+    });
+  });
+
+  ['mouseleave', 'touchend'].forEach((eventType) => {
+    map.on(eventType, ['hovered-country-fill'], (e) => {
       if (hoveredCountryId !== null) {
         map.setFeatureState(
           {
@@ -325,19 +355,16 @@ mapPromise.then((map) => {
         );
       }
 
-      hoveredCountryId = e.features[0].properties.iso_a2;
-      map.setFeatureState(
-        {
-          source: 'country-borders',
-          sourceLayer: 'country_bordersgeo',
-          id: hoveredCountryId,
-        },
-        { hover: true }
-      );
-    }
+      hoveredCountryId = null;
+    });
   });
 
-  map.on('mouseleave', ['hovered-country-fill'], (e) => {
+  $(document).on('pointermove', '#history-marker', function (e) {
+    e.stopPropagation();
+
+    $(this).attr('aria-expanded', 'true');
+    $(this).closest('.mapboxgl-marker').css('z-index', 1000);
+
     if (hoveredCountryId !== null) {
       map.setFeatureState(
         {
@@ -347,9 +374,13 @@ mapPromise.then((map) => {
         },
         { hover: false }
       );
+      hoveredCountryId = null;
     }
+  });
 
-    hoveredCountryId = null;
+  $(document).on('pointerleave', '#history-marker', function () {
+    $(this).attr('aria-expanded', 'false');
+    $(this).closest('.mapboxgl-marker').css('z-index', '');
   });
 
   $('#zoom-in').on('click', () => {
@@ -378,6 +409,8 @@ mapPromise.then((map) => {
   $('#history-control').on('click', async () => {
     if (disableAllButtons) return;
 
+    clearTimeout(wikipediaTimer);
+
     disableAllButtons = true;
 
     if (chosenCountryISO) {
@@ -402,6 +435,8 @@ mapPromise.then((map) => {
 
   $('#style-control').on('click', async () => {
     if (disableAllButtons) return;
+
+    clearTimeout(wikipediaTimer);
 
     disableAllButtons = true;
     changePanelSpinners(true);
@@ -528,11 +563,7 @@ mapPromise.then((map) => {
           selectedHistoricalEvent = null;
           clearSidebarContent();
 
-          const features = await createFeaturesFromHistoricalEvents(
-            historicalEvents
-          );
-
-          addMarkersSourceAndLayer(features);
+          await createMarkersFromHistoricalEvents(historicalEvents);
 
           addHistoricalEventsToSidebar(historicalEvents);
 
@@ -555,15 +586,12 @@ mapPromise.then((map) => {
         currentDate = null;
         expandSidebar(false);
         clearSidebarContent();
-        addMarkersSourceAndLayer([]);
+        removeMarkers();
 
         map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
         map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
         map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
         map.setLayoutProperty('chosen-country-line', 'visibility', 'visible');
-
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
 
         changeExitButton(true);
 
@@ -574,19 +602,16 @@ mapPromise.then((map) => {
           zoom: map.getZoom() - 0.5,
           duration: 1500,
         });
+
+        return;
       }
     } else {
-      console.log(currentMarker);
-      console.log(currentPoiCategory);
-
       if (currentMarker) {
         currentMarker = null;
         addMarkersSourceAndLayer([]);
         changeSelectedSidebarItem(false);
         selectedPoi = null;
         selectedSearch = null;
-
-        console.log(currentPoiCategory);
 
         if (
           currentPoiCategory === 'default' &&
@@ -598,8 +623,6 @@ mapPromise.then((map) => {
           if (searchResults.length) {
             appendSearchResults(searchResults);
           }
-
-          console.log('in');
 
           changeExitButton(true);
         }
@@ -630,6 +653,7 @@ mapPromise.then((map) => {
         if (searchResults.length) {
           appendSearchResults(searchResults);
         }
+
         return;
       }
     }
@@ -668,6 +692,7 @@ mapPromise.then((map) => {
       let historyInfo;
 
       if (historyMode) {
+        clearTimeout(wikipediaTimer);
         returnToDefaultHistoryMap();
 
         try {
@@ -685,9 +710,9 @@ mapPromise.then((map) => {
         );
 
         if (historyMode) {
-          createHistoryCountryPopup(historyInfo);
+          await createHistoryCountryPopup(historyInfo);
         } else {
-          createModernCountryPopup(countryInfo);
+          await createModernCountryPopup(countryInfo);
         }
       } catch (err) {
         console.log(err);
@@ -717,7 +742,7 @@ mapPromise.then((map) => {
 
       const countryInfo = await getCountryDataAndFitBounds(target.value);
 
-      createModernCountryPopup(countryInfo);
+      await createModernCountryPopup(countryInfo);
     } catch (err) {
       console.log(err);
       updateChosenCountryState();
@@ -748,7 +773,7 @@ mapPromise.then((map) => {
 
         const countryInfo = await getCountryDataAndFitBounds(value);
 
-        createModernCountryPopup(countryInfo);
+        await createModernCountryPopup(countryInfo);
       } catch (err) {
         console.log(err);
         updateChosenCountryState();
@@ -761,13 +786,13 @@ mapPromise.then((map) => {
   });
 });
 
-$('#error-map').on('mouseenter', () => {
+$('#error-map').on('pointerenter', () => {
   if ($('#error-map').attr('aria-disabled') === 'true') return;
 
   clearTimeout(errorMapTimer);
 });
 
-$('#error-map').on('mouseleave', () => {
+$('#error-map').on('pointerleave', () => {
   if ($('#error-map').attr('aria-disabled') === 'true') return;
 
   errorMapTimer = removeErrorFromMap();
@@ -891,7 +916,6 @@ async function changeHistoryMode(map, enabled) {
 
         map.setLayoutProperty('default-pois', 'visibility', 'none');
         map.setLayoutProperty('modern-markers-layer', 'visibility', 'none');
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'visible');
 
         if (map.getSource('markers-source')) {
           map.getSource('markers-source').setData({
@@ -973,7 +997,6 @@ async function changeHistoryMode(map, enabled) {
         }, 1500);
 
         map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible');
-        map.setLayoutProperty('history-markers-layer', 'visibility', 'none');
 
         if (map.getSource('markers-source')) {
           map.getSource('markers-source').setData({

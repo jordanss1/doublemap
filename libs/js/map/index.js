@@ -42,11 +42,13 @@ let pausePoiSearch = false;
 let selectedPoi;
 let selectedSearch;
 let selectedHistoricalEvent;
+let historyMarkerGroup = [];
 let currentDate;
 let currentMarker = null;
 let disableAllButtons = false;
 let countryPopup;
 let errorMapTimer;
+let wikipediaTimer;
 
 let categoryPanelButtons = [
   '#hotel-button',
@@ -183,50 +185,51 @@ const popupOffsets = {
 
 let animating = false;
 
-const createModernCountryPopup = (countryInfo) => {
-  const { restCountries } = countryInfo;
-  const {
-    flags,
-    name,
-    population,
-    capital,
-    area,
-    coatOfArms,
-    translations,
-    currencies,
-    region,
-    subregion,
-  } = restCountries;
+const createModernCountryPopup = async (countryInfo) => {
+  return new Promise((resolve) => {
+    const { restCountries } = countryInfo;
+    const {
+      flags,
+      name,
+      population,
+      capital,
+      area,
+      coatOfArms,
+      translations,
+      currencies,
+      region,
+      subregion,
+    } = restCountries;
 
-  countryPopup = new mapboxgl.Popup({
-    offset: popupOffsets,
-    anchor: 'center',
-    closeButton: false,
-    closeOnClick: false,
-    className: `country_popup  lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
-  });
+    countryPopup = new mapboxgl.Popup({
+      offset: popupOffsets,
+      anchor: 'center',
+      closeButton: false,
+      closeOnClick: false,
+      className: `country_popup  lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
+    });
 
-  const translationsArray = Object.entries(translations)
-    .map(([key, value]) => {
-      if (key === 'cym') {
-        key = 'eng';
-      }
+    const translationsArray = Object.entries(translations)
+      .map(([key, value]) => {
+        if (key === 'cym') {
+          key = 'eng';
+        }
 
-      key = key.toUpperCase();
+        key = key.toUpperCase();
 
-      return {
-        ...value,
-        code: key,
-      };
-    })
-    .sort((a, b) => (a.code === 'ENG' ? -1 : b.code === 'ENG' ? 1 : 0));
+        return {
+          ...value,
+          code: key,
+        };
+      })
+      .sort((a, b) => (a.code === 'ENG' ? -1 : b.code === 'ENG' ? 1 : 0));
 
-  const currency = Object.entries(currencies).map(([key, value]) => ({
-    ...value,
-    code: key,
-  }))[0];
+    const currency = Object.entries(currencies).map(([key, value]) => ({
+      ...value,
+      code: key,
+    }))[0];
 
-  countryPopup.setHTML(/*html*/ `
+    countryPopup.setHTML(/*html*/ `
           <div class='flex flex-col gap-2'>
            <div class='grid grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] md:mt-3 mt-6 transition-all duration-300 gap-2 items-center'>
               <div id='country-image-button' title='Change country photo' aria-label='Change country photo' role='button'  aria-hidden='true' class='flex border-r-2  border-b-2 p-2 aspect-[2/1] h-full overflow-hidden w-full self-start relative rounded-bl-none rounded-br-md rounded-tr-none border-white-50 group/button'>
@@ -236,8 +239,8 @@ const createModernCountryPopup = (countryInfo) => {
                   <img id='country-flag' src="${
                     flags.svg ?? flags.png
                   }" class=' w-full translate-x-4 object-contain delay-0 opacity-0 group-aria-hidden/button:opacity-100 relative group-aria-hidden/button:delay-1000 group-aria-hidden/button:translate-x-0 transition-all rounded-md ease-in-out' alt="${
-    flags.alt
-  }" >
+      flags.alt
+    }" >
                   <img id='country-coat' src="${
                     coatOfArms.svg ?? coatOfArms.png
                   }" class='bg-[conic-gradient(from_100deg_at_10%_65%,#a100ff_0%_8%,_#4d9cff_26%,#5c2970_26%_32%,#0000_30%_100%),_linear-gradient(to_left,_#264b8d,_rgb(168_85_247_/_0))] w-full delay-1000 border-4 border-white-300 opacity-100 object-contain group-aria-hidden/button:opacity-0 invisible rounded-md absolute group-aria-hidden/button:delay-0 group-aria-hidden/button:-translate-x-4 translate-x-0 transition-all  ease-in-out' >
@@ -257,7 +260,7 @@ const createModernCountryPopup = (countryInfo) => {
                         name.common
                       }</span>
                     </div>
-                    <div  id='name-official' class="sm:text-3xl xs:text-2xl text-xl  py-1 max-h-[120px] overflow-y-scroll opacity-100 text-center  translate-x-0 invisible absolute group-aria-hidden/button:opacity-0 group-aria-hidden/button:delay-0 font-title  delay-1000 group-aria-hidden/button:-translate-x-4 text-white-300 transition-all  ease-in-out font-extrabold"
+                    <div  id='name-official' class="sm:text-3xl xs:text-2xl text-xl  py-1 max-h-[120px] overflow-y-auto opacity-100 text-center  translate-x-0 invisible absolute group-aria-hidden/button:opacity-0 group-aria-hidden/button:delay-0 font-title  delay-1000 group-aria-hidden/button:-translate-x-4 text-white-300 transition-all  ease-in-out font-extrabold"
                     >
                       <span id='name-official-inner' aria-hidden='false' class='transition-all  ease-in-out duration-150 opacity-100 aria-hidden:opacity-0  [word-break:break-word]'>${
                         name.official
@@ -334,200 +337,208 @@ const createModernCountryPopup = (countryInfo) => {
           </div>
 `);
 
-  map.once('moveend', () => {
-    const { lng, lat } = map.getCenter();
+    map.once('moveend', () => {
+      const { lng, lat } = map.getCenter();
 
-    countryPopup.setLngLat([lng, lat]).addTo(map);
+      countryPopup.setLngLat([lng, lat]).addTo(map);
 
-    disableMapInteraction(false);
+      disableMapInteraction(false);
 
-    setTimeout(() => {
-      const nameCommon = $('#name-common')[0];
-      const nameOfficial = $('#name-official')[0];
-
-      if (nameCommon && nameOfficial) {
-        const maxHeight = Math.max(
-          nameCommon.scrollHeight,
-          nameOfficial.scrollHeight
-        );
-
-        $('#name-container').css('height', `${maxHeight}px`);
-      }
-    }, 100);
-
-    $('#right-arrow').on('click', (e) => {
-      e.stopPropagation();
-
-      if (animating) return;
-
-      animating = true;
-
-      $('#name-common-inner').attr('aria-hidden', 'true');
-      $('#name-official-inner').attr('aria-hidden', 'true');
-      $('#translation-choice').attr('aria-hidden', 'true');
+      resolve();
 
       setTimeout(() => {
-        const currentIndex = translationsArray.findIndex((translation) => {
-          return translation.code === $('#translation-choice').text().trim();
-        });
+        const nameCommon = $('#name-common')[0];
+        const nameOfficial = $('#name-official')[0];
 
-        const nextTranslation =
-          translationsArray[
-            currentIndex === translationsArray.length - 1 ? 0 : currentIndex + 1
-          ];
+        if (nameCommon && nameOfficial) {
+          const maxHeight = Math.max(
+            nameCommon.scrollHeight,
+            nameOfficial.scrollHeight
+          );
 
-        $('#translation-choice').text(nextTranslation.code);
-        $('#name-common-inner').text(nextTranslation.common);
-        $('#name-official-inner').text(nextTranslation.official);
+          $('#name-container').css('height', `${maxHeight}px`);
+        }
+      }, 100);
 
-        $('#name-common-inner').attr('aria-hidden', 'false');
-        $('#name-official-inner').attr('aria-hidden', 'false');
-        $('#translation-choice').attr('aria-hidden', 'false');
+      $('#right-arrow').on('click', (e) => {
+        e.stopPropagation();
 
-        animating = false;
-      }, 150);
-    });
+        if (animating) return;
 
-    $('#left-arrow').on('click', (e) => {
-      e.stopPropagation();
+        animating = true;
 
-      if (animating) return;
-
-      animating = true;
-
-      $('#name-common-inner').attr('aria-hidden', 'true');
-      $('#name-official-inner').attr('aria-hidden', 'true');
-      $('#translation-choice').attr('aria-hidden', 'true');
-
-      setTimeout(() => {
-        const currentIndex = translationsArray.findIndex((translation) => {
-          return translation.code === $('#translation-choice').text().trim();
-        });
-
-        const nextTranslation =
-          translationsArray[
-            currentIndex === 0 ? translationsArray.length - 1 : currentIndex - 1
-          ];
-
-        $('#translation-choice').text(nextTranslation.code);
-        $('#name-common-inner').text(nextTranslation.common);
-        $('#name-official-inner').text(nextTranslation.official);
-
-        $('#name-common-inner').attr('aria-hidden', 'false');
-        $('#name-official-inner').attr('aria-hidden', 'false');
-        $('#translation-choice').attr('aria-hidden', 'false');
-
-        animating = false;
-      }, 150);
-    });
-
-    $('#country-image-button').on('click', function () {
-      if (animating) return;
-
-      animating = true;
-
-      const buttonEnabled =
-        $('#country-image-button').attr('aria-hidden') === 'false';
-
-      if (buttonEnabled) {
-        $('#country-image-button').attr('aria-hidden', 'true');
-        $('#country-coat').removeClass('animate-start_absolute');
-        $('#country-coat').addClass('animate-end_absolute');
-        $('#country-flag').removeClass('invisible');
+        $('#name-common-inner').attr('aria-hidden', 'true');
+        $('#name-official-inner').attr('aria-hidden', 'true');
+        $('#translation-choice').attr('aria-hidden', 'true');
 
         setTimeout(() => {
-          $('#country-flag').removeClass('animate-end_absolute');
-          $('#country-flag').addClass('animate-start_absolute');
-          $('#country-coat').addClass('invisible');
+          const currentIndex = translationsArray.findIndex((translation) => {
+            return translation.code === $('#translation-choice').text().trim();
+          });
+
+          const nextTranslation =
+            translationsArray[
+              currentIndex === translationsArray.length - 1
+                ? 0
+                : currentIndex + 1
+            ];
+
+          $('#translation-choice').text(nextTranslation.code);
+          $('#name-common-inner').text(nextTranslation.common);
+          $('#name-official-inner').text(nextTranslation.official);
+
+          $('#name-common-inner').attr('aria-hidden', 'false');
+          $('#name-official-inner').attr('aria-hidden', 'false');
+          $('#translation-choice').attr('aria-hidden', 'false');
+
           animating = false;
-        }, 500);
-      } else {
-        $('#country-image-button').attr('aria-hidden', 'false');
-        $('#country-flag').removeClass('animate-start_absolute');
-        $('#country-flag').addClass('animate-end_absolute');
-        $('#country-coat').removeClass('invisible');
+        }, 150);
+      });
+
+      $('#left-arrow').on('click', (e) => {
+        e.stopPropagation();
+
+        if (animating) return;
+
+        animating = true;
+
+        $('#name-common-inner').attr('aria-hidden', 'true');
+        $('#name-official-inner').attr('aria-hidden', 'true');
+        $('#translation-choice').attr('aria-hidden', 'true');
 
         setTimeout(() => {
-          $('#country-coat').removeClass('animate-end_absolute');
-          $('#country-coat').addClass('animate-start_absolute');
-          $('#country-flag').addClass('invisible');
+          const currentIndex = translationsArray.findIndex((translation) => {
+            return translation.code === $('#translation-choice').text().trim();
+          });
+
+          const nextTranslation =
+            translationsArray[
+              currentIndex === 0
+                ? translationsArray.length - 1
+                : currentIndex - 1
+            ];
+
+          $('#translation-choice').text(nextTranslation.code);
+          $('#name-common-inner').text(nextTranslation.common);
+          $('#name-official-inner').text(nextTranslation.official);
+
+          $('#name-common-inner').attr('aria-hidden', 'false');
+          $('#name-official-inner').attr('aria-hidden', 'false');
+          $('#translation-choice').attr('aria-hidden', 'false');
 
           animating = false;
-        }, 500);
-      }
-    });
+        }, 150);
+      });
 
-    $('#country-name-button').on('click', function () {
-      if (animating) return;
+      $('#country-image-button').on('click', function () {
+        if (animating) return;
 
-      animating = true;
+        animating = true;
 
-      const buttonEnabled =
-        $('#country-name-button').attr('aria-hidden') === 'false';
+        const buttonEnabled =
+          $('#country-image-button').attr('aria-hidden') === 'false';
 
-      if (buttonEnabled) {
-        $('#country-name-button').attr('aria-hidden', 'true');
-        $('#name-official').removeClass('animate-start_absolute');
-        $('#name-official').addClass('animate-end_absolute');
-        $('#name-toggle').removeClass('fa-toggle-on');
-        $('#name-toggle').addClass('fa-toggle-off');
-        $('#name-common').removeClass('invisible');
+        if (buttonEnabled) {
+          $('#country-image-button').attr('aria-hidden', 'true');
+          $('#country-coat').removeClass('animate-start_absolute');
+          $('#country-coat').addClass('animate-end_absolute');
+          $('#country-flag').removeClass('invisible');
 
-        setTimeout(() => {
-          $('#name-common').removeClass('animate-end_absolute');
-          $('#name-common').addClass('animate-start_absolute');
-          $('#name-official').addClass('invisible');
-          animating = false;
-        }, 500);
-      } else {
-        $('#country-name-button').attr('aria-hidden', 'false');
-        $('#name-common').removeClass('animate-start_absolute');
-        $('#name-common').addClass('animate-end_absolute');
-        $('#name-toggle').removeClass('fa-toggle-off');
-        $('#name-toggle').addClass('fa-toggle-on');
-        $('#name-official').removeClass('invisible');
+          setTimeout(() => {
+            $('#country-flag').removeClass('animate-end_absolute');
+            $('#country-flag').addClass('animate-start_absolute');
+            $('#country-coat').addClass('invisible');
+            animating = false;
+          }, 500);
+        } else {
+          $('#country-image-button').attr('aria-hidden', 'false');
+          $('#country-flag').removeClass('animate-start_absolute');
+          $('#country-flag').addClass('animate-end_absolute');
+          $('#country-coat').removeClass('invisible');
 
-        setTimeout(() => {
-          $('#name-official').removeClass('animate-end_absolute');
-          $('#name-official').addClass('animate-start_absolute');
-          $('#name-common').addClass('invisible');
-          animating = false;
-        }, 500);
-      }
+          setTimeout(() => {
+            $('#country-coat').removeClass('animate-end_absolute');
+            $('#country-coat').addClass('animate-start_absolute');
+            $('#country-flag').addClass('invisible');
+
+            animating = false;
+          }, 500);
+        }
+      });
+
+      $('#country-name-button').on('click', function () {
+        if (animating) return;
+
+        animating = true;
+
+        const buttonEnabled =
+          $('#country-name-button').attr('aria-hidden') === 'false';
+
+        if (buttonEnabled) {
+          $('#country-name-button').attr('aria-hidden', 'true');
+          $('#name-official').removeClass('animate-start_absolute');
+          $('#name-official').addClass('animate-end_absolute');
+          $('#name-toggle').removeClass('fa-toggle-on');
+          $('#name-toggle').addClass('fa-toggle-off');
+          $('#name-common').removeClass('invisible');
+
+          setTimeout(() => {
+            $('#name-common').removeClass('animate-end_absolute');
+            $('#name-common').addClass('animate-start_absolute');
+            $('#name-official').addClass('invisible');
+            animating = false;
+          }, 500);
+        } else {
+          $('#country-name-button').attr('aria-hidden', 'false');
+          $('#name-common').removeClass('animate-start_absolute');
+          $('#name-common').addClass('animate-end_absolute');
+          $('#name-toggle').removeClass('fa-toggle-off');
+          $('#name-toggle').addClass('fa-toggle-on');
+          $('#name-official').removeClass('invisible');
+
+          setTimeout(() => {
+            $('#name-official').removeClass('animate-end_absolute');
+            $('#name-official').addClass('animate-start_absolute');
+            $('#name-common').addClass('invisible');
+            animating = false;
+          }, 500);
+        }
+      });
     });
   });
 };
 
-function createHistoryCountryPopup(historyInfo) {
-  const segmenter = new Intl.Segmenter('en', {
-    granularity: 'sentence',
-  });
+async function createHistoryCountryPopup(historyInfo) {
+  return new Promise((resolve) => {
+    const segmenter = new Intl.Segmenter('en', {
+      granularity: 'sentence',
+    });
 
-  const sentences = Array.from(
-    segmenter.segment(historyInfo.extract),
-    (s) => s.segment
-  );
+    const sentences = Array.from(
+      segmenter.segment(historyInfo.extract),
+      (s) => s.segment
+    );
 
-  const groupedParagraphs = sentences
-    .reduce((acc, sentence, index) => {
-      if (index % 5 === 0) acc.push([]);
-      acc[acc.length - 1].push(sentence);
-      return acc;
-    }, [])
-    .map((group) => group.join(' '));
+    const groupedParagraphs = sentences
+      .reduce((acc, sentence, index) => {
+        if (index % 5 === 0) acc.push([]);
+        acc[acc.length - 1].push(sentence);
+        return acc;
+      }, [])
+      .map((group) => group.join(' '));
 
-  countryPopup = new mapboxgl.Popup({
-    offset: popupOffsets,
-    anchor: 'center',
-    closeButton: false,
-    closeOnClick: false,
-    className: `country_popup lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
-  });
+    countryPopup = new mapboxgl.Popup({
+      offset: popupOffsets,
+      anchor: 'center',
+      closeButton: false,
+      closeOnClick: false,
+      className: `country_popup lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
+    });
 
-  const image = historyInfo.image ?? 'libs/css/assets/history-fallback.jpg';
+    const image = historyInfo.image ?? 'libs/css/assets/history-fallback.jpg';
 
-  countryPopup.setHTML(/*html*/ `
-    <div class='flex flex-col overflow-hidden overflow-y-scroll max-h-[400px]'>
+    countryPopup.setHTML(/*html*/ `
+    <div class='flex flex-col overflow-hidden overflow-y-auto max-h-[400px]'>
       <div class='flex relative after:absolute after:content-[""] after:-bottom-3 md:after:-bottom-4 after:left-[1%] after:w-[98%] after:bg-white-300 items-center after:h-[1px] gap-2 md:gap-1 mt-4 md:mb-4 md:mt-4'>
         <div class='p-1 h-9 flex items-center justify-center rounded-md bg-[#663399] shadow-[0px_0px_3px_white_inset,_0px_0px_10px_#663399]'>
           <i class="fa-solid fa-timeline text-xl md:text-2xl text-white-300"></i>
@@ -551,12 +562,15 @@ function createHistoryCountryPopup(historyInfo) {
     </div>
     `);
 
-  map.once('moveend', () => {
-    const { lng, lat } = map.getCenter();
+    map.once('moveend', () => {
+      const { lng, lat } = map.getCenter();
 
-    countryPopup.setLngLat([lng, lat]).addTo(map);
+      countryPopup.setLngLat([lng, lat]).addTo(map);
 
-    disableMapInteraction(false);
+      disableMapInteraction(false);
+
+      resolve();
+    });
   });
 }
 

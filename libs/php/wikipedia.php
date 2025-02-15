@@ -133,7 +133,7 @@
                 $complete = true;
 
                 foreach ($dbResults as $event) {
-                    if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
+                    if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 10))
                     && $event['latitude'] === null 
                     && $event['longitude'] === null) {
                         $complete = false;

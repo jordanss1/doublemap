@@ -73,7 +73,7 @@
         }
 
         $eventsWithoutCoords = array_filter($results, function ($event) {
-            return (!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5)) 
+            return (!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 10)) 
            && $event['latitude'] === null 
            && $event['longitude'] === null;
         });
@@ -139,7 +139,7 @@
         $complete = true;
 
         foreach ($results as $event) {
-            if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 5))
+            if ((!isset($event['gpt_retries']) || (is_numeric($event['gpt_retries']) && $event['gpt_retries'] < 10))
             && $event['latitude'] === null 
             && $event['longitude'] === null) {
                 $complete = false;
