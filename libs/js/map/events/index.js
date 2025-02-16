@@ -383,6 +383,8 @@ mapPromise.then((map) => {
     $(this).closest('.mapboxgl-marker').css('z-index', '');
   });
 
+  $(document).on('click', '#history-marker', function () {});
+
   $('#zoom-in').on('click', () => {
     if (disableAllButtons) return;
 
@@ -530,6 +532,7 @@ mapPromise.then((map) => {
       if (selectedHistoricalEvent) {
         disableAllButtons = true;
         disableMapInteraction(true);
+        changePanelSpinners(true);
 
         let zoom = 2;
 
@@ -567,6 +570,10 @@ mapPromise.then((map) => {
 
           addHistoricalEventsToSidebar(historicalEvents);
 
+          $('#content-subtitle-container').removeClass('invisible');
+
+          $('#content-subtitle').text(`${historicalEvents.length} results`);
+
           expandSidebar(true);
 
           changeExitButton(false, `Exit events from ${currentDate}`);
@@ -574,6 +581,7 @@ mapPromise.then((map) => {
           addErrorToMap('Problem loading map date - try again');
           console.log(err);
         } finally {
+          changePanelSpinners(false);
           disableAllButtons = false;
           disableMapInteraction(false);
         }
@@ -583,8 +591,8 @@ mapPromise.then((map) => {
 
       if (historicalEvents.length) {
         historicalEvents = [];
-        currentDate = null;
         expandSidebar(false);
+        changePanelSpinners(true);
         clearSidebarContent();
         removeMarkers();
 
@@ -602,6 +610,8 @@ mapPromise.then((map) => {
           zoom: map.getZoom() - 0.5,
           duration: 1500,
         });
+
+        changePanelSpinners(false);
 
         return;
       }

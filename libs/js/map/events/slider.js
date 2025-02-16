@@ -8,6 +8,7 @@ mapPromise.then((map) => {
   const slider = $('.day-slider');
   const popupContainer = $('.popup-container');
   let progress = null;
+  let sliderVal = null;
 
   function clearDaySlider() {
     clearTimeout(sliderMouseUpTimer);
@@ -18,8 +19,8 @@ mapPromise.then((map) => {
     $('#day-slider-container-sm').attr('aria-disabled', 'true');
     $('#history-container').removeClass('h-20').removeClass('h-30');
     $('#history-container').addClass('h-10');
-    $('#history-date').attr('aria-disabled', 'true');
-    $('#history-date').addClass('animate-end_absolute');
+    $('#history-date-container').attr('aria-disabled', 'true');
+    $('#history-date-container').addClass('animate-end_absolute');
     $('#history-year').attr('aria-disabled', 'true');
     $('#history-year').addClass('animate-end_absolute');
   }
@@ -51,25 +52,20 @@ mapPromise.then((map) => {
       $('#history-container').removeClass('h-10');
 
       if (selectedHistoricalEvent) {
+        const { event_year } = selectedHistoricalEvent;
+
+        let formattedYear =
+          event_year < 0 ? `${Math.abs(event_year)} BC` : `${event_year}`;
+
+        $('#history-year').text(formattedYear);
         $('#history-container').addClass('h-30');
-        $('#history-year').text(`${selectedHistoricalEvent.event_year}`);
         $('#history-year').attr('aria-disabled', 'false');
         $('#history-year').removeClass('animate-end_absolute');
       } else {
-        $('#history-container').removeClass('h-30');
         $('#history-container').addClass('h-20');
         $('#history-year').attr('aria-disabled', 'true');
         $('#history-year').addClass('animate-end_absolute');
       }
-
-      $('#history-date').attr('aria-disabled', 'false');
-      $('#history-date').removeClass('animate-end_absolute');
-      $('#country-select-list').attr('aria-disabled', 'true');
-
-      slider.css(
-        '--track-color',
-        `linear-gradient(to right, #4D9CFF ${progress}%, #d1d6e1 ${progress}%)`
-      );
 
       const date = new Date(2024, 0);
 
@@ -80,7 +76,16 @@ mapPromise.then((map) => {
         day: '2-digit',
       });
 
-      $('#history-date').text(dateString);
+      $('#history-date').text(!currentDate ? dateString : currentDate);
+
+      $('#history-date-container').attr('aria-disabled', 'false');
+      $('#history-date-container').removeClass('animate-end_absolute');
+      $('#country-select-list').attr('aria-disabled', 'true');
+
+      slider.css(
+        '--track-color',
+        `linear-gradient(to right, #4D9CFF ${progress}%, #d1d6e1 ${progress}%)`
+      );
 
       positionSliderTimer = setTimeout(
         () => positionSliderPopup(slider, popupContainer),
@@ -216,8 +221,8 @@ mapPromise.then((map) => {
         $('#history-container').removeClass('h-20');
         $('#history-container').removeClass('h-30');
         $('#history-container').addClass('h-10');
-        $('#history-date').attr('aria-disabled', 'true');
-        $('#history-date').addClass('animate-end_absolute');
+        $('#history-date-container').attr('aria-disabled', 'true');
+        $('#history-date-container').addClass('animate-end_absolute');
         $('#history-year').attr('aria-disabled', 'true');
         $('#history-year').addClass('animate-end_absolute');
       }
@@ -226,11 +231,11 @@ mapPromise.then((map) => {
         await returnToDefaultHistoryMap();
       }
 
-      await getWikipediaEvents(day, month);
+      $('#history-date').text(dateString);
 
       currentDate = dateString;
 
-      $('#history-date').text(dateString);
+      await getWikipediaEvents(day, month);
     }, 1500);
   });
 
@@ -320,8 +325,19 @@ function applySliderStyles(mouseDown) {
   );
 }
 
+function appendGPTFetchMessages() {
+  $('#message-container').empty().attr('aria-disabled', 'false');
+
+  const elements = [
+    /*html*/ `<div aria-disabled='true' class=''></div>`,
+    /*html*/ `<div aria-disabled='true' class=''></div>`,
+    /*html*/ `<div aria-disabled='true' class=''></div>`,
+  ];
+}
+
 function appendHistoricalEventsSpinner(message) {
   $('#content-subtitle-container').removeClass('invisible');
+  $('#content-subtitle-extra').empty();
 
   $(/*html*/ `<div id="historical-spinner"
     aria-disabled='true' class='flex gap-1 aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 items-center transition-all duration-150 ease-in'>
@@ -352,6 +368,8 @@ async function createMarkersFromHistoricalEvents(data) {
   };
 
   for (const event of data) {
+    if (event.latitude == null || event.longitude == null) continue;
+
     const imageSource = event.thumbnail
       ? await loadImageManually(event.thumbnail)
       : 'libs/css/assets/history-fallback.jpg';
@@ -376,6 +394,29 @@ async function createMarkersFromHistoricalEvents(data) {
 
     $markerElement.on('click', function (e) {
       e.stopPropagation();
+
+      if (disableAllButtons) return;
+
+      const foundEvent = historicalEvents.find(
+        (event) => event.id === +$(this).attr('data-event-id')
+      );
+
+      let alreadySelected = false;
+
+      if (selectedHistoricalEvent) {
+        alreadySelected = foundEvent.id === selectedHistoricalEvent.id;
+      }
+
+      if (
+        foundEvent.latitude == null ||
+        foundEvent.longitude == null ||
+        alreadySelected
+      )
+        return;
+
+      selectedHistoricalEvent = foundEvent;
+
+      changeYearAndMapEvent(selectedHistoricalEvent);
     });
 
     const marker = new mapboxgl.Marker({
@@ -413,6 +454,8 @@ async function getWikipediaEvents(day, month) {
       method: 'GET',
       dataType: 'json',
     });
+
+    console.log(data);
 
     addHistoricalEventsToSidebar(data);
     changeExitButton(false, `Exit events from ${month}/${day}`);

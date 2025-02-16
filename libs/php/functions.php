@@ -216,18 +216,20 @@
 
     function requestCoordsFromGPT ($prompt) {
         $data = [
-            'model' => 'gpt-3.5-turbo',
+            'model' => 'gpt-4-turbo',
             'messages' => [
-                ['role' => 'developer', 'content' => 'You are a helpful assistant who provides coordinates.'],
+                ['role' => 'developer', 'content' => 'You are an expert geographer who provides the most accurate latitude and longitude coordinates for historical events. Think before answering.'],
                 ['role' => 'user', 'content' => $prompt],
             ],
             'temperature' => 0.2,
+            'stream' => true, 
+
         ];
 
         $ch = curl_init('https://api.openai.com/v1/chat/completions');
 
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $_ENV['OPEN_AI_KEY'],
             'Content-Type: application/json',
@@ -235,7 +237,14 @@
         
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-        $response = curl_exec($ch);
+        $fullResponse = ''; 
+
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $chunk) use (&$fullResponse) {
+            $fullResponse .= $chunk; 
+            return strlen($chunk); 
+        });
+
+        curl_exec($ch);
 
         if (curl_errno($ch)) {
             $error = curl_error($ch);
@@ -245,9 +254,37 @@
 
         curl_close($ch);
 
-        $response = decodeResponse($response);
+        $lines = explode("\n", $fullResponse);
+        $extractedContent = [];
 
-        return decodeResponse(sanitizeJsonResponse($response['choices'][0]['message']['content']));
+        foreach ($lines as $line) {
+            if (preg_match('/^data: (\{.*\})$/', $line, $matches)) {
+                $jsonStr = $matches[1];
+                $jsonData = json_decode($jsonStr, true);
+                
+                if ($jsonData && isset($jsonData['choices'][0]['delta']['content'])) {
+                    $content = $jsonData['choices'][0]['delta']['content'];
+                    $extractedContent[] = $content;
+                }
+            }
+        }
+
+        $fullResponse = implode("", $extractedContent);
+
+        return decodeResponse(sanitizeJsonResponse($fullResponse));
+        // $response = curl_exec($ch);
+
+        // if (curl_errno($ch)) {
+        //     $error = curl_error($ch);
+        //     curl_close($ch);
+        //     return ['error' => $error];
+        // }
+
+        // curl_close($ch);
+
+        // $response = decodeResponse($response);
+
+        // return decodeResponse(sanitizeJsonResponse($response['choices'][0]['message']['content']));
     }
 
     function requestCoordsWithEvents ($events) {
@@ -257,7 +294,8 @@
         $failedEvents = [];
 
         foreach ($eventBatches as $eventBatch) {
-            $prompt = "Provide latitude and longitude as a guess if exact values are not known. Respond in JSON format as a flat array: [{'lat': 'value', 'long': 'value'}].";
+            $prompt = "Identify the geographical location where the event took place and provide only latitude and longitude. If the exact location is unknown, provide lat/long of the country.  Respond in **JSON format as a flat array**, with only `lat` and `long` keys, like this:  [{'lat': 'value', 'long': 'value'}]. Strictly **do not** include location names, comments, or any extra text.";
+
 
             foreach ($eventBatch as $event) {
                 $prompt .= " - Event: {$event['title']}, Year: {$event['event_year']}\n ";

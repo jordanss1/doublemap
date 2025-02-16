@@ -214,6 +214,44 @@ $('#content-results').on('click', '#event-select-button', function (e) {
   changeYearAndMapEvent(selectedHistoricalEvent);
 });
 
+$('#content-results').on('pointerenter', '#event-content-item', function (e) {
+  const hoveredId = +$(this).attr('data-event-id');
+
+  historyMarkerGroup.forEach((marker) => {
+    const markerId = +$(marker._element).attr('data-event-id');
+
+    if (hoveredId === markerId) {
+      $(marker._element).attr('aria-expanded', 'true');
+      $(marker._element).closest('.mapboxgl-marker').css('z-index', 1000);
+
+      const { lng, lat } = marker._lngLat;
+
+      map.flyTo({
+        duration: 1500,
+        center: [lng, lat],
+        curve: 2,
+        zoom: 3.5,
+        speed: 0.5,
+      });
+    } else {
+      $(marker._element).attr('aria-expanded', 'false');
+    }
+  });
+});
+
+$('#content-results').on('pointerleave', '#event-content-item', function (e) {
+  const hoveredId = +$(this).attr('data-event-id');
+
+  historyMarkerGroup.forEach((marker) => {
+    const markerId = +$(marker._element).attr('data-event-id');
+
+    if (hoveredId === markerId) {
+      $(marker._element).attr('aria-expanded', 'false');
+      $(marker._element).closest('.mapboxgl-marker').css('z-index', '');
+    }
+  });
+});
+
 const sidebarContainer = $('#left-panel');
 
 const observer = new MutationObserver((mutationsList, observer) => {

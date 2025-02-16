@@ -266,7 +266,7 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date, #slider-button, #history-year').removeClass(
+    $('#history-date-container, #slider-button, #history-year').removeClass(
       'animate-end_absolute'
     );
     $('#category-container').addClass('animate-end_absolute');
@@ -305,7 +305,7 @@ function applyHistoryHtml(enabled) {
     $('#slider-button, #history-date, #history-year').addClass(
       'animate-end_absolute'
     );
-    $('#history-date').attr('aria-disabled', 'true');
+    $('#history-date-container').attr('aria-disabled', 'true');
     $('#history-year').attr('aria-disabled', 'true');
     $('#country-select-list').attr('aria-disabled', 'true');
     $('#category-container').removeClass('animate-end_absolute');
@@ -861,12 +861,15 @@ function renderHistoricalEventItem(event) {
 
   const noCoords = latitude === null || longitude === null;
 
+  let formattedYear =
+    event_year < 0 ? `${Math.abs(event_year)} BC` : `${event_year}`;
+
   return /*html*/ `
   <div class='flex items-center justify-between'>
-    <div class='flex sm items-center  w-fit p-2 rounded-md gap-2 m-0 xs:m-2 mb-0 ml-0'>
+    <div class='flex sm items-center  w-fit p-2 rounded-md gap-2 m-0 xs:mr-2 xs:ml-0 xs:my-2'>
       <div class='flex items-center justify-center'><i class="fa-solid fa-calendar-days text-white-300"></i></div>
       <div class='font-title text-2xl text-white-300'>
-        ${event_year}
+        ${formattedYear}
       </div>
     </div>
     <div>
@@ -894,14 +897,8 @@ function renderHistoricalEventItem(event) {
 }
 
 function addHistoricalEventsToSidebar(events) {
-  const eventDateFormatted = formatEventDate(events[0]);
-
   if ($('#history-category').text() !== 'Historical Events') {
     $('#history-category').text('Historical Events');
-  }
-
-  if ($('#content-title').text() !== `${eventDateFormatted}`) {
-    $('#content-title').text(`${eventDateFormatted}`);
   }
 
   $('#content-container').animate({ scrollTop: 0 }, 500);
@@ -910,13 +907,12 @@ function addHistoricalEventsToSidebar(events) {
 
   $('#content-chosen').attr('aria-disabled', 'true');
 
-  const sortedHtmlEvents = events
-    .map((event) => {
-      const html = renderHistoricalEventItem(event);
+  const sortedHtmlEvents = events.map((event) => {
+    const html = renderHistoricalEventItem(event);
 
-      const noCoords = event.latitude === null || event.longitude === null;
+    const noCoords = event.latitude === null || event.longitude === null;
 
-      return /*html*/ `
+    return /*html*/ `
       <div aria-disabled="${
         noCoords ? 'true' : 'false'
       }" class='relative group/whole'>
@@ -929,13 +925,15 @@ function addHistoricalEventsToSidebar(events) {
           ${html}
         </div>
       </div>`;
-    })
-    .sort((a, b) => {
-      const hasLocationA = a.latitude && a.longitude;
-      const hasLocationB = b.latitude && b.longitude;
+  });
 
-      return hasLocationB - hasLocationA;
-    });
+  console.log(events[0]);
+
+  const eventDateFormatted = formatEventDate(events[0]);
+
+  if ($('#content-title').text() !== `${eventDateFormatted}`) {
+    $('#content-title').text(`${eventDateFormatted}`);
+  }
 
   $('#content-results').empty();
   $('#content-results').append(sortedHtmlEvents);
@@ -977,12 +975,16 @@ async function changeYearAndMapEvent(event) {
 
     new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
 
+    let formattedYear =
+      event_year < 0 ? `${Math.abs(event_year)} BC` : `${event_year}`;
+
+    $('#history-year').text(formattedYear);
+
     if (window.innerWidth >= 640) {
       $('#history-container').removeClass('h-20');
       $('#history-container').removeClass('h-10');
       $('#history-container').addClass('h-30');
 
-      $('#history-year').text(`${event_year}`);
       $('#history-year').attr('aria-disabled', 'false');
       $('#history-year').removeClass('animate-end_absolute');
     }
@@ -1389,7 +1391,6 @@ function createFeatureNameForResults(feature, popout) {
 
 async function returnToDefaultHistoryMap() {
   expandSidebar(false);
-  currentDate = null;
 
   if (selectedHistoricalEvent) {
     try {

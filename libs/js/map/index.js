@@ -43,10 +43,11 @@ let selectedPoi;
 let selectedSearch;
 let selectedHistoricalEvent;
 let historyMarkerGroup = [];
-let currentDate;
+let currentDate = null;
 let currentMarker = null;
 let disableAllButtons = false;
 let countryPopup;
+let eventPopup;
 let errorMapTimer;
 let wikipediaTimer;
 
@@ -243,7 +244,7 @@ const createModernCountryPopup = async (countryInfo) => {
     }" >
                   <img id='country-coat' src="${
                     coatOfArms.svg ?? coatOfArms.png
-                  }" class='bg-[conic-gradient(from_100deg_at_10%_65%,#a100ff_0%_8%,_#4d9cff_26%,#5c2970_26%_32%,#0000_30%_100%),_linear-gradient(to_left,_#264b8d,_rgb(168_85_247_/_0))] w-full delay-1000 border-4 border-white-300 opacity-100 object-contain group-aria-hidden/button:opacity-0 invisible rounded-md absolute group-aria-hidden/button:delay-0 group-aria-hidden/button:-translate-x-4 translate-x-0 transition-all  ease-in-out' >
+                  }" class='bg-[conic-gradient(from_100deg_at_10%_65%,#a100ff_0%_8%,_#4d9cff_26%,#5c2970_26%_32%,#0000_30%_100%),_linear-gradient(to_left,_#264b8d,_rgb(168_85_247_/_0))] w-full delay-1000 border-4 border-white-300 opacity-100 object-contain group-aria-hidden/button:opacity-0 invisible rounded-md absolute group-aria-hidden/button:delay-0 group-aria-hidden/button:-translate-x-4 translate-x-0 transition-all ease-in-out' >
               </div>
 
               <div class='flex flex-col relative gap-4 h-fit'>
