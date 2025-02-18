@@ -11,6 +11,7 @@ WORKDIR /usr/share/nginx/html
 COPY --chown=nginx:nginx . .
 
 COPY --chown=nginx:nginx ./conf.d/ /etc/nginx/conf.d/
+COPY --chown=nginx:nginx ./nginx.conf /etc/nginx/nginx.conf
 
 
 

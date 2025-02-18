@@ -82,57 +82,7 @@
             return ['complete' => true, 'data' => $results];
         } 
 
-        [$completedEvents, $failedEvents] = requestCoordsWithEvents($eventsWithoutCoords);
-
-        if (count($failedEvents)) {
-            $query = "UPDATE events 
-                        SET gpt_retries = CASE 
-                            WHEN gpt_retries IS NULL THEN 1
-                            ELSE gpt_retries + 1
-                        END
-                        WHERE title = :title AND event_year = :event_year";
-            
-            $stmt = $wikipedia_db->prepare($query);
-
-            stmtErrorCheck($stmt, $wikipedia_db, true);
-
-            foreach ($failedEvents as $event) {
-                $params = [
-                    ':title' => $event['title'],
-                    ':event_year' => $event['event_year'],
-                ];
-
-                try {
-                    $stmt->execute($params);
-                } catch (PDOException $e) {
-                    retryFailedDBExecution($stmt, $params);
-                }
-            }
-        }
-
-        if (count($completedEvents)) {
-            $query = "UPDATE events SET latitude = :latitude, longitude = :longitude WHERE title = :title AND event_date = :event_date";
-
-            $stmt = $wikipedia_db->prepare($query);
-
-            stmtErrorCheck($stmt, $wikipedia_db, true);
-
-            foreach ($completedEvents as $event) {
-                if (isset($event['latitude']) && isset($event['longitude'])) {
-                    $params = [
-                        ':latitude' => $event['latitude'],
-                        ':longitude' => $event['longitude'],
-                        ':title' => $event['title'],
-                        ':event_date' => $event['event_date'],
-                    ];
-                    try {
-                        $stmt->execute($params);
-                    } catch (PDOException $e) {
-                        retryFailedDBExecution($stmt, $params);
-                    }
-                }
-            }
-        }
+        requestCoordsWithEvents($eventsWithoutCoords);
 
         $results = selectEventsFromDB($day, $month);
 

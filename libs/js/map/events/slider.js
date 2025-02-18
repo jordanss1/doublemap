@@ -325,14 +325,19 @@ function applySliderStyles(mouseDown) {
   );
 }
 
-function appendGPTFetchMessages() {
-  $('#message-container').empty().attr('aria-disabled', 'false');
+let intervalTimer;
 
+function appendGPTFetchMessages() {
   const elements = [
-    /*html*/ `<div aria-disabled='true' class=''></div>`,
-    /*html*/ `<div aria-disabled='true' class=''></div>`,
-    /*html*/ `<div aria-disabled='true' class=''></div>`,
+    /*html*/ `<div aria-disabled='true' class='aria-disabled:-translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>
+    <span>Stay <span class='font-normal'>right there</span> as I fetch the coordinates!</span></div>`,
+    /*html*/ `<div aria-disabled='true' class='aria-disabled:translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>Chat GPT is working <span class='text-red-500 font-normal'>hard<span> to fetch these!</div>`,
+    /*html*/ `<div aria-disabled='true' class='aria-disabled:-translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>Be patient please, coords coming right up!</div>`,
   ];
+
+  setInterval(() => {
+    
+  }, 3000);
 }
 
 function appendHistoricalEventsSpinner(message) {
@@ -386,7 +391,7 @@ async function createMarkersFromHistoricalEvents(data) {
       <div class='sm:w-9 w-7 p-1 transition-all delay-200 group-aria-expanded:delay-0 scale-100 group-aria-expanded:scale-[3.5] ease-out opacity-90 duration-300 group-aria-expanded:shadow-[0px_0px_4px_0px_rgba(255,255,255,1),_3px_3px_6px_0px_rgba(87,148,254,1)] shadow-[0px_0px_2px_rgba(87,148,254,0),_0px_0px_60px_0px_rgba(87,148,254,0)] group-aria-expanded:opacity-100 sm:group-aria-expanded:w-14 group-aria-expanded:w-9 bg-black items-start rounded-md'>
         <img class='object-contain transition-all shadow-[10px_1px_40px_10px_rgba(0,0,0,.5)_inset,_-10px_-10px_40px_5px_rgba(255,255,255,1)_inset] ease-out delay-75 h-full' src='${imageSource}' alt='Event thumbnail' /> 
       </div>
-  </div>
+  </div>  
 
     `;
 
@@ -435,6 +440,7 @@ async function getWikipediaEvents(day, month) {
   disableAllButtons = true;
 
   clearSidebarContent();
+  removeMarkers();
   selectedHistoricalEvent = null;
   updateChosenCountryState();
   disableMapInteraction(true);
@@ -507,18 +513,35 @@ async function getWikipediaEvents(day, month) {
         map.setLayoutProperty('hovered-country-line', 'visibility', 'none');
         map.setLayoutProperty('chosen-country-fill', 'visibility', 'none');
         map.setLayoutProperty('chosen-country-line', 'visibility', 'none');
-
-        console.log(data);
       } catch (err) {
-        throw err;
+        const { data } = await $.ajax({
+          url: `/api/wikipedia/events?action=fetch&day=${day}&month=${month}`,
+          method: 'GET',
+          dataType: 'json',
+        });
+
+        addHistoricalEventsToSidebar(data);
+
+        historicalEvents = data;
+
+        await new Promise((resolve) => setTimeout(() => resolve(), 500));
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom,
+          duration: 2000,
+        });
+
+        await createMarkersFromHistoricalEvents(data);
       }
     }
   } catch (err) {
-    console.log(err);
+    addErrorToMap('Problem retrieving events - try again');
     changeExitButton(true);
     expandSidebar(false);
     clearSidebarContent();
   } finally {
+    clearInterval(intervalTimer);
     changePanelSpinners(false);
     disableAllButtons = false;
     disableMapInteraction(false);

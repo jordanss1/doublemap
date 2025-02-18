@@ -272,19 +272,63 @@
         $fullResponse = implode("", $extractedContent);
 
         return decodeResponse(sanitizeJsonResponse($fullResponse));
-        // $response = curl_exec($ch);
+    }
 
-        // if (curl_errno($ch)) {
-        //     $error = curl_error($ch);
-        //     curl_close($ch);
-        //     return ['error' => $error];
-        // }
+    global $wikipedia_db;
 
-        // curl_close($ch);
 
-        // $response = decodeResponse($response);
+    function updateEventsInDB ($failedEvents, $completedEvents) {
+        global $wikipedia_db;
 
-        // return decodeResponse(sanitizeJsonResponse($response['choices'][0]['message']['content']));
+        if (count($failedEvents)) {
+            $query = "UPDATE events 
+                        SET gpt_retries = CASE 
+                            WHEN gpt_retries IS NULL THEN 1
+                            ELSE gpt_retries + 1
+                        END
+                        WHERE title = :title AND event_year = :event_year";
+            
+            $stmt = $wikipedia_db->prepare($query);
+
+            stmtErrorCheck($stmt, $wikipedia_db, true);
+
+            foreach ($failedEvents as $event) {
+                $params = [
+                    ':title' => $event['title'],
+                    ':event_year' => $event['event_year'],
+                ];
+
+                try {
+                    $stmt->execute($params);
+                } catch (PDOException $e) {
+                    retryFailedDBExecution($stmt, $params);
+                }
+            }
+        }
+
+        if (count($completedEvents)) {
+            $query = "UPDATE events SET latitude = :latitude, longitude = :longitude WHERE title = :title AND event_date = :event_date";
+
+            $stmt = $wikipedia_db->prepare($query);
+
+            stmtErrorCheck($stmt, $wikipedia_db, true);
+
+            foreach ($completedEvents as $event) {
+                if (isset($event['latitude']) && isset($event['longitude'])) {
+                    $params = [
+                        ':latitude' => $event['latitude'],
+                        ':longitude' => $event['longitude'],
+                        ':title' => $event['title'],
+                        ':event_date' => $event['event_date'],
+                    ];
+                    try {
+                        $stmt->execute($params);
+                    } catch (PDOException $e) {
+                        retryFailedDBExecution($stmt, $params);
+                    }
+                }
+            }
+        }
     }
 
     function requestCoordsWithEvents ($events) {
@@ -294,6 +338,9 @@
         $failedEvents = [];
 
         foreach ($eventBatches as $eventBatch) {
+            $completedEvents = [];
+            $failedEvents = [];
+
             $prompt = "Identify the geographical location where the event took place and provide only latitude and longitude. If the exact location is unknown, provide lat/long of the country.  Respond in **JSON format as a flat array**, with only `lat` and `long` keys, like this:  [{'lat': 'value', 'long': 'value'}]. Strictly **do not** include location names, comments, or any extra text.";
 
 
@@ -322,7 +369,6 @@
                 $completedEvents[] = $event;
             }
 
+            updateEventsInDB($failedEvents, $completedEvents);
     }
-
-    return [$completedEvents,  $failedEvents];
 }
