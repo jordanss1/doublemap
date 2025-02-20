@@ -529,6 +529,24 @@ mapPromise.then((map) => {
     }
 
     if (historyMode) {
+      if (eventPopup) {
+        disableAllButtons = true;
+        changePanelSpinners(true);
+
+        eventPopup.remove();
+        eventPopup = null;
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom: map.getZoom() - 0.5,
+          duration: 1500,
+        });
+
+        disableAllButtons = false;
+        changePanelSpinners(false);
+
+        return;
+      }
       if (selectedHistoricalEvent) {
         disableAllButtons = true;
         disableMapInteraction(true);
@@ -546,6 +564,11 @@ mapPromise.then((map) => {
 
         try {
           map.filterByDate('2013-01-01');
+
+          if (eventPopup) {
+            eventPopup.remove();
+            eventPopup = null;
+          }
 
           await animateFog(map.getFog(), historyFog, 1500);
 
@@ -585,33 +608,6 @@ mapPromise.then((map) => {
           disableAllButtons = false;
           disableMapInteraction(false);
         }
-
-        return;
-      }
-
-      if (historicalEvents.length) {
-        historicalEvents = [];
-        expandSidebar(false);
-        changePanelSpinners(true);
-        clearSidebarContent();
-        removeMarkers();
-
-        map.setLayoutProperty('hovered-country-fill', 'visibility', 'visible');
-        map.setLayoutProperty('hovered-country-line', 'visibility', 'visible');
-        map.setLayoutProperty('chosen-country-fill', 'visibility', 'visible');
-        map.setLayoutProperty('chosen-country-line', 'visibility', 'visible');
-
-        changeExitButton(true);
-
-        await new Promise((resolve) => setTimeout(() => resolve(), 500));
-
-        await flyToPromise({
-          speed: 0.5,
-          zoom: map.getZoom() - 0.5,
-          duration: 1500,
-        });
-
-        changePanelSpinners(false);
 
         return;
       }
@@ -703,7 +699,7 @@ mapPromise.then((map) => {
 
       if (historyMode) {
         clearTimeout(wikipediaTimer);
-        returnToDefaultHistoryMap();
+        await returnToDefaultHistoryMap();
 
         try {
           historyInfo = await getHistoryOfCountry(target.textContent);

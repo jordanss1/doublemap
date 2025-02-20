@@ -326,18 +326,57 @@ function applySliderStyles(mouseDown) {
 }
 
 let intervalTimer;
+let messageTimer;
+let intervalIndex = 0;
 
 function appendGPTFetchMessages() {
   const elements = [
-    /*html*/ `<div aria-disabled='true' class='aria-disabled:-translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>
-    <span>Stay <span class='font-normal'>right there</span> as I fetch the coordinates!</span></div>`,
-    /*html*/ `<div aria-disabled='true' class='aria-disabled:translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>Chat GPT is working <span class='text-red-500 font-normal'>hard<span> to fetch these!</div>`,
-    /*html*/ `<div aria-disabled='true' class='aria-disabled:-translate-x-3 aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-200 ease-out'>Be patient please, coords coming right up!</div>`,
+    /*html*/ `<div
+    aria-disabled="true"
+    class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"
+  >
+    <span>
+      Stay
+      <span class="font-semibold">right there</span>
+      as I fetch the coordinates!
+
+      <i class="fa-solid fa-map-location-dot animate-pulse"></i>
+    </span>
+  </div>`,
+    /*html*/ `<div
+              aria-disabled="true"
+              class="aria-disabled:translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"
+            >
+              <span>
+              Chat GPT is working<span class="font-semibold"> hard</span>
+              to fetch these!
+                <i class="fa-solid fa-helmet-safety animate-pulse"></i>              
+              </span>
+            </div>`,
+    /*html*/ `<div  aria-disabled="true"
+              class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300">Be patient please, coords coming right up!</div>`,
   ];
 
-  setInterval(() => {
-    
-  }, 3000);
+  $('#message').empty().append(elements[intervalIndex]);
+  $('#message-bg').attr('aria-disabled', 'false');
+  $('#message').children().first().attr('aria-disabled', 'false');
+
+  intervalIndex = 1;
+
+  intervalTimer = setInterval(() => {
+    $('#message').children().first().attr('aria-disabled', 'true');
+
+    messageTimer = setTimeout(() => {
+      $('#message').empty().append(elements[intervalIndex]);
+
+      setTimeout(() => {
+        $('#message').children().first().attr('aria-disabled', 'false');
+      }, 200);
+
+      if (intervalIndex === elements.length - 1) intervalIndex = 0;
+      else intervalIndex++;
+    }, 500);
+  }, 5000);
 }
 
 function appendHistoricalEventsSpinner(message) {
@@ -359,18 +398,18 @@ function appendHistoricalEventsSpinner(message) {
   $('#historical-spinner').attr('aria-disabled', 'false');
 }
 
+const loadImageManually = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(url);
+    img.onerror = () => resolve('libs/css/assets/history-fallback.jpg');
+    img.src = url;
+  });
+};
+
 async function createMarkersFromHistoricalEvents(data) {
   removeMarkers();
-
-  const loadImageManually = (url) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(url);
-      img.onerror = () => resolve('libs/css/assets/history-fallback.jpg');
-      img.src = url;
-    });
-  };
 
   for (const event of data) {
     if (event.latitude == null || event.longitude == null) continue;
@@ -434,6 +473,8 @@ async function createMarkersFromHistoricalEvents(data) {
   }
 }
 
+
+
 async function getWikipediaEvents(day, month) {
   if (!historyMode) return;
 
@@ -487,6 +528,7 @@ async function getWikipediaEvents(day, month) {
 
     if (complete === false) {
       appendHistoricalEventsSpinner('Gathering coordinates...');
+      appendGPTFetchMessages();
 
       try {
         const { data } = await $.ajax({
@@ -542,6 +584,10 @@ async function getWikipediaEvents(day, month) {
     clearSidebarContent();
   } finally {
     clearInterval(intervalTimer);
+    clearTimeout(messageTimer);
+    intervalIndex = 0;
+    $('#message-bg').attr('aria-disabled', 'true');
+
     changePanelSpinners(false);
     disableAllButtons = false;
     disableMapInteraction(false);

@@ -215,7 +215,7 @@ async function updateChosenCountryState(iso_a2) {
     }
 
     if (historyMode) {
-      returnToDefaultHistoryMap();
+      await returnToDefaultHistoryMap();
     }
 
     $('#left-panel').attr('aria-expanded', 'false');
@@ -943,6 +943,78 @@ function addHistoricalEventsToSidebar(events) {
   }, 50);
 }
 
+async function createChosenEventPopup() {
+  eventPopup = new mapboxgl.Popup({
+    offset: popupOffsets,
+    anchor: 'center',
+    closeButton: false,
+    closeOnClick: false,
+    className: `country_popup  lg:!max-w-3xl md:!max-w-2xl sm:!max-w-lg xs:!max-w-[23rem] !max-w-sm !w-full`,
+  });
+
+  const {
+    title,
+    event_year,
+    event_day,
+    event_month,
+    latitude,
+    longitude,
+    thumbnail,
+  } = selectedHistoricalEvent;
+
+  let formattedYear =
+    event_year < 0 ? `${Math.abs(event_year)} BC` : `${event_year}`;
+
+  const month = String(event_month).padStart(2, '0');
+
+  const url = await loadImageManually(thumbnail);
+
+  eventPopup.setHTML(/*html*/ `
+    <div class='grid grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] transition-all duration-300 gap-3 items-center'>
+      <div class='flex  md:border-b-0 border-b p-2 aspect-[2/1] h-full overflow-hidden w-full self-start relative border-white-50'>
+        <img src="${url}" class=' w-full object-contain relative rounded-md ease-in-out' >
+      </div>      
+      <div class='flex flex-col gap-3'>
+        <div class='font-abel font-semibold text-xl'>${title}</div>
+        <table class='border-0 w-full overflow-x-auto table-fixed'>
+          <tbody>
+            <tr class='group'>
+              <th class='group-odd:bg-purple-800/60 group-even:bg-black/60 font-title font-bold text-sm xs:text-lg sm:text-xl rounded-l-md'>Day</th>
+              <td class='font-sans font-medium text-xs xs:text-sm sm:text-lg text-center rounded-r-md'>${event_day}
+              </td>
+            </tr>
+            <tr class='group'>
+              <th class='group-odd:bg-purple-800/60 group-even:bg-black/60 font-title font-bold text-sm xs:text-lg sm:text-xl rounded-l-md'>Month</th>
+              <td class='font-sans font-medium text-xs xs:text-sm sm:text-lg text-center rounded-r-md'>${month}</td>
+            </tr>
+            <tr class='group'>
+              <th class='group-odd:bg-purple-800/60 group-even:bg-black/60 font-title font-bold text-sm xs:text-lg sm:text-xl rounded-l-md'>Year</th>
+              <td class='font-sans font-medium text-xs xs:text-sm sm:text-lg text-center rounded-r-md'>${formattedYear}</td>
+            </tr>
+            <tr class='group'>
+              <th class='group-odd:bg-purple-800/60 group-even:bg-black/60 font-title font-bold text-sm xs:text-lg sm:text-xl rounded-l-md'>Latitude</th>
+              <td class='font-sans font-medium text-xs xs:text-sm sm:text-lg text-center rounded-r-md'>${latitude}</td>
+            </tr>
+            <tr class='group'>
+              <th class='group-odd:bg-purple-800/60 group-even:bg-black/60 font-title font-bold text-sm xs:text-lg sm:text-xl rounded-l-md'>Longitude</th>
+              <td class='font-sans font-medium text-xs xs:text-sm sm:text-lg text-center rounded-r-md'>${longitude}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    `);
+
+  map.once('moveend', () => {
+    const { lng, lat } = map.getCenter();
+
+    eventPopup.setLngLat([lng, lat]).addTo(map);
+
+    disableMapInteraction(false);
+    disableAllButtons = false;
+  });
+}
+
 async function changeYearAndMapEvent(event) {
   disableAllButtons = true;
   disableMapInteraction(true);
@@ -973,12 +1045,16 @@ async function changeYearAndMapEvent(event) {
 
     removeMarkers();
 
-    new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(map);
+    const selectedMarker = new mapboxgl.Marker()
+      .setLngLat([longitude, latitude])
+      .addTo(map);
 
     let formattedYear =
       event_year < 0 ? `${Math.abs(event_year)} BC` : `${event_year}`;
 
     $('#history-year').text(formattedYear);
+
+    await createChosenEventPopup();
 
     if (window.innerWidth >= 640) {
       $('#history-container').removeClass('h-20');
@@ -994,6 +1070,40 @@ async function changeYearAndMapEvent(event) {
     $('#content-subtitle').text(`Year ${event_year}`);
     $('#content-subtitle-container').removeClass(`invisible`);
 
+    selectedMarker.getElement().addEventListener('mouseenter', () => {
+      selectedMarker.getElement().style.cursor = 'pointer';
+    });
+
+    selectedMarker.getElement().addEventListener('mouseleave', () => {
+      selectedMarker.getElement().style.cursor = '';
+    });
+
+    $(selectedMarker.getElement()).on('click', async () => {
+      if (disableAllButtons) return;
+
+      changePanelSpinners(true);
+      disableAllButtons = true;
+      disableMapInteraction(true);
+
+      if (!eventPopup) {
+        try {
+          await createChosenEventPopup();
+
+          await flyToPromise({
+            center: [longitude, latitude],
+            speed: 0.5,
+            zoom: 3.5,
+            duration: 2000,
+          });
+        } catch (err) {
+        } finally {
+          disableAllButtons = false;
+          disableMapInteraction(false);
+          changePanelSpinners(false);
+        }
+      }
+    });
+
     setTimeout(async () => {
       await flyToPromise({
         center: [longitude, latitude],
@@ -1003,8 +1113,7 @@ async function changeYearAndMapEvent(event) {
       });
 
       changePanelSpinners(false);
-      disableMapInteraction(false);
-      disableAllButtons = false;
+
       removeAllButtons(false);
     }, 1000);
   } catch (err) {
@@ -1395,6 +1504,9 @@ async function returnToDefaultHistoryMap() {
   if (selectedHistoricalEvent) {
     try {
       map.filterByDate('2013-01-01');
+
+      eventPopup.remove();
+      eventPopup = null;
 
       await animateFog(map.getFog(), historyFog, 1500);
 
