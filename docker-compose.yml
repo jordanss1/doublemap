@@ -81,9 +81,9 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     restart: no
-    volumes:
-      - "../files/db_data:/var/lib/mysql"
-      - "../files/db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql"
+    # volumes:
+    #   - "../files/db_data:/var/lib/mysql"
+    #   - "../files/db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql"
     expose:
       - ${DB_PORT}
     env_file:
