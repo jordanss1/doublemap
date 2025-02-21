@@ -70,7 +70,9 @@ services:
  
 
   db:
-    image: mysql:latest
+    build:
+      context: ./db/
+      dockerfile: Dockerfile    
     container_name: db
     environment:
       MYSQL_PASSWORD: ${DB_PASS}
@@ -79,7 +81,6 @@ services:
     restart: always
     volumes:
       - ../files/db_data:/var/lib/mysql
-      - ./my.cnf:/etc/mysql/my.cnf
     expose:
       - ${DB_PORT}
     env_file:
