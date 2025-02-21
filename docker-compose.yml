@@ -39,7 +39,7 @@ services:
     container_name: api
     depends_on:
       - db
-    restart: always
+    restart: no
     env_file:
       - .env
     networks:
