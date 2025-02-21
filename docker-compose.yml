@@ -71,13 +71,19 @@ services:
  
 
   db:
-    image: mysql:latest
+    build:
+      context: ./db/
+      dockerfile: Dockerfile
+      args: {}
     container_name: db
     environment:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    restart: always
+    restart: no
+    volumes:
+      - "../files/db_data:/var/lib/mysql"
+      - "../files/db_dump:/docker-entrypoint-initdb.d/db_dump.sql"
     expose:
       - ${DB_PORT}
     env_file:
@@ -90,6 +96,9 @@ services:
       - traefik.http.routers.api-app.entrypoints=websecure
       - traefik.http.routers.api-app.tls.certResolver=letsencrypt
       - traefik.http.services.api-app.loadbalancer.server.port=${DB_PORT}
+
+volumes:
+  db_data:
 
 networks:
   dokploy-network:
