@@ -2,7 +2,6 @@
 
     header('Content-Type: application/json');
     require_once __DIR__ . '/functions.php';
-    require_once __DIR__ . '/error_handle.php';
     require_once __DIR__ . '/model/wikipedia_db.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);

@@ -1,9 +1,6 @@
 FROM ubuntu:22.04
 
-ARG MODE
-
 WORKDIR /app
-
 
 RUN apt-get update && apt-get install -y \
     curl \

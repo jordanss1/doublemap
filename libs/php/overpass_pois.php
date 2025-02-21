@@ -2,7 +2,6 @@
 
     header('Content-Type: application/json');
     require_once './functions.php';
-    require_once './error_handle.php';
 
     $parsedUrl = parse_url($_SERVER['REQUEST_URI']);
 
