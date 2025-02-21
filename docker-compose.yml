@@ -82,7 +82,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     restart: always
     volumes:
-      - ../files/db_data:/var/lib/mysql
+      - "../files/db_data:/var/lib/mysql"
     expose:
       - ${DB_PORT}
     env_file:
