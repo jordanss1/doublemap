@@ -83,7 +83,7 @@ services:
     restart: no
     volumes:
       - "../files/db_data:/var/lib/mysql"
-      - "../files/db_dump:/docker-entrypoint-initdb.d/db_dump.sql"
+      - "../files/db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql"
     expose:
       - ${DB_PORT}
     env_file:
