@@ -77,7 +77,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     restart: always
     volumes:
-      - db_data:/var/lib/mysql
+      - ../files/db_data:/var/lib/mysql
       - ./my.cnf:/etc/mysql/my.cnf
     expose:
       - ${DB_PORT}
