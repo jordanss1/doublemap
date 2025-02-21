@@ -117,8 +117,6 @@ categoryPanelButtons.forEach((buttonId) => {
         currentPois = newPois;
 
         addPoiSourceAndLayer(newPois, 'chosen-pois');
-      } catch (err) {
-        console.log(err);
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);

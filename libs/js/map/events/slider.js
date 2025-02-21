@@ -473,8 +473,6 @@ async function createMarkersFromHistoricalEvents(data) {
   }
 }
 
-
-
 async function getWikipediaEvents(day, month) {
   if (!historyMode) return;
 
@@ -501,8 +499,6 @@ async function getWikipediaEvents(day, month) {
       method: 'GET',
       dataType: 'json',
     });
-
-    console.log(data);
 
     addHistoricalEventsToSidebar(data);
     changeExitButton(false, `Exit events from ${month}/${day}`);

@@ -37,8 +37,7 @@ mapPromise.then(async (map) => {
       zoom: 4,
       duration: 2000,
     });
-  } catch (err) {
-    console.log(err);
+  } catch {
   } finally {
     changePanelSpinners(false);
     disableMapInteraction(false);
@@ -66,11 +65,6 @@ mapPromise.then(async (map) => {
         );
       });
     },
-    error: (xhr) => {
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
-    },
   });
 
   $.ajax({
@@ -81,11 +75,6 @@ mapPromise.then(async (map) => {
       categoryList = res.data;
       addMarkersSourceAndLayer([]);
       addPoiSourceAndLayer([], 'default-pois');
-    },
-    error: (xhr) => {
-      const res = JSON.parse(xhr.responseText);
-      console.log(`Error Status: ${xhr.status} - Error Message: ${res.error}`);
-      console.log(`Response Text: ${res.details}`);
     },
   });
 });
