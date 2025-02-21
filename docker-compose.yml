@@ -80,10 +80,10 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    restart: no
+    restart: always
     volumes:
       - "../files/db_data:/var/lib/mysql"
-      - "../files/db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql"
+      - "../files/db_dump:/docker-entrypoint-initdb.d/db_dump.sql"
     expose:
       - ${DB_PORT}
     env_file:
@@ -99,6 +99,7 @@ services:
 
 volumes:
   db_data:
+  db_dump:
 
 networks:
   dokploy-network:
