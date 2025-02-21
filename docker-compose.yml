@@ -39,7 +39,7 @@ services:
     container_name: api
     depends_on:
       - db
-    restart: no
+    restart: always
     env_file:
       - .env
     networks:
@@ -80,7 +80,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    restart: always
+    restart: no
     volumes:
       - "../files/db_data:/var/lib/mysql"
     expose:
