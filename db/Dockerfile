@@ -8,4 +8,4 @@ RUN mkdir -p /var/log/mysql && touch /var/log/mysql/error.log && chown -R mysql:
 
 RUN mkdir -p /docker-entrypoint-initdb.d/
 
-CMD echo "$(<db_dump)" > /docker-entrypoint-initdb.d/init.sql && exec mysqld
+CMD echo "$(<../files/db_dump)" > /docker-entrypoint-initdb.d/init.sql && exec mysqld
