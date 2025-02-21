@@ -25,13 +25,15 @@ services:
       context: ./libs/php
       dockerfile: Dockerfile
       args:
-        USERNAME: ${USERNAME}
+        MAPBOX_USERNAME: ${MAPBOX_USERNAME}
+        GEO_USERNAME: ${GEO_USERNAME}
         IPINFO_TOKEN: ${IPINFO_TOKEN}
         DB_HOST: ${DB_HOST}
         DB_PORT: ${DB_PORT}
         DB_USERNAME: ${DB_USERNAME}
         DB_PASS: ${DB_PASS}
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
+        MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
     expose:
       - ${API_PORT}
     container_name: api
