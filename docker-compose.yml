@@ -55,7 +55,6 @@ services:
     build:
       context: ./tileserver/
       dockerfile: Dockerfile
-      args:
     restart: always
     expose:
       - ${TILE_PORT}
