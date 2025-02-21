@@ -3,9 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        MAPBOX_TOKEN_JS: ${MAPBOX_TOKEN_JS}
-        MAPBOX_BUILD_SPRITES: ${MAPBOX_BUILD_SPRITES}
     expose:
       - ${WEB_PORT}
     labels:
@@ -30,13 +27,11 @@ services:
       args:
         USERNAME: ${USERNAME}
         IPINFO_TOKEN: ${IPINFO_TOKEN}
-        JAWG_TOKEN: ${JAWG_TOKEN}
         DB_HOST: ${DB_HOST}
         DB_PORT: ${DB_PORT}
         DB_USERNAME: ${DB_USERNAME}
         DB_PASS: ${DB_PASS}
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
-        MODE: production
     expose:
       - ${API_PORT}
     container_name: api
