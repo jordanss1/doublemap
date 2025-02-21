@@ -76,7 +76,6 @@ services:
     environment:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_USER: ${DB_USERNAME}
-      MYSQL_DATABASE: map
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
     restart: no
     volumes:
