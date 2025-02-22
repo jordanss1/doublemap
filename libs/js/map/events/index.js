@@ -77,7 +77,7 @@ async function changeHistoryMode(e, t) {
       addErrorToMap('Error fetching history map'), disableMapInteraction(!1);
     } finally {
       (disableAllButtons = !1),
-        updateChosenCountryState(),
+        await updateChosenCountryState(),
         removeAllButtons(!1),
         (currentPois = []),
         (currentMarker = null),
@@ -129,7 +129,7 @@ async function changeHistoryMode(e, t) {
     } finally {
       removeAllButtons(!1),
         (disableAllButtons = !1),
-        updateChosenCountryState();
+        await updateChosenCountryState();
     }
   }
 }
@@ -244,7 +244,7 @@ mapPromise.then((e) => {
         changePanelSpinners(!0),
         disableMapInteraction(!0),
         expandSidebar(!1),
-        chosenCountryISO && updateChosenCountryState();
+        chosenCountryISO && (await updateChosenCountryState());
       const t = e.features[0].properties.iso_a2;
       let r;
       if (historyMode)
@@ -254,13 +254,13 @@ mapPromise.then((e) => {
           addErrorToMap('Error fetching country history');
         }
       try {
-        updateChosenCountryState(t);
+        await updateChosenCountryState(t);
         const e = await getCountryDataAndFitBounds(t);
         historyMode
           ? await createHistoryCountryPopup(r, e.restCountries.flag)
           : await createModernCountryPopup(e);
       } catch (e) {
-        updateChosenCountryState(),
+        await updateChosenCountryState(),
           disableMapInteraction(!1),
           addErrorToMap('Error retrieving country details');
       } finally {
@@ -408,16 +408,16 @@ mapPromise.then((e) => {
       $(this).attr('aria-expanded', 'false'),
         $(this).closest('.mapboxgl-marker').css('z-index', '');
     }),
-    $(document).on('click', '#history-marker', function () {}),
-    $('#zoom-in').on('click', () => {
+    $(document).on('click', '#history-marker', function async() {}),
+    $('#zoom-in').on('click', async () => {
       if (disableAllButtons) return;
-      chosenCountryISO && updateChosenCountryState();
+      chosenCountryISO && (await updateChosenCountryState());
       let t = e.getZoom();
       e.easeTo({ zoom: t + 0.3 });
     }),
-    $('#zoom-out').on('click', () => {
+    $('#zoom-out').on('click', async () => {
       if (disableAllButtons) return;
-      chosenCountryISO && updateChosenCountryState();
+      chosenCountryISO && (await updateChosenCountryState());
       let t = e.getZoom();
       e.easeTo({ zoom: t - 0.3 });
     }),
@@ -426,7 +426,7 @@ mapPromise.then((e) => {
         if (
           (clearTimeout(wikipediaTimer),
           (disableAllButtons = !0),
-          chosenCountryISO && updateChosenCountryState(),
+          chosenCountryISO && (await updateChosenCountryState()),
           changePanelSpinners(!0),
           historyMode)
         )
@@ -497,7 +497,7 @@ mapPromise.then((e) => {
           return (
             clearSidebarContent(),
             (currentPoiCategory = 'default'),
-            updateChosenCountryState(),
+            await updateChosenCountryState(),
             void (await flyToPromise({
               speed: 0.5,
               zoom: e.getZoom() - 0.5,
@@ -654,7 +654,7 @@ mapPromise.then((e) => {
           changePanelSpinners(!0),
           disableMapInteraction(!0),
           expandSidebar(!1),
-          chosenCountryISO && updateChosenCountryState(),
+          chosenCountryISO && (await updateChosenCountryState()),
           $('#country-select-list').attr('aria-disabled', 'true'),
           historyMode)
         ) {
@@ -673,37 +673,40 @@ mapPromise.then((e) => {
             : await createModernCountryPopup(r);
         } catch (e) {
           addErrorToMap('Error fetching country info'),
-            updateChosenCountryState(),
+            await updateChosenCountryState(),
             disableMapInteraction(!1);
         } finally {
           (disableAllButtons = !1), changePanelSpinners(!1);
         }
       }
     ),
-    $('#country-select').on(
-      'click',
-      '#country-option',
-      async ({ target: e }) => {
-        if (!disableAllButtons && !historyMode) {
-          (disableAllButtons = !0),
-            changePanelSpinners(!0),
-            disableMapInteraction(!0),
-            expandSidebar(!1),
-            chosenCountryISO && updateChosenCountryState();
-          try {
-            updateChosenCountryState(e.value);
-            const t = await getCountryDataAndFitBounds(e.value);
-            await createModernCountryPopup(t);
-          } catch (e) {
-            addErrorToMap('Error fetching country info'),
-              updateChosenCountryState(),
-              disableMapInteraction(!1);
-          } finally {
-            (disableAllButtons = !1), changePanelSpinners(!1);
-          }
-        }
+    $('#country-select').on('click', '#country-option', async () => {
+      if (disableAllButtons || historyMode) return;
+
+      disableAllButtons = true;
+      changePanelSpinners(true);
+      disableMapInteraction(true);
+      expandSidebar(false);
+
+      if (chosenCountryISO) {
+        await updateChosenCountryState();
       }
-    ),
+
+      try {
+        await updateChosenCountryState(target.value);
+
+        const countryInfo = await getCountryDataAndFitBounds(target.value);
+
+        await createModernCountryPopup(countryInfo);
+      } catch (err) {
+        console.log(err);
+        await updateChosenCountryState();
+        disableMapInteraction(false);
+      } finally {
+        disableAllButtons = false;
+        changePanelSpinners(false);
+      }
+    }),
     $('#country-select').on('keydown', '#country-option', async (e) => {
       if (disableAllButtons || historyMode) return;
       let t = e.target.value;
@@ -712,14 +715,14 @@ mapPromise.then((e) => {
           changePanelSpinners(!0),
           disableMapInteraction(!0),
           expandSidebar(!1),
-          chosenCountryISO && updateChosenCountryState();
+          chosenCountryISO && (await updateChosenCountryState());
         try {
-          updateChosenCountryState(t);
+          await updateChosenCountryState(t);
           const e = await getCountryDataAndFitBounds(t);
           await createModernCountryPopup(e);
         } catch (e) {
           addErrorToMap('Error fetching country info'),
-            updateChosenCountryState(),
+            await updateChosenCountryState(),
             disableMapInteraction(!1);
         } finally {
           (disableAllButtons = !1), changePanelSpinners(!1);

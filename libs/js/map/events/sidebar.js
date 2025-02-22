@@ -1,1 +1,231 @@
-let categoryButtonTimeout,flyToTimer2;$("#content-results").on("click","#content-expand",(function(){expandItem(this,"#poi-content-item")})),$("#content-chosen").on("click","#content-expand",(function(){expandItem(this,"#poi-chosen")})),$("#menu-button").on("click",(()=>{if(disableAllButtons)return;"true"===$("#left-panel").attr("aria-expanded")?expandSidebar(!1):expandSidebar(!0)})),$("#category-button").on("click",(()=>{if(historyMode)return;const e="true"===$("#category-button").attr("aria-disabled");clearTimeout(categoryButtonTimeout),e?(activateCategoryButton(),$("#category-button").attr("aria-disabled","false"),$("#category-container").attr("aria-expanded","true"),$("#category-panel").attr("aria-disabled","false"),$("#category-panel > *").removeClass("invisible"),$("#category-panel > *").addClass("visible"),$("#category-panel > *").addClass("duration-300"),categoryButtonTimeout=setTimeout((()=>{$("#category-panel > *").removeClass("duration-300"),$("#category-panel > *").addClass("duration-75")}),300)):($("#category-button").attr("aria-disabled","true"),$("#category-container").attr("aria-expanded","false"),$("#category-panel").attr("aria-disabled","true"),$("#category-panel > *").removeClass("duration-75"),$("#category-panel > *").addClass("duration-300"),categoryButtonTimeout=setTimeout((()=>{$("#category-panel > *").removeClass("visible"),$("#category-panel > *").addClass("invisible")}),300))})),categoryPanelButtons.forEach((e=>{$(e).on("click",(async()=>{const t=e.replace("#","").split("-")[0];if(disableAllButtons||historyMode||t===currentPoiCategory)return;clearTimeout(flyToTimer2),disableAllButtons=!0,changePanelSpinners(!0),$("#category-panel > *").attr("aria-checked","false"),window.innerWidth>640&&expandSidebar(!0),$(e).attr("aria-checked","true");map.getZoom();appendLocationToCategoryOption();const{longitude:a,latitude:n}=mostRecentLocation,i={_sw:{lng:a-.1,lat:n-.1},_ne:{lng:a+.1,lat:n+.1}};currentPoiCategory=t,pausingPoiSearch(!0),flyToTimer2=setTimeout((async()=>{await flyToPromise({center:[a,n],speed:.5,curve:2,zoom:10.5,duration:2500});try{const e=await getOverpassPois(i,t);previousPois=[...currentPois],currentPois=e,addPoiSourceAndLayer(e,"chosen-pois")}finally{disableAllButtons=!1,changePanelSpinners(!1)}}),50)}))})),$("#content-subtitle-extra").on("click","#continue-search",(async()=>{disableAllButtons||historyMode||(pausePoiSearch?(pausingPoiSearch(!1),await flyToPromise({speed:.5,zoom:zoom-.5,duration:1e3})):(pausingPoiSearch(!0),await flyToPromise({speed:.5,zoom:zoom+.5,duration:1e3})))})),$("#content-results").on("click","#pin-poi",(function(e){if(disableAllButtons)return;e.stopPropagation();markPoiFromSidebar($(this).closest("#poi-content-item").attr("data-poi-id"))})),$("#content-chosen").on("click","#pin-poi",(function(e){if(e.stopPropagation(),disableAllButtons)return;markPoiFromSidebar($(this).closest("#poi-chosen").attr("data-poi-id"))})),$("#content-results").on("click","#search-content-item",(function(e){if(disableAllButtons)return;const t=searchResults.find((e=>e.properties.mapbox_id===$(this).attr("data-poi-id")));markAndPanToSearchResult(t)})),$("#content-chosen").on("click","#search-chosen",(function(e){if(disableAllButtons)return;const t=searchResults.find((e=>e.properties.mapbox_id===$(this).attr("data-poi-id")));markAndPanToSearchResult(t)})),$("#content-results").on("click","#event-select-button",(function(e){if(disableAllButtons)return;const t=historicalEvents.find((e=>e.id===+$(this).attr("data-event-id")));let a=!1;selectedHistoricalEvent&&(a=t.id===selectedHistoricalEvent.id),null==t.latitude||null==t.longitude||a||(selectedHistoricalEvent=t,changeYearAndMapEvent(selectedHistoricalEvent))})),$("#content-results").on("pointerenter","#event-content-item",(function(e){const t=+$(this).attr("data-event-id");historyMarkerGroup.forEach((e=>{const a=+$(e._element).attr("data-event-id");if(t===a){$(e._element).attr("aria-expanded","true"),$(e._element).closest(".mapboxgl-marker").css("z-index",1e3);const{lng:t,lat:a}=e._lngLat;map.flyTo({duration:1500,center:[t,a],curve:2,zoom:3.5,speed:.5})}else $(e._element).attr("aria-expanded","false")}))})),$("#content-results").on("pointerleave","#event-content-item",(function(e){const t=+$(this).attr("data-event-id");historyMarkerGroup.forEach((e=>{const a=+$(e._element).attr("data-event-id");t===a&&($(e._element).attr("aria-expanded","false"),$(e._element).closest(".mapboxgl-marker").css("z-index",""))}))}));const sidebarContainer=$("#left-panel"),observer=new MutationObserver(((e,t)=>{e.forEach((e=>{if("attributes"===e.type&&"aria-expanded"===e.attributeName){"true"===sidebarContainer.attr("aria-expanded")?window.innerWidth>=1024?map.setPadding({left:464}):window.innerWidth>=424?map.setPadding({left:420}):window.innerWidth<=424&&(map.setPadding({left:80}),$("#right-panel").addClass("-z-[1]")):(map.setPadding({left:80}),$("#right-panel").removeClass("-z-[1]"))}if("attributes"===e.type&&"aria-hidden"===e.attributeName){const e=sidebarContainer.attr("aria-hidden");"true"===e&&(map.setPadding({left:0}),sidebarContainer.attr("aria-expanded","false"),$("#left-grid-filler").removeClass("w-[4.2rem]"),$("#left-grid-filler").addClass("w-0")),window.innerWidth<=424&&"false"===e&&(map.setPadding({left:80}),$("#left-grid-filler").removeClass("w-0"),$("#left-grid-filler").addClass("w-[4.2rem]"))}}))}));function expandItem(e,t){const a=$(e).closest(t);"false"===a.attr("aria-hidden")?($(e).find("i").removeClass("fa-caret-down").addClass("fa-caret-right"),a.attr("aria-hidden","true")):($(e).find("i").removeClass("fa-caret-right").addClass("fa-caret-down"),a.attr("aria-hidden","false"))}function markPoiFromSidebar(e){if(disableAllButtons)return;const t=currentPois.find((t=>t.properties.id===e));if(flyToDelayed({center:t.geometry.coordinates,speed:.5,curve:2,zoom:14,duration:2e3}),selectedPoi===e)return;$("#content-chosen").attr("aria-hidden","true");const a="false"===$("#exit-container").attr("aria-disabled");pausingPoiSearch(!0),selectedPoi=t.properties.id,addMarkersSourceAndLayer([t]),map.setLayoutProperty("modern-markers-layer","visibility","visible"),map.moveLayer("modern-markers-layer"),currentMarker=t;let n=categoryList.find((e=>t.properties.canonical_id===e.canonical_id)).name.toLowerCase();changeSelectedSidebarItem(!0,"poi",t),addPoisToSidebar(!1),"default"===currentPoiCategory&&(n="points of interest");let i=`Exit selected ${n}`;a?($("#exit-button").attr("title",i),$("#exit-button").attr("aria-label",i)):changeExitButton(!1,i)}observer.observe(sidebarContainer[0],{attributes:!0,attributeFilter:["aria-expanded","aria-hidden"]});
+let categoryButtonTimeout, flyToTimer2;
+$('#content-results').on('click', '#content-expand', function () {
+  expandItem(this, '#poi-content-item');
+}),
+  $('#content-chosen').on('click', '#content-expand', function () {
+    expandItem(this, '#poi-chosen');
+  }),
+  $('#menu-button').on('click', () => {
+    if (disableAllButtons) return;
+    'true' === $('#left-panel').attr('aria-expanded')
+      ? expandSidebar(!1)
+      : expandSidebar(!0);
+  }),
+  $('#category-button').on('click', () => {
+    if (historyMode) return;
+    const e = 'true' === $('#category-button').attr('aria-disabled');
+    clearTimeout(categoryButtonTimeout),
+      e
+        ? (activateCategoryButton(),
+          $('#category-button').attr('aria-disabled', 'false'),
+          $('#category-container').attr('aria-expanded', 'true'),
+          $('#category-panel').attr('aria-disabled', 'false'),
+          $('#category-panel > *').removeClass('invisible'),
+          $('#category-panel > *').addClass('visible'),
+          $('#category-panel > *').addClass('duration-300'),
+          (categoryButtonTimeout = setTimeout(() => {
+            $('#category-panel > *').removeClass('duration-300'),
+              $('#category-panel > *').addClass('duration-75');
+          }, 300)))
+        : ($('#category-button').attr('aria-disabled', 'true'),
+          $('#category-container').attr('aria-expanded', 'false'),
+          $('#category-panel').attr('aria-disabled', 'true'),
+          $('#category-panel > *').removeClass('duration-75'),
+          $('#category-panel > *').addClass('duration-300'),
+          (categoryButtonTimeout = setTimeout(() => {
+            $('#category-panel > *').removeClass('visible'),
+              $('#category-panel > *').addClass('invisible');
+          }, 300)));
+  }),
+  categoryPanelButtons.forEach((e) => {
+    $(e).on('click', async () => {
+      const t = e.replace('#', '').split('-')[0];
+      if (disableAllButtons || historyMode || t === currentPoiCategory) return;
+      clearTimeout(flyToTimer2),
+        (disableAllButtons = !0),
+        changePanelSpinners(!0),
+        $('#category-panel > *').attr('aria-checked', 'false'),
+        window.innerWidth > 640 && expandSidebar(!0),
+        $(e).attr('aria-checked', 'true');
+      map.getZoom();
+      appendLocationToCategoryOption();
+      const { longitude: a, latitude: n } = mostRecentLocation,
+        i = {
+          _sw: { lng: a - 0.1, lat: n - 0.1 },
+          _ne: { lng: a + 0.1, lat: n + 0.1 },
+        };
+      (currentPoiCategory = t),
+        pausingPoiSearch(!0),
+        (flyToTimer2 = setTimeout(async () => {
+          await flyToPromise({
+            center: [a, n],
+            speed: 0.5,
+            curve: 2,
+            zoom: 10.5,
+            duration: 2500,
+          });
+          try {
+            const e = await getOverpassPois(i, t);
+            (previousPois = [...currentPois]),
+              (currentPois = e),
+              addPoiSourceAndLayer(e, 'chosen-pois');
+          } finally {
+            (disableAllButtons = !1), changePanelSpinners(!1);
+          }
+        }, 50));
+    });
+  }),
+  $('#content-subtitle-extra').on('click', '#continue-search', async () => {
+    disableAllButtons ||
+      historyMode ||
+      (pausePoiSearch
+        ? (pausingPoiSearch(!1),
+          await flyToPromise({ speed: 0.5, zoom: zoom - 0.5, duration: 1e3 }))
+        : (pausingPoiSearch(!0),
+          await flyToPromise({ speed: 0.5, zoom: zoom + 0.5, duration: 1e3 })));
+  }),
+  $('#content-results').on('click', '#pin-poi', function (e) {
+    if (disableAllButtons) return;
+    e.stopPropagation();
+    markPoiFromSidebar(
+      $(this).closest('#poi-content-item').attr('data-poi-id')
+    );
+  }),
+  $('#content-chosen').on('click', '#pin-poi', function (e) {
+    if ((e.stopPropagation(), disableAllButtons)) return;
+    markPoiFromSidebar($(this).closest('#poi-chosen').attr('data-poi-id'));
+  }),
+  $('#content-results').on(
+    'click',
+    '#search-content-item',
+    async function async(e) {
+      if (disableAllButtons) return;
+      const t = searchResults.find(
+        (e) => e.properties.mapbox_id === $(this).attr('data-poi-id')
+      );
+      await markAndPanToSearchResult(t);
+    }
+  ),
+  $('#content-chosen').on('click', '#search-chosen', async function (e) {
+    if (disableAllButtons) return;
+    const t = searchResults.find(
+      (e) => e.properties.mapbox_id === $(this).attr('data-poi-id')
+    );
+    await markAndPanToSearchResult(t);
+  }),
+  $('#content-results').on('click', '#event-select-button', function (e) {
+    if (disableAllButtons) return;
+    const t = historicalEvents.find(
+      (e) => e.id === +$(this).attr('data-event-id')
+    );
+    let a = !1;
+    selectedHistoricalEvent && (a = t.id === selectedHistoricalEvent.id),
+      null == t.latitude ||
+        null == t.longitude ||
+        a ||
+        ((selectedHistoricalEvent = t),
+        changeYearAndMapEvent(selectedHistoricalEvent));
+  }),
+  $('#content-results').on('pointerenter', '#event-content-item', function (e) {
+    const t = +$(this).attr('data-event-id');
+    historyMarkerGroup.forEach((e) => {
+      const a = +$(e._element).attr('data-event-id');
+      if (t === a) {
+        $(e._element).attr('aria-expanded', 'true'),
+          $(e._element).closest('.mapboxgl-marker').css('z-index', 1e3);
+        const { lng: t, lat: a } = e._lngLat;
+        map.flyTo({
+          duration: 1500,
+          center: [t, a],
+          curve: 2,
+          zoom: 3.5,
+          speed: 0.5,
+        });
+      } else $(e._element).attr('aria-expanded', 'false');
+    });
+  }),
+  $('#content-results').on('pointerleave', '#event-content-item', function (e) {
+    const t = +$(this).attr('data-event-id');
+    historyMarkerGroup.forEach((e) => {
+      const a = +$(e._element).attr('data-event-id');
+      t === a &&
+        ($(e._element).attr('aria-expanded', 'false'),
+        $(e._element).closest('.mapboxgl-marker').css('z-index', ''));
+    });
+  });
+const sidebarContainer = $('#left-panel'),
+  observer = new MutationObserver((e, t) => {
+    e.forEach((e) => {
+      if ('attributes' === e.type && 'aria-expanded' === e.attributeName) {
+        'true' === sidebarContainer.attr('aria-expanded')
+          ? window.innerWidth >= 1024
+            ? map.setPadding({ left: 464 })
+            : window.innerWidth >= 424
+            ? map.setPadding({ left: 420 })
+            : window.innerWidth <= 424 &&
+              (map.setPadding({ left: 80 }),
+              $('#right-panel').addClass('-z-[1]'))
+          : (map.setPadding({ left: 80 }),
+            $('#right-panel').removeClass('-z-[1]'));
+      }
+      if ('attributes' === e.type && 'aria-hidden' === e.attributeName) {
+        const e = sidebarContainer.attr('aria-hidden');
+        'true' === e &&
+          (map.setPadding({ left: 0 }),
+          sidebarContainer.attr('aria-expanded', 'false'),
+          $('#left-grid-filler').removeClass('w-[4.2rem]'),
+          $('#left-grid-filler').addClass('w-0')),
+          window.innerWidth <= 424 &&
+            'false' === e &&
+            (map.setPadding({ left: 80 }),
+            $('#left-grid-filler').removeClass('w-0'),
+            $('#left-grid-filler').addClass('w-[4.2rem]'));
+      }
+    });
+  });
+function expandItem(e, t) {
+  const a = $(e).closest(t);
+  'false' === a.attr('aria-hidden')
+    ? ($(e).find('i').removeClass('fa-caret-down').addClass('fa-caret-right'),
+      a.attr('aria-hidden', 'true'))
+    : ($(e).find('i').removeClass('fa-caret-right').addClass('fa-caret-down'),
+      a.attr('aria-hidden', 'false'));
+}
+function markPoiFromSidebar(e) {
+  if (disableAllButtons) return;
+  const t = currentPois.find((t) => t.properties.id === e);
+  if (
+    (flyToDelayed({
+      center: t.geometry.coordinates,
+      speed: 0.5,
+      curve: 2,
+      zoom: 14,
+      duration: 2e3,
+    }),
+    selectedPoi === e)
+  )
+    return;
+  $('#content-chosen').attr('aria-hidden', 'true');
+  const a = 'false' === $('#exit-container').attr('aria-disabled');
+  pausingPoiSearch(!0),
+    (selectedPoi = t.properties.id),
+    addMarkersSourceAndLayer([t]),
+    map.setLayoutProperty('modern-markers-layer', 'visibility', 'visible'),
+    map.moveLayer('modern-markers-layer'),
+    (currentMarker = t);
+  let n = categoryList
+    .find((e) => t.properties.canonical_id === e.canonical_id)
+    .name.toLowerCase();
+  changeSelectedSidebarItem(!0, 'poi', t),
+    addPoisToSidebar(!1),
+    'default' === currentPoiCategory && (n = 'points of interest');
+  let i = `Exit selected ${n}`;
+  a
+    ? ($('#exit-button').attr('title', i),
+      $('#exit-button').attr('aria-label', i))
+    : changeExitButton(!1, i);
+}
+observer.observe(sidebarContainer[0], {
+  attributes: !0,
+  attributeFilter: ['aria-expanded', 'aria-hidden'],
+});

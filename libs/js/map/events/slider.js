@@ -54,7 +54,7 @@ mapPromise.then((e) => {
   }
   $('#slider-button').on('click', async function () {
     if (!historyMode || disableAllButtons) return;
-    clearTimeout(t), chosenCountryISO && updateChosenCountryState();
+    clearTimeout(t), chosenCountryISO && (await updateChosenCountryState());
     if (
       'false' === $('#day-slider-container-lg').attr('aria-disabled') ||
       'false' === $('#day-slider-container-sm').attr('aria-disabled')
@@ -150,7 +150,7 @@ mapPromise.then((e) => {
         (n === currentDate && historicalEvents.length))
     )
       return void (a = applySliderStyles(!1));
-    chosenCountryISO && updateChosenCountryState();
+    chosenCountryISO && (await updateChosenCountryState());
     const r = String(t.getDate()).padStart(2, '0'),
       l = String(t.getMonth() + 1).padStart(2, '0');
     a = applySliderStyles(!1);
@@ -278,7 +278,7 @@ async function getWikipediaEvents(e, t) {
     clearSidebarContent(),
     removeMarkers(),
     (selectedHistoricalEvent = null),
-    updateChosenCountryState(),
+    await updateChosenCountryState(),
     disableMapInteraction(!0),
     expandSidebar(!0),
     changePanelSpinners(!0),
