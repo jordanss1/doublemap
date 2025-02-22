@@ -11,7 +11,6 @@ services:
       - traefik.http.routers.web-app.entrypoints=websecure
       - traefik.http.routers.web-app.tls.certResolver=letsencrypt
       - traefik.http.services.web-app.loadbalancer.server.port=${WEB_PORT}
-    container_name: web
     depends_on:
       - api
     restart: always
@@ -36,7 +35,6 @@ services:
         MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
     expose:
       - ${API_PORT}
-    container_name: api
     depends_on:
       - db
     restart: always
@@ -59,7 +57,6 @@ services:
     restart: always
     expose:
       - ${TILE_PORT}
-    container_name: tileserver
     networks:
       - dokploy-network
     labels:
@@ -68,14 +65,12 @@ services:
       - traefik.http.routers.api-app.entrypoints=websecure
       - traefik.http.routers.api-app.tls.certResolver=letsencrypt
       - traefik.http.services.api-app.loadbalancer.server.port=${TILE_PORT}
- 
 
   db:
     build:
       context: ./db/
       dockerfile: Dockerfile
       args: {}
-    container_name: db
     environment:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_USER: ${DB_USERNAME}
@@ -97,7 +92,8 @@ services:
       - traefik.http.services.api-app.loadbalancer.server.port=${DB_PORT}
 
 volumes:
-  db_data:
+  db:
+    db_data:
 
 networks:
   dokploy-network:
