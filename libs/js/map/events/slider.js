@@ -228,7 +228,47 @@ mapPromise.then((map) => {
       }
 
       if (selectedHistoricalEvent) {
-        await returnToDefaultHistoryMap();
+        disableAllButtons = true;
+        disableMapInteraction(true);
+        removeAllButtons(true);
+
+        try {
+          await returnToDefaultHistoryMap();
+
+          let zoom = 2;
+
+          if (map.getZoom() <= 2) zoom = map.getZoom() - 0.5;
+
+          await flyToPromise({
+            speed: 0.5,
+            zoom,
+            duration: 1500,
+          });
+        } catch {
+          if (selectedHistoricalEvent) {
+            await changeYearAndMapEvent(selectedHistoricalEvent);
+            return;
+          }
+          if (historicalEvents.length) {
+            addHistoricalEventsToSidebar(historicalEvents);
+
+            await createMarkersFromHistoricalEvents(historicalEvents);
+
+            addHistoricalEventsToSidebar(historicalEvents);
+
+            $('#content-subtitle-container').removeClass('invisible');
+
+            $('#content-subtitle').text(`${historicalEvents.length} results`);
+
+            expandSidebar(true);
+
+            changeExitButton(false, `Exit events from ${currentDate}`);
+          }
+        } finally {
+          disableAllButtons = false;
+          disableMapInteraction(false);
+          removeAllButtons(false);
+        }
       }
 
       $('#history-date').text(dateString);
@@ -472,8 +512,6 @@ async function createMarkersFromHistoricalEvents(data) {
     historyMarkerGroup.push(marker);
   }
 }
-
-
 
 async function getWikipediaEvents(day, month) {
   if (!historyMode) return;
