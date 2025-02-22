@@ -59,7 +59,7 @@ async function applyCountryLayers() {
   if (!map.getSource('country-borders')) {
     map.addSource('country-borders', {
       type: 'vector',
-      tiles: ['http://localhost:3000/data/countries/{z}/{x}/{y}.pbf'],
+      tiles: ['https://tiles.double-map.online/data/countries/{z}/{x}/{y}.pbf'],
       promoteId: 'iso_a2',
     });
   }

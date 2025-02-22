@@ -171,7 +171,7 @@ mapPromise.then((map) => {
   });
 
   map.on('click', 'hovered-country-fill', async (e) => {
-    if (disableAllButtons) return;
+    if (disableAllButtons && map.getZoom() >= 7) return;
 
     clearTimeout(wikipediaTimer);
 
@@ -285,14 +285,19 @@ mapPromise.then((map) => {
   });
 
   ['mouseenter', 'touchstart'].forEach((eventType) => {
+    map.on(eventType, ['hovered-country-fill'], () => {
+      if (map.getZoom() >= 7) {
+        map.getCanvas().style.cursor = '';
+      } else {
+        map.getCanvas().style.cursor = 'pointer';
+      }
+    });
+  });
+
+  ['mouseenter', 'touchstart'].forEach((eventType) => {
     map.on(
       eventType,
-      [
-        'hovered-country-fill',
-        'chosen-pois',
-        'default-pois',
-        'modern-markers-layer',
-      ],
+      ['chosen-pois', 'default-pois', 'modern-markers-layer'],
       () => {
         map.getCanvas().style.cursor = 'pointer';
       }
