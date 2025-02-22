@@ -977,7 +977,7 @@ async function changeHistoryMode(map, enabled) {
       disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
-      await updateChosenCountryState();
+      updateChosenCountryState();
       removeAllButtons(false);
       currentPois = [];
       currentMarker = null;
