@@ -123,7 +123,7 @@ async function applyCountryLayers() {
           type: 'fill',
           source: 'country-borders',
           'source-layer': 'country_bordersgeo',
-          maxzoom: 6,
+          maxzoom: 7,
           paint: {
             'fill-color': t,
             'fill-opacity': [
@@ -141,7 +141,7 @@ async function applyCountryLayers() {
           type: 'line',
           source: 'country-borders',
           'source-layer': 'country_bordersgeo',
-          maxzoom: 6,
+          maxzoom: 7,
           paint: {
             'line-color': [
               'case',
