@@ -55,8 +55,10 @@
         if ($results === false){
             $error = $stmt->errorInfo();
 
+            error_log("Failure retreiving wiki events: $error[2]");
+
             http_response_code(500);
-            echo json_encode(["error" => "SQL has failed fetching wikipedia events: $error[2]", "details" => "Problem retrieving events try again"]);
+            echo json_encode(["error" => "SQL has failed fetching wikipedia events", "details" => "Problem retrieving events try again"]);
             exit;
         }
 

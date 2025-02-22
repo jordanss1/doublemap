@@ -33,13 +33,14 @@ services:
         DB_PASS: ${DB_PASS}
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
         MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
-    expose:
-      - ${API_PORT}
     restart: always
     env_file:
       - .env
     networks:
-      - dokploy-network
+      internal-network:
+        ipv4_address: 10.0.1.101
+      dokploy-network:
+      
 
   tileserver:
     build:
@@ -47,8 +48,6 @@ services:
       dockerfile: Dockerfile
       args: {}
     restart: always
-    expose:
-      - ${TILE_PORT}
     networks:
       - dokploy-network
 
@@ -77,3 +76,8 @@ services:
 networks:
   dokploy-network:
     external: true
+  internal-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.0.1.0/24"

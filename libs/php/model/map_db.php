@@ -111,7 +111,7 @@
 
         if (empty($results)) {
             http_response_code(404);
-            echo json_encode(["error" => "", "Empty array from DB", "details" => "Cannot show  map until request count is known"]);
+            echo json_encode(["error" =>  "Empty array from DB", "details" => "Cannot show  map until request count is known"]);
             exit;
         }
 

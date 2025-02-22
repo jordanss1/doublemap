@@ -4,8 +4,10 @@
         if (!$stmt) {
             if (!$endOnError) return false;
 
+            error_log('Error executing sql stmt:' . $db->errorInfo());
+
             http_response_code(500);
-            echo json_encode(["error" => $db->errorInfo(), "details" => "Could not execute SQL statement"]);
+            echo json_encode(["error" => "Error executing sql", "details" => "Could not execute SQL statement"]);
             exit;
         }
     }
@@ -21,7 +23,9 @@
             $decodedResponse = json_decode($response, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return ["error" => "Problem decoding JSON " . json_last_error_msg(), "details" => "Problem retrieving this info"];
+                error_log('Error decoding JSON:' . json_last_error_msg());
+
+                return ["error" => "Problem decoding JSON", "details" => "Problem retrieving this info"];
             }
 
             return $decodedResponse;
@@ -46,16 +50,22 @@
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
             
-            if ($response === false) throw new Error("Problem retrieving data: " . curl_error($ch));
+            if ($response === false) {
+                error_log("Problem retrieving data: " . curl_error($ch));
+                throw new Exception("An issue occurred while processing the request.");
+            }
     
             if ($httpCode !== 200) {
-                throw new Exception("Mapbox API error (HTTP $httpCode): $response");
+                error_log("API error (HTTP $httpCode): $url");
+                throw new Exception("API request failed. Please try again later.");
             }
 
             return $response;
         } catch (Exception $e) {
             $parsedUrl = parse_url($url);
-            $errorResponse = ["error" => $e->getMessage(), "details" => "Error making request to {$parsedUrl['host']} API"];
+            $errorResponse = ["error" => "Error in request to external service", "details" => "An error occurred. Please try again later."];
+
+            error_log("Error making request to API: {$parsedUrl['host']}" . $e->getMessage());
 
             if ($endOnError) {
                 http_response_code(500);

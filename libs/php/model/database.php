@@ -8,8 +8,7 @@
         $map_db = new PDO($map_dsn, $username, $password);
     } catch (PDOException $err) {
         http_response_code(500);
-        $error = "DB Error: $err";
-        echo json_encode(["error" => $error, "details" => "Error initializing map DB connection"]);
+        echo json_encode(["error" => "PDO Connection error to map db", "details" => "Error initializing map DB connection"]);
         exit;
     }
 
@@ -19,7 +18,6 @@
         $wikipedia_db = new PDO($wikipedia_dsn, $username, $password);
     } catch (PDOException $err) {
         http_response_code(500);
-        $error = "DB Error: $err";
-        echo json_encode(["error" => $error, "details" => "Error initializing wikipedia DB connection"]);
+        echo json_encode(["error" => "PDO Connection error to wiki db", "details" => "Error initializing wikipedia DB connection"]);
         exit;
     }

@@ -251,7 +251,6 @@
                 $categoryKey = '';
             }
 
-            // park, outdoors
 
             if (in_array($category, $categoriesThatAreAmenities)) {
                 $queryKey = 'amenity';
