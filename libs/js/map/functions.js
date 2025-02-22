@@ -60,7 +60,7 @@ async function applyCountryLayers() {
   map.getSource('country-borders') ||
     map.addSource('country-borders', {
       type: 'vector',
-      tiles: ['https://www.double-map.online/tiles/data/countries/{z}/{x}/{y}.pbf'],
+      tiles: ['https://www.double-map.online/data/countries/{z}/{x}/{y}.pbf'],
       promoteId: 'iso_a2',
     });
   const e =
