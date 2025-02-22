@@ -735,9 +735,11 @@ mapPromise.then((map) => {
   );
 
   $('#country-select').on('click', '#country-option', async ({ target }) => {
-    if (disableAllButtons || historyMode) return;
-
     console.log(target);
+    console.log(historyMode);
+    console.log(disableAllButtons);
+
+    if (disableAllButtons || historyMode) return;
 
     disableAllButtons = true;
     changePanelSpinners(true);
