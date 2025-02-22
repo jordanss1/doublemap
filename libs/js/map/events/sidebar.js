@@ -118,7 +118,7 @@ categoryPanelButtons.forEach((buttonId) => {
 
         addPoiSourceAndLayer(newPois, 'chosen-pois');
       } catch (err) {
-        console.log(err);
+        addErrorToMap('Problem fetching POIs');
       } finally {
         disableAllButtons = false;
         changePanelSpinners(false);

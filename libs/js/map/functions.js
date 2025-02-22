@@ -434,8 +434,6 @@ function addPoiSourceAndLayer(pois, layerId, overridePause = false) {
 
     currentMarker = null;
 
-    console.log(currentMarker);
-
     chosenCountryISO = null;
 
     $('#content-container').animate({ scrollTop: 0 }, 500);
@@ -927,8 +925,6 @@ function addHistoricalEventsToSidebar(events) {
       </div>`;
   });
 
-  console.log(events[0]);
-
   const eventDateFormatted = formatEventDate(events[0]);
 
   if ($('#content-title').text() !== `${eventDateFormatted}`) {
@@ -1117,7 +1113,6 @@ async function changeYearAndMapEvent(event) {
       removeAllButtons(false);
     }, 1000);
   } catch (err) {
-    console.log(err);
     selectedHistoricalEvent = null;
     addErrorToMap('Problem changing map date - try again');
     disableMapInteraction(false);
@@ -1302,9 +1297,7 @@ async function retrieveAndApplyIcons(token) {
           sdf: icon.sdf || false,
         });
       }
-    } catch (error) {
-      console.error(`Error adding icon ${iconName}:`, error);
-    }
+    } catch (error) {}
   });
 }
 
@@ -1345,8 +1338,6 @@ async function getSearchResults(value) {
       method: 'GET',
       dataType: 'json',
     });
-
-    console.log(data);
 
     searchTerm = value;
 
@@ -1411,8 +1402,6 @@ function appendSearchResults(results) {
         if (selectedSearch && selectedSearch === res.properties.mapbox_id) {
           return null;
         }
-
-        console.log(res);
 
         const html = renderSearchSidebarItem(res.properties);
 
@@ -1525,7 +1514,6 @@ async function returnToDefaultHistoryMap() {
       selectedHistoricalEvent = null;
     } catch (err) {
       addErrorToMap('Problem loading map - try again');
-      console.log(err);
       return;
     }
   }

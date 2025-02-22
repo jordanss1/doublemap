@@ -278,8 +278,6 @@ mapPromise.then((map) => {
             currentPois = newPois;
 
             addPoiSourceAndLayer(newPois, 'chosen-pois');
-          } catch (err) {
-            console.log(err);
           } finally {
             changePanelSpinners(false);
             $('#search-popout').attr('aria-disabled', 'true');

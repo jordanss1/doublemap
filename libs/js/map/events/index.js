@@ -191,7 +191,7 @@ mapPromise.then((map) => {
       try {
         historyInfo = await getHistoryOfCountry(e.features[0].properties.name);
       } catch (err) {
-        console.log(err);
+        addErrorToMap('Problem fetching country history');
       }
     }
 
@@ -430,7 +430,7 @@ mapPromise.then((map) => {
       try {
         await getToken();
       } catch (err) {
-        console.log(err);
+        addErrorToMap('Problem fetching map styles');
         disableAllButtons = false;
         changePanelSpinners(false);
         return;
@@ -452,7 +452,7 @@ mapPromise.then((map) => {
     try {
       await getToken();
     } catch {
-      // make notification message
+      addErrorToMap('Problem fetching map styles');
       disableAllButtons = false;
       changePanelSpinners(false);
       disableMapInteraction(false);
@@ -506,8 +506,7 @@ mapPromise.then((map) => {
         }
       });
     } catch (err) {
-      // make notification message
-      console.log(err);
+      addErrorToMap('Problem fetching map styles');
     } finally {
       disableAllButtons = false;
       disableMapInteraction(false);
@@ -607,7 +606,6 @@ mapPromise.then((map) => {
           changeExitButton(false, `Exit events from ${currentDate}`);
         } catch (err) {
           addErrorToMap('Problem loading map date - try again');
-          console.log(err);
         } finally {
           changePanelSpinners(false);
           disableAllButtons = false;
@@ -709,7 +707,7 @@ mapPromise.then((map) => {
         try {
           historyInfo = await getHistoryOfCountry(target.textContent);
         } catch (err) {
-          console.log(err);
+          addErrorToMap('Problem fetching history of country');
         }
       }
 
@@ -726,7 +724,7 @@ mapPromise.then((map) => {
           await createModernCountryPopup(countryInfo);
         }
       } catch (err) {
-        console.log(err);
+        addErrorToMap('Problem fetching country details');
         await updateChosenCountryState();
         disableMapInteraction(false);
       } finally {
@@ -755,7 +753,7 @@ mapPromise.then((map) => {
 
       await createModernCountryPopup(countryInfo);
     } catch (err) {
-      console.log(err);
+      addErrorToMap('Problem fetching map styles');
       await updateChosenCountryState();
       disableMapInteraction(false);
     } finally {
@@ -786,7 +784,7 @@ mapPromise.then((map) => {
 
         await createModernCountryPopup(countryInfo);
       } catch (err) {
-        console.log(err);
+        addErrorToMap('Problem fetching country details');
         await updateChosenCountryState();
         disableMapInteraction(false);
       } finally {
@@ -959,7 +957,7 @@ async function changeHistoryMode(map, enabled) {
         }, 2000);
       });
     } catch (err) {
-      console.log(err);
+      addErrorToMap('Problem fetching historical map');
       disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
@@ -1024,7 +1022,7 @@ async function changeHistoryMode(map, enabled) {
         pausingPoiSearch(false);
       });
     } catch (err) {
-      console.log(err);
+      addErrorToMap('Problem fetching map styles');
       disableMapInteraction(false);
     } finally {
       removeAllButtons(false);

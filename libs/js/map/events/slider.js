@@ -500,8 +500,6 @@ async function getWikipediaEvents(day, month) {
       dataType: 'json',
     });
 
-    console.log(data);
-
     addHistoricalEventsToSidebar(data);
     changeExitButton(false, `Exit events from ${month}/${day}`);
 
