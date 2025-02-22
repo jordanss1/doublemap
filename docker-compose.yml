@@ -57,6 +57,12 @@ services:
       - traefik.http.middlewares.deny-frontend.redirectRegex.regex=^${TILE}/$
       - traefik.http.middlewares.deny-frontend.redirectRegex.replacement=${WEB}
       - traefik.http.middlewares.deny-frontend.permanent=true
+      - traefik.http.routers.tile-app.middlewares=cors-headers
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowOrigin=${WEB}
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowMethods=GET, OPTIONS
+      - traefik.http.middlewares.cors-headers.headers.accessControlAllowHeaders=Origin, Content-Type, Accept
+
+
 
 #   db:
 #     build:
