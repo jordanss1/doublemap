@@ -284,11 +284,16 @@ mapPromise.then((e) => {
       pausingPoiSearch(!0),
         (selectedPoi = t.features[0].properties.id),
         (selectedSearch = null);
-      const a = currentPois.find((e) => e.properties.id === r);
+      const a = currentPois.find((e) => {
+        console.log(e.properties.id);
+        console.log(r);
+        return e.properties.id === r;
+      });
       addMarkersSourceAndLayer([a]),
         e.setLayoutProperty('modern-markers-layer', 'visibility', 'visible'),
         e.moveLayer('modern-markers-layer'),
         (currentMarker = a);
+      console.log(a);
       let n = categoryList
         .find((e) => a.properties.canonical_id === e.canonical_id)
         .name.toLowerCase();
