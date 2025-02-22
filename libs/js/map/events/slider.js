@@ -178,7 +178,7 @@ mapPromise.then((e) => {
           try {
             await returnToDefaultHistoryMap();
             let z = 2;
-            e.getZoom() <= 2 && (z = e.getZoom() - 0.5),
+            map.getZoom() <= 2 && (z = map.getZoom() - 0.5),
               await flyToPromise({ speed: 0.5, zoom: z, duration: 1500 });
           } finally {
             disableAllButtons = false;
