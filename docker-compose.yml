@@ -48,6 +48,12 @@ services:
     restart: always
     networks:
       - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tile-app.rule=Host(${TILE})
+      - traefik.http.routers.tile-app.entrypoints=websecure
+      - traefik.http.routers.tile-app.tls.certResolver=letsencrypt
+      - traefik.http.services.tile-app.loadbalancer.server.port=${TILE_PORT}
 
 #   db:
 #     build:
