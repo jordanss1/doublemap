@@ -373,8 +373,13 @@ mapPromise.then((e) => {
       });
     }),
     $(document).on('pointermove', '#history-marker', function (t) {
-      t.stopPropagation(),
-        $(this).attr('aria-expanded', 'true'),
+      t.stopPropagation();
+      if (disableAllButtons) {
+        $(this).attr('aria-expanded', 'false'),
+          $(this).closest('.mapboxgl-marker').css('z-index', '');
+        return;
+      }
+      $(this).attr('aria-expanded', 'true'),
         $(this).closest('.mapboxgl-marker').css('z-index', 1e3),
         null !== hoveredCountryId &&
           (e.setFeatureState(
