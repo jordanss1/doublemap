@@ -10,6 +10,9 @@ RUN apt-get update && \
 
 USER php-fpm
 
+RUN mkdir -p /var/log && touch /var/log/php_errors.log
+
+
 WORKDIR /var/www/html   
 
 COPY php.ini /usr/local/etc/php/
