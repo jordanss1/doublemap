@@ -549,7 +549,7 @@ mapPromise.then((e) => {
               changePanelSpinners(!0);
 
             let t = 2;
-            e.getZoom() <= 2 && (t = e.getZoom() - 0.5),
+            map.getZoom() <= 2 && (t = map.getZoom() - 0.5),
               await flyToPromise({ speed: 0.5, zoom: t, duration: 1500 });
             try {
               await returnToDefaultHistoryMap();
