@@ -85,8 +85,7 @@ mapPromise.then((e) => {
         day: '2-digit',
       });
       $('#history-date').text(currentDate || a),
-      $('#history-date').removeClass('animate-end_absolute'),
-
+        $('#history-date').removeClass('animate-end_absolute'),
         $('#history-date-container').attr('aria-disabled', 'false'),
         $('#history-date-container').removeClass('animate-end_absolute'),
         $('#country-select-list').attr('aria-disabled', 'true'),
@@ -171,9 +170,24 @@ mapPromise.then((e) => {
           $('#history-date-container').attr('aria-disabled', 'true'),
           $('#history-date-container').addClass('animate-end_absolute'),
           $('#history-year').attr('aria-disabled', 'true'),
-          $('#history-year').addClass('animate-end_absolute')),
-          selectedHistoricalEvent && (await returnToDefaultHistoryMap()),
-          $('#history-date').text(n),
+          $('#history-year').addClass('animate-end_absolute'));
+        if (selectedHistoricalEvent) {
+          disableAllButtons = true;
+          disableMapInteraction(true);
+          changePanelSpinners(true);
+          try {
+            await returnToDefaultHistoryMap();
+            let z = 2;
+            e.getZoom() <= 2 && (z = e.getZoom() - 0.5),
+              await flyToPromise({ speed: 0.5, zoom: z, duration: 1500 });
+          } finally {
+            disableAllButtons = false;
+            disableMapInteraction(false);
+            changePanelSpinners(false);
+          }
+        }
+
+        $('#history-date').text(n),
           (currentDate = n),
           await getWikipediaEvents(r, l);
       }, 1500));
