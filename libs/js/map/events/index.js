@@ -310,30 +310,29 @@ mapPromise.then((e) => {
           $('#exit-button').attr('aria-label', i))
         : changeExitButton(!1, i);
     }),
-    ['mouseenter', 'touchstart']
-      .forEach((t) => {
-        e.on(t, 'hovered-country-fill', () => {
-          if (map.getZoom() <= 7) {
-            e.getCanvas().style.cursor = 'pointer';
-          } else {
-            e.getCanvas().style.cursor = '';
-          }
-        });
-      })
-      [('mouseenter', 'touchstart')].forEach((t) => {
-        e.on(
-          t,
-          [
-            'hovered-country-fill',
-            'chosen-pois',
-            'default-pois',
-            'modern-markers-layer',
-          ],
-          () => {
-            e.getCanvas().style.cursor = 'pointer';
-          }
-        );
-      }),
+    ['mouseenter', 'touchstart'].forEach((t) => {
+      e.on(t, 'hovered-country-fill', () => {
+        if (map.getZoom() <= 7) {
+          e.getCanvas().style.cursor = 'pointer';
+        } else {
+          e.getCanvas().style.cursor = '';
+        }
+      });
+    }),
+    [('mouseenter', 'touchstart')].forEach((t) => {
+      e.on(
+        t,
+        [
+          'hovered-country-fill',
+          'chosen-pois',
+          'default-pois',
+          'modern-markers-layer',
+        ],
+        () => {
+          e.getCanvas().style.cursor = 'pointer';
+        }
+      );
+    }),
     ['mouseleave', 'touchend'].forEach((t) => {
       e.on(
         t,
