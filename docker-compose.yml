@@ -92,8 +92,7 @@ services:
       - traefik.http.services.api-app.loadbalancer.server.port=${DB_PORT}
 
 volumes:
-  db:
-    db_data:
+  db_data:
 
 networks:
   dokploy-network:
