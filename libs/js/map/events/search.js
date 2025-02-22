@@ -147,9 +147,9 @@ mapPromise.then((map) => {
         $('#search-category').children().remove();
 
         $('#search-category').append(/*html*/ `
-            <div id='search-category-item' class='flex items-baseline gap-1' data-value='${closestMatch.canonical_id}'>
+            <div id='search-category-item' class='flex cursor-pointer group hover:bg-sky-400 items-baseline gap-1' data-value='${closestMatch.canonical_id}'>
             <i
-            class="fa-solid fa-magnifying-glass text-[10px] text-slate-700"
+            class="fa-solid fa-magnifying-glass group-hover:text-purple-500 text-[10px] text-slate-700"
             ></i>
             <div>
              <span class='text-sm'>${closestMatch.name}</span><span> - <span id='search-category-item-default-area' class='text-white-900 text-[13px]'></span><span id='search-category-item-appended' class='text-white-900 text-[13px]'></span>
