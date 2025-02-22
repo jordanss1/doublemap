@@ -61,10 +61,10 @@ services:
       - dokploy-network
     labels:
       - traefik.enable=true
-      - traefik.http.routers.api-app.rule=Host(${TILE})
-      - traefik.http.routers.api-app.entrypoints=websecure
-      - traefik.http.routers.api-app.tls.certResolver=letsencrypt
-      - traefik.http.services.api-app.loadbalancer.server.port=${TILE_PORT}
+      - traefik.http.routers.tile-app.rule=Host(${TILE})
+      - traefik.http.routers.tile-app.entrypoints=websecure
+      - traefik.http.routers.tile-app.tls.certResolver=letsencrypt
+      - traefik.http.services.tile-app.loadbalancer.server.port=${TILE_PORT}
 
   db:
     build:
@@ -86,10 +86,10 @@ services:
       - dokploy-network
     labels:
       - traefik.enable=true
-      - traefik.http.routers.api-app.rule=Host(${DB})
-      - traefik.http.routers.api-app.entrypoints=websecure
-      - traefik.http.routers.api-app.tls.certResolver=letsencrypt
-      - traefik.http.services.api-app.loadbalancer.server.port=${DB_PORT}
+      - traefik.http.routers.db-app.rule=Host(${DB})
+      - traefik.http.routers.db-app.entrypoints=websecure
+      - traefik.http.routers.db-app.tls.certResolver=letsencrypt
+      - traefik.http.services.db-app.loadbalancer.server.port=${DB_PORT}
 
 volumes:
   db_data:
