@@ -35,8 +35,6 @@ services:
         MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
     expose:
       - ${API_PORT}
-    depends_on:
-      - db
     restart: always
     env_file:
       - .env
@@ -54,27 +52,27 @@ services:
     networks:
       - dokploy-network
 
-  db:
-    build:
-      context: ./db/
-      dockerfile: Dockerfile
-      args: {}
-    environment:
-      MYSQL_PASSWORD: ${DB_PASS}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    restart: always
-    volumes:
-      - db_data:/var/lib/mysql
-    expose:
-      - ${DB_PORT}
-    env_file:
-      - .env
-    networks:
-      - dokploy-network
+#   db:
+#     build:
+#       context: ./db/
+#       dockerfile: Dockerfile
+#       args: {}
+#     environment:
+#       MYSQL_PASSWORD: ${DB_PASS}
+#       MYSQL_USER: ${DB_USERNAME}
+#       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+#     restart: always
+#     volumes:
+#       - db_data:/var/lib/mysql
+#     expose:
+#       - ${DB_PORT}
+#     env_file:
+#       - .env
+#     networks:
+#       - dokploy-network
 
-volumes:
-  db_data:
+# volumes:
+#   db_data:
 
 networks:
   dokploy-network:
