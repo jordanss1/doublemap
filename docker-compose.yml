@@ -53,16 +53,17 @@ services:
       - traefik.http.routers.tile-app.entrypoints=websecure
       - traefik.http.routers.tile-app.tls.certResolver=letsencrypt
       - traefik.http.services.tile-app.loadbalancer.server.port=${TILE_PORT}
-      - traefik.http.routers.tile-app.middlewares=deny-frontend
-      - traefik.http.middlewares.deny-frontend.redirectRegex.regex=^${TILE}/$
-      - traefik.http.middlewares.deny-frontend.redirectRegex.replacement=${WEB}
-      - traefik.http.middlewares.deny-frontend.permanent=true
+
       - traefik.http.routers.tile-app.middlewares=cors-headers
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowOrigin=${WEB}
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowMethods=GET, OPTIONS
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowHeaders=Origin, Content-Type, Accept
 
 
+      # - traefik.http.routers.tile-app.middlewares=deny-frontend
+      # - traefik.http.middlewares.deny-frontend.redirectRegex.regex=^${TILE}/$
+      # - traefik.http.middlewares.deny-frontend.redirectRegex.replacement=${WEB}
+      # - traefik.http.middlewares.deny-frontend.permanent=true
 
 #   db:
 #     build:
