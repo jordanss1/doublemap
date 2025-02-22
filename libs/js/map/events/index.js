@@ -285,15 +285,12 @@ mapPromise.then((e) => {
         (selectedPoi = t.features[0].properties.id),
         (selectedSearch = null);
       const a = currentPois.find((e) => {
-        console.log(e.properties.id);
-        console.log(r);
         return e.properties.id === r;
       });
       addMarkersSourceAndLayer([a]),
         e.setLayoutProperty('modern-markers-layer', 'visibility', 'visible'),
         e.moveLayer('modern-markers-layer'),
         (currentMarker = a);
-      console.log(a);
       let n = categoryList
         .find((e) => a.properties.canonical_id === e.canonical_id)
         .name.toLowerCase();
@@ -573,35 +570,57 @@ mapPromise.then((e) => {
             return;
           }
         } else {
-          if (currentMarker)
-            return (
-              (currentMarker = null),
-              addMarkersSourceAndLayer([]),
-              changeSelectedSidebarItem(!1),
-              (selectedPoi = null),
-              (selectedSearch = null),
-              'default' === currentPoiCategory &&
-                0 !==
-                  $('#content-results').find('#search-content-item').length &&
-                (clearSidebarContent(),
-                pausingPoiSearch(!1),
-                searchResults.length && appendSearchResults(searchResults),
-                changeExitButton(!0)),
-              void (await flyToPromise({
-                speed: 0.5,
-                zoom: e.getZoom() - 0.5,
-                duration: 1e3,
-              }))
-            );
-          if ('default' !== currentPoiCategory)
-            return (
-              (currentPoiCategory = 'default'),
-              changeExitButton(!0),
-              e.flyTo({ speed: 0.5, zoom: e.getZoom() - 0.5, duration: 1e3 }),
-              clearSidebarContent(),
-              addPoiSourceAndLayer([], 'default-pois'),
-              void (searchResults.length && appendSearchResults(searchResults))
-            );
+          console.log(currentMarker);
+          if (currentMarker) {
+            currentMarker = null;
+            addMarkersSourceAndLayer([]);
+            changeSelectedSidebarItem(false);
+            selectedPoi = null;
+            selectedSearch = null;
+
+            if (
+              currentPoiCategory === 'default' &&
+              $('#content-results').find('#search-content-item').length !== 0
+            ) {
+              clearSidebarContent();
+              pausingPoiSearch(false);
+
+              if (searchResults.length) {
+                appendSearchResults(searchResults);
+              }
+
+              changeExitButton(true);
+            }
+
+            await flyToPromise({
+              speed: 0.5,
+              zoom: map.getZoom() - 0.5,
+              duration: 1000,
+            });
+
+            return;
+          }
+
+          if (currentPoiCategory !== 'default') {
+            currentPoiCategory = 'default';
+            changeExitButton(true);
+
+            map.flyTo({
+              speed: 0.5,
+              zoom: map.getZoom() - 0.5,
+              duration: 1000,
+            });
+
+            clearSidebarContent();
+
+            addPoiSourceAndLayer([], 'default-pois');
+
+            if (searchResults.length) {
+              appendSearchResults(searchResults);
+            }
+
+            return;
+          }
         }
       }
     }),
