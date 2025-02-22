@@ -614,6 +614,50 @@ mapPromise.then((map) => {
 
         return;
       }
+
+      if (historicalEvents.length) {
+        disableAllButtons = true;
+        disableMapInteraction(true);
+        changePanelSpinners(true);
+
+        try {
+          let zoom = 2;
+
+          if (map.getZoom() <= 2) zoom = map.getZoom() - 0.5;
+
+          await flyToPromise({
+            speed: 0.5,
+            zoom,
+            duration: 1500,
+          });
+
+          await returnToDefaultHistoryMap();
+
+          changeExitButton(true);
+        } catch {
+          if (historicalEvents.length) {
+            addHistoricalEventsToSidebar(historicalEvents);
+
+            await createMarkersFromHistoricalEvents(historicalEvents);
+
+            addHistoricalEventsToSidebar(historicalEvents);
+
+            $('#content-subtitle-container').removeClass('invisible');
+
+            $('#content-subtitle').text(`${historicalEvents.length} results`);
+
+            expandSidebar(true);
+
+            changeExitButton(false, `Exit events from ${currentDate}`);
+          }
+        } finally {
+          changePanelSpinners(false);
+          disableAllButtons = false;
+          disableMapInteraction(false);
+        }
+
+        return;
+      }
     } else {
       if (currentMarker) {
         currentMarker = null;
