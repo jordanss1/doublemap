@@ -302,9 +302,9 @@ function applyHistoryHtml(enabled) {
     $('#continue-container, #continue-container-sm').removeClass(
       'invisible absolute'
     );
-    $('#slider-button, #history-date, #history-year').addClass(
-      'animate-end_absolute'
-    );
+    $(
+      '#slider-button, #history-date, #history-date-container, #history-year'
+    ).addClass('animate-end_absolute');
     $('#history-date-container').attr('aria-disabled', 'true');
     $('#history-year').attr('aria-disabled', 'true');
     $('#country-select-list').attr('aria-disabled', 'true');

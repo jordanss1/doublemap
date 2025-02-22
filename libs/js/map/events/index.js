@@ -665,8 +665,6 @@ mapPromise.then((map) => {
     }
   });
 
-  $(document).on('click', (event) => {});
-
   $('#country-select-button').on('click', async ({ target }) => {
     if (disableAllButtons) return;
 
@@ -731,7 +729,7 @@ mapPromise.then((map) => {
     }
   );
 
-  $('#country-select').on('click', '#country-option', async ({ target }) => {
+  $('#country-select').on('change', async function ({ target }) {
     if (disableAllButtons || historyMode) return;
 
     disableAllButtons = true;
@@ -756,38 +754,6 @@ mapPromise.then((map) => {
     } finally {
       disableAllButtons = false;
       changePanelSpinners(false);
-    }
-  });
-
-  $('#country-select').on('keydown', '#country-option', async (e) => {
-    if (disableAllButtons || historyMode) return;
-
-    let value = e.target.value;
-
-    if (e.key === 'Enter' && value.length) {
-      disableAllButtons = true;
-      changePanelSpinners(true);
-      disableMapInteraction(true);
-      expandSidebar(false);
-
-      if (chosenCountryISO) {
-        updateChosenCountryState();
-      }
-
-      try {
-        updateChosenCountryState(value);
-
-        const countryInfo = await getCountryDataAndFitBounds(value);
-
-        await createModernCountryPopup(countryInfo);
-      } catch (err) {
-        console.log(err);
-        updateChosenCountryState();
-        disableMapInteraction(false);
-      } finally {
-        disableAllButtons = false;
-        changePanelSpinners(false);
-      }
     }
   });
 });
