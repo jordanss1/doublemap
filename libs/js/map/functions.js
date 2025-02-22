@@ -266,9 +266,9 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date-container, #slider-button, #history-year').removeClass(
-      'animate-end_absolute'
-    );
+    $(
+      '#history-date-container, #slider-button, #history-date, #history-year'
+    ).removeClass('animate-end_absolute');
     $('#category-container').addClass('animate-end_absolute');
     $('#category-container').attr('aria-expanded', 'false');
     $('#continue-container, #continue-container-sm').addClass(
