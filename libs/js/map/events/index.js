@@ -977,12 +977,15 @@ async function changeHistoryMode(map, enabled) {
       disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
-      updateChosenCountryState();
       removeAllButtons(false);
       currentPois = [];
       currentMarker = null;
       selectedPoi = null;
       selectedSearch = null;
+
+      map.once('style.load', async () => {
+        await updateChosenCountryState();
+      });
     }
   } else {
     expandSidebar(false);
@@ -1043,7 +1046,10 @@ async function changeHistoryMode(map, enabled) {
     } finally {
       removeAllButtons(false);
       disableAllButtons = false;
-      await updateChosenCountryState();
+
+      map.once('style.load',  async () => {
+        await updateChosenCountryState();
+      });
     }
   }
 }
