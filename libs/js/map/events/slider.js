@@ -1,1 +1,343 @@
-function positionSliderPopup(e){let t=$(".day-slider");t=window.innerWidth>=640?t[1]:t[0];const a=$(t).val(),i=t.getBoundingClientRect(),n=(a-t.min)/(t.max-t.min)*(i.width-20),s=i.left+n+10-e.outerWidth()/2;e.css("--left-popup",`${window.innerWidth>=640?s-160:s}px`)}function applySliderStyles(e){let t,a=$(".day-slider"),i=$(".popup-container");if(window.innerWidth>=640){t=e?85:50,a=$(a[1]),i=$(i[1]);t=a[0].getBoundingClientRect().top-t}else t=e?-35:0,a=$(a[0]),i=$(i[0]);return a.css("--active-height",e?"6px":"8px"),a.css("--scale-thumb",e?"1.2":1),a.css("--color-thumb",e?"#80b8ff":"#4d9cff"),a.css("--scale-track",e?".98":1),i.css("--opacity-popup",e?"100":"0"),i.css("--top-popup",`${t}px`),i.css("--popup-scale",e?"1":.8),map.getZoom()>=2&&$($(".day-slider-bg")[1]).css("--scale-track",e?".98":"1"),setTimeout((()=>{i.css("visibility",e?"visible":"hidden")}),e?0:500)}let intervalTimer,messageTimer;mapPromise.then((e=>{let t,a;const i=$(".day-slider"),n=$(".popup-container");let s=null;function r(){clearTimeout(a),clearTimeout(wikipediaTimer),clearTimeout(t),$("#day-slider-container-lg").attr("aria-disabled","true"),$("#day-slider-container-sm").attr("aria-disabled","true"),$("#history-container").removeClass("h-20").removeClass("h-30"),$("#history-container").addClass("h-10"),$("#history-date-container").attr("aria-disabled","true"),$("#history-date-container").addClass("animate-end_absolute"),$("#history-year").attr("aria-disabled","true"),$("#history-year").addClass("animate-end_absolute")}$("#slider-button").on("click",(async function(){if(!historyMode||disableAllButtons)return;clearTimeout(t),chosenCountryISO&&updateChosenCountryState();if("false"===$("#day-slider-container-lg").attr("aria-disabled")||"false"===$("#day-slider-container-sm").attr("aria-disabled"))r();else{if(s||(s=(i.val()-i[0].min)/(i[0].max-i[0].min)*100),$("#day-slider-container-lg").attr("aria-disabled","false"),$("#day-slider-container-sm").attr("aria-disabled","false"),$("#history-container").removeClass("h-10"),selectedHistoricalEvent){const{event_year:e}=selectedHistoricalEvent;let t=e<0?`${Math.abs(e)} BC`:`${e}`;$("#history-year").text(t),$("#history-container").addClass("h-30"),$("#history-year").attr("aria-disabled","false"),$("#history-year").removeClass("animate-end_absolute")}else $("#history-container").addClass("h-20"),$("#history-year").attr("aria-disabled","true"),$("#history-year").addClass("animate-end_absolute");const e=new Date(2024,0);e.setDate(i.val());const a=e.toLocaleDateString("en-US",{month:"2-digit",day:"2-digit"});$("#history-date").text(currentDate||a),$("#history-date-container").attr("aria-disabled","false"),$("#history-date-container").removeClass("animate-end_absolute"),$("#country-select-list").attr("aria-disabled","true"),i.css("--track-color",`linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`),t=setTimeout((()=>positionSliderPopup(i,n)),400)}})),i.on("input",(function(e){if(e.stopPropagation(),!historyMode||disableAllButtons)return;const t=$(this).val(),a=$(".popup-text");s=(t-this.min)/(this.max-this.min)*100;let n=$(".popup-container");n=window.innerWidth>=640?$(n[1]):$(n[0]),i.css("--track-color",`linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`);const r=new Date(2024,0);r.setDate(t);const o=r.toLocaleDateString("en-US",{month:"2-digit",day:"2-digit"});positionSliderPopup(n),a.text(o)})),i.on("pointerdown",(function(e){if(e.stopPropagation(),!historyMode||disableAllButtons)return;clearTimeout(a),clearTimeout(wikipediaTimer);let t=$(".popup-container");t=window.innerWidth>=640?$(t[1]):$(t[0]);const i=$(this).val(),n=$(".popup-text"),s=new Date(2024,0);s.setDate(i);const r=s.toLocaleDateString("en-US",{month:"2-digit",day:"2-digit"});positionSliderPopup(t),n.text(r),a=applySliderStyles(!0)}));let o=!1;i.on("pointerup",(async function(e){e.stopPropagation(),o=!0,setTimeout((()=>{o=!1}),50);const t=new Date(2024,0);t.setDate(this.value);const n=t.toLocaleDateString("en-US",{month:"2-digit",day:"2-digit"});if(clearTimeout(a),!historyMode||disableAllButtons||n===currentDate&&historicalEvents.length)return void(a=applySliderStyles(!1));chosenCountryISO&&updateChosenCountryState();const r=String(t.getDate()).padStart(2,"0"),l=String(t.getMonth()+1).padStart(2,"0");a=applySliderStyles(!1);const d=$(this).val();s=(d-this.min)/(this.max-this.min)*100,i.css("--track-color",`linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`),wikipediaTimer=setTimeout((async()=>{window.innerWidth<=640&&($("#day-slider-container-lg").attr("aria-disabled","true"),$("#day-slider-container-sm").attr("aria-disabled","true"),$("#history-container").removeClass("h-20"),$("#history-container").removeClass("h-30"),$("#history-container").addClass("h-10"),$("#history-date-container").attr("aria-disabled","true"),$("#history-date-container").addClass("animate-end_absolute"),$("#history-year").attr("aria-disabled","true"),$("#history-year").addClass("animate-end_absolute")),selectedHistoricalEvent&&await returnToDefaultHistoryMap(),$("#history-date").text(n),currentDate=n,await getWikipediaEvents(r,l)}),1500)})),$("#day-slider-container-lg").on("click",(function(){o||window.innerWidth<=640&&"false"===$(this).attr("aria-disabled")&&r()})),$("#exit-day-slider").on("click",(()=>{window.innerWidth<=640&&"false"===$("#day-slider-container-lg").attr("aria-disabled")&&r()}))}));let intervalIndex=0;function appendGPTFetchMessages(){const e=['<div\n    aria-disabled="true"\n    class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"\n  >\n    <span>\n      Stay\n      <span class="font-semibold">right there</span>\n      as I fetch the coordinates!\n\n      <i class="fa-solid fa-map-location-dot animate-pulse"></i>\n    </span>\n  </div>','<div\n              aria-disabled="true"\n              class="aria-disabled:translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"\n            >\n              <span>\n              Chat GPT is working<span class="font-semibold"> hard</span>\n              to fetch these!\n                <i class="fa-solid fa-helmet-safety animate-pulse"></i>              \n              </span>\n            </div>','<div  aria-disabled="true"\n              class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300">Be patient please, coords coming right up!</div>'];$("#message").empty().append(e[intervalIndex]),$("#message-bg").attr("aria-disabled","false"),$("#message").children().first().attr("aria-disabled","false"),intervalIndex=1,intervalTimer=setInterval((()=>{$("#message").children().first().attr("aria-disabled","true"),messageTimer=setTimeout((()=>{$("#message").empty().append(e[intervalIndex]),setTimeout((()=>{$("#message").children().first().attr("aria-disabled","false")}),200),intervalIndex===e.length-1?intervalIndex=0:intervalIndex++}),500)}),5e3)}function appendHistoricalEventsSpinner(e){$("#content-subtitle-container").removeClass("invisible"),$("#content-subtitle-extra").empty(),$(`<div id="historical-spinner"\n    aria-disabled='true' class='flex gap-1 aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 items-center transition-all duration-150 ease-in'>\n      <div\n      class=" flex justify-end bg-black/50 w-fit rounded-md p-1 "\n    >\n      <div\n        class="border-4 rounded-full border-slate-400 border-t-white-300 w-5 h-5 animate-spin"\n      ></div>\n    </div>\n    <div class='text-xs font-title w-[75px] text-white-50'>${e}</div>\n  </div>`).appendTo("#content-subtitle-extra"),$("#historical-spinner").attr("aria-disabled","false")}const loadImageManually=e=>new Promise(((t,a)=>{const i=new Image;i.crossOrigin="anonymous",i.onload=()=>t(e),i.onerror=()=>t("libs/css/assets/history-fallback.jpg"),i.src=e}));async function createMarkersFromHistoricalEvents(e){removeMarkers();for(const t of e){if(null==t.latitude||null==t.longitude)continue;const e=t.thumbnail?await loadImageManually(t.thumbnail):"libs/css/assets/history-fallback.jpg",a=document.createElement("div");a.innerHTML=`\n    <div data-event-id='${t.id}' id='history-marker' class='group relative cursor-pointer  pointer-events-auto' aria-expanded='false'>\n      <div class='absolute h-24 w-20 sm:w-32 flex items-center justify-center origin-left left-0 group-aria-expanded:delay-300 duration-300 group-aria-expanded:left-36 inset-y-1/2 opacity-0 group-aria-expanded:opacity-100 font-abel text-white-50 -translate-y-1/2 bg-black text-white border border-white/50 rounded-md p-2 transition-all ease-out delay-0'>\n        <p class='line-clamp-3 text-sm sm:text-lg'>\n          ${t.title}\n       </p>\n      </div>\n      <div class='sm:w-9 w-7 p-1 transition-all delay-200 group-aria-expanded:delay-0 scale-100 group-aria-expanded:scale-[3.5] ease-out opacity-90 duration-300 group-aria-expanded:shadow-[0px_0px_4px_0px_rgba(255,255,255,1),_3px_3px_6px_0px_rgba(87,148,254,1)] shadow-[0px_0px_2px_rgba(87,148,254,0),_0px_0px_60px_0px_rgba(87,148,254,0)] group-aria-expanded:opacity-100 sm:group-aria-expanded:w-14 group-aria-expanded:w-9 bg-black items-start rounded-md'>\n        <img class='object-contain transition-all shadow-[10px_1px_40px_10px_rgba(0,0,0,.5)_inset,_-10px_-10px_40px_5px_rgba(255,255,255,1)_inset] ease-out delay-75 h-full' src='${e}' alt='Event thumbnail' /> \n      </div>\n  </div>  \n\n    `;$(a.firstElementChild).on("click",(function(e){if(e.stopPropagation(),disableAllButtons)return;const t=historicalEvents.find((e=>e.id===+$(this).attr("data-event-id")));let a=!1;selectedHistoricalEvent&&(a=t.id===selectedHistoricalEvent.id),null==t.latitude||null==t.longitude||a||(selectedHistoricalEvent=t,changeYearAndMapEvent(selectedHistoricalEvent))}));const i=new mapboxgl.Marker({element:a.firstElementChild}).setLngLat([t.longitude,t.latitude]).addTo(map);historyMarkerGroup.push(i)}}async function getWikipediaEvents(e,t){if(!historyMode)return;disableAllButtons=!0,clearSidebarContent(),removeMarkers(),selectedHistoricalEvent=null,updateChosenCountryState(),disableMapInteraction(!0),expandSidebar(!0),changePanelSpinners(!0),appendHistoricalEventsSpinner("Gathering events..."),$(".day-slider").prop("disabled",!0);let a=2;map.getZoom()<=2&&(a=map.getZoom()-.5);try{const{data:i,complete:n}=await $.ajax({url:`/api/wikipedia/events?action=fetch&day=${e}&month=${t}`,method:"GET",dataType:"json"});if(addHistoricalEventsToSidebar(i),changeExitButton(!1,`Exit events from ${t}/${e}`),historicalEvents=i,n&&(await new Promise((e=>setTimeout((()=>e()),500))),await flyToPromise({speed:.5,zoom:a,duration:2e3}),await createMarkersFromHistoricalEvents(i),map.setLayoutProperty("hovered-country-fill","visibility","none"),map.setLayoutProperty("hovered-country-line","visibility","none"),map.setLayoutProperty("chosen-country-fill","visibility","none"),map.setLayoutProperty("chosen-country-line","visibility","none")),!1===n){appendHistoricalEventsSpinner("Gathering coordinates..."),appendGPTFetchMessages();try{const{data:i}=await $.ajax({url:`/api/wikipedia/events?action=update&day=${e}&month=${t}`,method:"GET",dataType:"json"});addHistoricalEventsToSidebar(i),historicalEvents=i,await new Promise((e=>setTimeout((()=>e()),500))),await flyToPromise({speed:.5,zoom:a,duration:2e3}),await createMarkersFromHistoricalEvents(i),map.setLayoutProperty("hovered-country-fill","visibility","none"),map.setLayoutProperty("hovered-country-line","visibility","none"),map.setLayoutProperty("chosen-country-fill","visibility","none"),map.setLayoutProperty("chosen-country-line","visibility","none")}catch(i){const{data:n}=await $.ajax({url:`/api/wikipedia/events?action=fetch&day=${e}&month=${t}`,method:"GET",dataType:"json"});addHistoricalEventsToSidebar(n),historicalEvents=n,await new Promise((e=>setTimeout((()=>e()),500))),await flyToPromise({speed:.5,zoom:a,duration:2e3}),await createMarkersFromHistoricalEvents(n)}}}catch(e){addErrorToMap("Problem retrieving events - try again"),changeExitButton(!0),expandSidebar(!1),clearSidebarContent()}finally{clearInterval(intervalTimer),clearTimeout(messageTimer),intervalIndex=0,$("#message-bg").attr("aria-disabled","true"),changePanelSpinners(!1),disableAllButtons=!1,disableMapInteraction(!1),$("#content-subtitle-extra").empty(),$(".day-slider").prop("disabled",!1),$("#content-subtitle-container").removeClass("invisible"),$("#content-subtitle").text(`${historicalEvents.length} results`)}}
+function positionSliderPopup(e) {
+  let t = $('.day-slider');
+  t = window.innerWidth >= 640 ? t[1] : t[0];
+  const a = $(t).val(),
+    i = t.getBoundingClientRect(),
+    n = ((a - t.min) / (t.max - t.min)) * (i.width - 20),
+    s = i.left + n + 10 - e.outerWidth() / 2;
+  e.css('--left-popup', `${window.innerWidth >= 640 ? s - 160 : s}px`);
+}
+function applySliderStyles(e) {
+  let t,
+    a = $('.day-slider'),
+    i = $('.popup-container');
+  if (window.innerWidth >= 640) {
+    (t = e ? 85 : 50), (a = $(a[1])), (i = $(i[1]));
+    t = a[0].getBoundingClientRect().top - t;
+  } else (t = e ? -35 : 0), (a = $(a[0])), (i = $(i[0]));
+  return (
+    a.css('--active-height', e ? '6px' : '8px'),
+    a.css('--scale-thumb', e ? '1.2' : 1),
+    a.css('--color-thumb', e ? '#80b8ff' : '#4d9cff'),
+    a.css('--scale-track', e ? '.98' : 1),
+    i.css('--opacity-popup', e ? '100' : '0'),
+    i.css('--top-popup', `${t}px`),
+    i.css('--popup-scale', e ? '1' : 0.8),
+    map.getZoom() >= 2 &&
+      $($('.day-slider-bg')[1]).css('--scale-track', e ? '.98' : '1'),
+    setTimeout(
+      () => {
+        i.css('visibility', e ? 'visible' : 'hidden');
+      },
+      e ? 0 : 500
+    )
+  );
+}
+let intervalTimer, messageTimer;
+mapPromise.then((e) => {
+  let t, a;
+  const i = $('.day-slider'),
+    n = $('.popup-container');
+  let s = null;
+  function r() {
+    clearTimeout(a),
+      clearTimeout(wikipediaTimer),
+      clearTimeout(t),
+      $('#day-slider-container-lg').attr('aria-disabled', 'true'),
+      $('#day-slider-container-sm').attr('aria-disabled', 'true'),
+      $('#history-container').removeClass('h-20').removeClass('h-30'),
+      $('#history-container').addClass('h-10'),
+      $('#history-date-container').attr('aria-disabled', 'true'),
+      $('#history-date-container').addClass('animate-end_absolute'),
+      $('#history-year').attr('aria-disabled', 'true'),
+      $('#history-year').addClass('animate-end_absolute');
+  }
+  $('#slider-button').on('click', async function () {
+    if (!historyMode || disableAllButtons) return;
+    clearTimeout(t), chosenCountryISO && updateChosenCountryState();
+    if (
+      'false' === $('#day-slider-container-lg').attr('aria-disabled') ||
+      'false' === $('#day-slider-container-sm').attr('aria-disabled')
+    )
+      r();
+    else {
+      if (
+        (s || (s = ((i.val() - i[0].min) / (i[0].max - i[0].min)) * 100),
+        $('#day-slider-container-lg').attr('aria-disabled', 'false'),
+        $('#day-slider-container-sm').attr('aria-disabled', 'false'),
+        $('#history-container').removeClass('h-10'),
+        selectedHistoricalEvent)
+      ) {
+        const { event_year: e } = selectedHistoricalEvent;
+        let t = e < 0 ? `${Math.abs(e)} BC` : `${e}`;
+        $('#history-year').text(t),
+          $('#history-container').addClass('h-30'),
+          $('#history-year').attr('aria-disabled', 'false'),
+          $('#history-year').removeClass('animate-end_absolute');
+      } else
+        $('#history-container').addClass('h-20'),
+          $('#history-year').attr('aria-disabled', 'true'),
+          $('#history-year').addClass('animate-end_absolute');
+      const e = new Date(2024, 0);
+      e.setDate(i.val());
+      const a = e.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+      });
+      $('#history-date').text(currentDate || a),
+      $('#history-date').removeClass('animate-end_absolute'),
+
+        $('#history-date-container').attr('aria-disabled', 'false'),
+        $('#history-date-container').removeClass('animate-end_absolute'),
+        $('#country-select-list').attr('aria-disabled', 'true'),
+        i.css(
+          '--track-color',
+          `linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`
+        ),
+        (t = setTimeout(() => positionSliderPopup(i, n), 400));
+    }
+  }),
+    i.on('input', function (e) {
+      if ((e.stopPropagation(), !historyMode || disableAllButtons)) return;
+      const t = $(this).val(),
+        a = $('.popup-text');
+      s = ((t - this.min) / (this.max - this.min)) * 100;
+      let n = $('.popup-container');
+      (n = window.innerWidth >= 640 ? $(n[1]) : $(n[0])),
+        i.css(
+          '--track-color',
+          `linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`
+        );
+      const r = new Date(2024, 0);
+      r.setDate(t);
+      const o = r.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+      });
+      positionSliderPopup(n), a.text(o);
+    }),
+    i.on('pointerdown', function (e) {
+      if ((e.stopPropagation(), !historyMode || disableAllButtons)) return;
+      clearTimeout(a), clearTimeout(wikipediaTimer);
+      let t = $('.popup-container');
+      t = window.innerWidth >= 640 ? $(t[1]) : $(t[0]);
+      const i = $(this).val(),
+        n = $('.popup-text'),
+        s = new Date(2024, 0);
+      s.setDate(i);
+      const r = s.toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+      });
+      positionSliderPopup(t), n.text(r), (a = applySliderStyles(!0));
+    });
+  let o = !1;
+  i.on('pointerup', async function (e) {
+    e.stopPropagation(),
+      (o = !0),
+      setTimeout(() => {
+        o = !1;
+      }, 50);
+    const t = new Date(2024, 0);
+    t.setDate(this.value);
+    const n = t.toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+    });
+    if (
+      (clearTimeout(a),
+      !historyMode ||
+        disableAllButtons ||
+        (n === currentDate && historicalEvents.length))
+    )
+      return void (a = applySliderStyles(!1));
+    chosenCountryISO && updateChosenCountryState();
+    const r = String(t.getDate()).padStart(2, '0'),
+      l = String(t.getMonth() + 1).padStart(2, '0');
+    a = applySliderStyles(!1);
+    const d = $(this).val();
+    (s = ((d - this.min) / (this.max - this.min)) * 100),
+      i.css(
+        '--track-color',
+        `linear-gradient(to right, #4D9CFF ${s}%, #d1d6e1 ${s}%)`
+      ),
+      (wikipediaTimer = setTimeout(async () => {
+        window.innerWidth <= 640 &&
+          ($('#day-slider-container-lg').attr('aria-disabled', 'true'),
+          $('#day-slider-container-sm').attr('aria-disabled', 'true'),
+          $('#history-container').removeClass('h-20'),
+          $('#history-container').removeClass('h-30'),
+          $('#history-container').addClass('h-10'),
+          $('#history-date-container').attr('aria-disabled', 'true'),
+          $('#history-date-container').addClass('animate-end_absolute'),
+          $('#history-year').attr('aria-disabled', 'true'),
+          $('#history-year').addClass('animate-end_absolute')),
+          selectedHistoricalEvent && (await returnToDefaultHistoryMap()),
+          $('#history-date').text(n),
+          (currentDate = n),
+          await getWikipediaEvents(r, l);
+      }, 1500));
+  }),
+    $('#day-slider-container-lg').on('click', function () {
+      o ||
+        (window.innerWidth <= 640 &&
+          'false' === $(this).attr('aria-disabled') &&
+          r());
+    }),
+    $('#exit-day-slider').on('click', () => {
+      window.innerWidth <= 640 &&
+        'false' === $('#day-slider-container-lg').attr('aria-disabled') &&
+        r();
+    });
+});
+let intervalIndex = 0;
+function appendGPTFetchMessages() {
+  const e = [
+    '<div\n    aria-disabled="true"\n    class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"\n  >\n    <span>\n      Stay\n      <span class="font-semibold">right there</span>\n      as I fetch the coordinates!\n\n      <i class="fa-solid fa-map-location-dot animate-pulse"></i>\n    </span>\n  </div>',
+    '<div\n              aria-disabled="true"\n              class="aria-disabled:translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300"\n            >\n              <span>\n              Chat GPT is working<span class="font-semibold"> hard</span>\n              to fetch these!\n                <i class="fa-solid fa-helmet-safety animate-pulse"></i>              \n              </span>\n            </div>',
+    '<div  aria-disabled="true"\n              class="aria-disabled:-translate-x-3 tracking-wider aria-disabled:opacity-0 opacity-100 translate-x-0 transition-all duration-300 ease-in-out text-3xl p-1 text-white-300">Be patient please, coords coming right up!</div>',
+  ];
+  $('#message').empty().append(e[intervalIndex]),
+    $('#message-bg').attr('aria-disabled', 'false'),
+    $('#message').children().first().attr('aria-disabled', 'false'),
+    (intervalIndex = 1),
+    (intervalTimer = setInterval(() => {
+      $('#message').children().first().attr('aria-disabled', 'true'),
+        (messageTimer = setTimeout(() => {
+          $('#message').empty().append(e[intervalIndex]),
+            setTimeout(() => {
+              $('#message').children().first().attr('aria-disabled', 'false');
+            }, 200),
+            intervalIndex === e.length - 1
+              ? (intervalIndex = 0)
+              : intervalIndex++;
+        }, 500));
+    }, 5e3));
+}
+function appendHistoricalEventsSpinner(e) {
+  $('#content-subtitle-container').removeClass('invisible'),
+    $('#content-subtitle-extra').empty(),
+    $(
+      `<div id="historical-spinner"\n    aria-disabled='true' class='flex gap-1 aria-disabled:opacity-0 opacity-100 aria-disabled:translate-x-2 translate-x-0 items-center transition-all duration-150 ease-in'>\n      <div\n      class=" flex justify-end bg-black/50 w-fit rounded-md p-1 "\n    >\n      <div\n        class="border-4 rounded-full border-slate-400 border-t-white-300 w-5 h-5 animate-spin"\n      ></div>\n    </div>\n    <div class='text-xs font-title w-[75px] text-white-50'>${e}</div>\n  </div>`
+    ).appendTo('#content-subtitle-extra'),
+    $('#historical-spinner').attr('aria-disabled', 'false');
+}
+const loadImageManually = (e) =>
+  new Promise((t, a) => {
+    const i = new Image();
+    (i.crossOrigin = 'anonymous'),
+      (i.onload = () => t(e)),
+      (i.onerror = () => t('libs/css/assets/history-fallback.jpg')),
+      (i.src = e);
+  });
+async function createMarkersFromHistoricalEvents(e) {
+  removeMarkers();
+  for (const t of e) {
+    if (null == t.latitude || null == t.longitude) continue;
+    const e = t.thumbnail
+        ? await loadImageManually(t.thumbnail)
+        : 'libs/css/assets/history-fallback.jpg',
+      a = document.createElement('div');
+    a.innerHTML = `\n    <div data-event-id='${t.id}' id='history-marker' class='group relative cursor-pointer  pointer-events-auto' aria-expanded='false'>\n      <div class='absolute h-24 w-20 sm:w-32 flex items-center justify-center origin-left left-0 group-aria-expanded:delay-300 duration-300 group-aria-expanded:left-36 inset-y-1/2 opacity-0 group-aria-expanded:opacity-100 font-abel text-white-50 -translate-y-1/2 bg-black text-white border border-white/50 rounded-md p-2 transition-all ease-out delay-0'>\n        <p class='line-clamp-3 text-sm sm:text-lg'>\n          ${t.title}\n       </p>\n      </div>\n      <div class='sm:w-9 w-7 p-1 transition-all delay-200 group-aria-expanded:delay-0 scale-100 group-aria-expanded:scale-[3.5] ease-out opacity-90 duration-300 group-aria-expanded:shadow-[0px_0px_4px_0px_rgba(255,255,255,1),_3px_3px_6px_0px_rgba(87,148,254,1)] shadow-[0px_0px_2px_rgba(87,148,254,0),_0px_0px_60px_0px_rgba(87,148,254,0)] group-aria-expanded:opacity-100 sm:group-aria-expanded:w-14 group-aria-expanded:w-9 bg-black items-start rounded-md'>\n        <img class='object-contain transition-all shadow-[10px_1px_40px_10px_rgba(0,0,0,.5)_inset,_-10px_-10px_40px_5px_rgba(255,255,255,1)_inset] ease-out delay-75 h-full' src='${e}' alt='Event thumbnail' /> \n      </div>\n  </div>  \n\n    `;
+    $(a.firstElementChild).on('click', function (e) {
+      if ((e.stopPropagation(), disableAllButtons)) return;
+      const t = historicalEvents.find(
+        (e) => e.id === +$(this).attr('data-event-id')
+      );
+      let a = !1;
+      selectedHistoricalEvent && (a = t.id === selectedHistoricalEvent.id),
+        null == t.latitude ||
+          null == t.longitude ||
+          a ||
+          ((selectedHistoricalEvent = t),
+          changeYearAndMapEvent(selectedHistoricalEvent));
+    });
+    const i = new mapboxgl.Marker({ element: a.firstElementChild })
+      .setLngLat([t.longitude, t.latitude])
+      .addTo(map);
+    historyMarkerGroup.push(i);
+  }
+}
+async function getWikipediaEvents(e, t) {
+  if (!historyMode) return;
+  (disableAllButtons = !0),
+    clearSidebarContent(),
+    removeMarkers(),
+    (selectedHistoricalEvent = null),
+    updateChosenCountryState(),
+    disableMapInteraction(!0),
+    expandSidebar(!0),
+    changePanelSpinners(!0),
+    appendHistoricalEventsSpinner('Gathering events...'),
+    $('.day-slider').prop('disabled', !0);
+  let a = 2;
+  map.getZoom() <= 2 && (a = map.getZoom() - 0.5);
+  try {
+    const { data: i, complete: n } = await $.ajax({
+      url: `/api/wikipedia/events?action=fetch&day=${e}&month=${t}`,
+      method: 'GET',
+      dataType: 'json',
+    });
+    if (
+      (addHistoricalEventsToSidebar(i),
+      changeExitButton(!1, `Exit events from ${t}/${e}`),
+      (historicalEvents = i),
+      n &&
+        (await new Promise((e) => setTimeout(() => e(), 500)),
+        await flyToPromise({ speed: 0.5, zoom: a, duration: 2e3 }),
+        await createMarkersFromHistoricalEvents(i),
+        map.setLayoutProperty('hovered-country-fill', 'visibility', 'none'),
+        map.setLayoutProperty('hovered-country-line', 'visibility', 'none'),
+        map.setLayoutProperty('chosen-country-fill', 'visibility', 'none'),
+        map.setLayoutProperty('chosen-country-line', 'visibility', 'none')),
+      !1 === n)
+    ) {
+      appendHistoricalEventsSpinner('Gathering coordinates...'),
+        appendGPTFetchMessages();
+      try {
+        const { data: i } = await $.ajax({
+          url: `/api/wikipedia/events?action=update&day=${e}&month=${t}`,
+          method: 'GET',
+          dataType: 'json',
+        });
+        addHistoricalEventsToSidebar(i),
+          (historicalEvents = i),
+          await new Promise((e) => setTimeout(() => e(), 500)),
+          await flyToPromise({ speed: 0.5, zoom: a, duration: 2e3 }),
+          await createMarkersFromHistoricalEvents(i),
+          map.setLayoutProperty('hovered-country-fill', 'visibility', 'none'),
+          map.setLayoutProperty('hovered-country-line', 'visibility', 'none'),
+          map.setLayoutProperty('chosen-country-fill', 'visibility', 'none'),
+          map.setLayoutProperty('chosen-country-line', 'visibility', 'none');
+      } catch (i) {
+        const { data: n } = await $.ajax({
+          url: `/api/wikipedia/events?action=fetch&day=${e}&month=${t}`,
+          method: 'GET',
+          dataType: 'json',
+        });
+        addHistoricalEventsToSidebar(n),
+          (historicalEvents = n),
+          await new Promise((e) => setTimeout(() => e(), 500)),
+          await flyToPromise({ speed: 0.5, zoom: a, duration: 2e3 }),
+          await createMarkersFromHistoricalEvents(n);
+      }
+    }
+  } catch (e) {
+    addErrorToMap('Problem retrieving events - try again'),
+      changeExitButton(!0),
+      expandSidebar(!1),
+      clearSidebarContent();
+  } finally {
+    clearInterval(intervalTimer),
+      clearTimeout(messageTimer),
+      (intervalIndex = 0),
+      $('#message-bg').attr('aria-disabled', 'true'),
+      changePanelSpinners(!1),
+      (disableAllButtons = !1),
+      disableMapInteraction(!1),
+      $('#content-subtitle-extra').empty(),
+      $('.day-slider').prop('disabled', !1),
+      $('#content-subtitle-container').removeClass('invisible'),
+      $('#content-subtitle').text(`${historicalEvents.length} results`);
+  }
+}
