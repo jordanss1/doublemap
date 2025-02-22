@@ -737,6 +737,8 @@ mapPromise.then((map) => {
   $('#country-select').on('click', '#country-option', async ({ target }) => {
     if (disableAllButtons || historyMode) return;
 
+    console.log(target);
+
     disableAllButtons = true;
     changePanelSpinners(true);
     disableMapInteraction(true);
@@ -753,7 +755,7 @@ mapPromise.then((map) => {
 
       await createModernCountryPopup(countryInfo);
     } catch (err) {
-      addErrorToMap('Problem fetching map styles');
+      addErrorToMap('Problem country info');
       await updateChosenCountryState();
       disableMapInteraction(false);
     } finally {
@@ -766,6 +768,8 @@ mapPromise.then((map) => {
     if (disableAllButtons || historyMode) return;
 
     let value = e.target.value;
+
+    console.log(value);
 
     if (e.key === 'Enter' && value.length) {
       disableAllButtons = true;
