@@ -367,6 +367,12 @@ mapPromise.then((map) => {
   $(document).on('pointermove', '#history-marker', function (e) {
     e.stopPropagation();
 
+    if (disableAllButtons) {
+      $(this).attr('aria-expanded', 'false');
+      $(this).closest('.mapboxgl-marker').css('z-index', '');
+      return;
+    }
+
     $(this).attr('aria-expanded', 'true');
     $(this).closest('.mapboxgl-marker').css('z-index', 1000);
 
