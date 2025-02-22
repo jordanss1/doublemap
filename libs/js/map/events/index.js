@@ -544,7 +544,21 @@ mapPromise.then((e) => {
             return;
           }
           if (historicalEvents.length) {
-            returnToDefaultHistoryMap();
+            (disableAllButtons = !0),
+              disableMapInteraction(!0),
+              changePanelSpinners(!0);
+
+            let t = 2;
+            e.getZoom() <= 2 && (t = e.getZoom() - 0.5),
+              await flyToPromise({ speed: 0.5, zoom: t, duration: 1500 });
+            try {
+              await returnToDefaultHistoryMap();
+            } finally {
+              changePanelSpinners(!1),
+                (disableAllButtons = !1),
+                disableMapInteraction(!1);
+              changeExitButton(!0);
+            }
 
             return;
           }
