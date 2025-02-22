@@ -668,8 +668,6 @@ mapPromise.then((map) => {
     }
   });
 
-  $(document).on('click', (event) => {});
-
   $('#country-select-button').on('click', async ({ target }) => {
     if (disableAllButtons) return;
 
@@ -693,7 +691,7 @@ mapPromise.then((map) => {
       expandSidebar(false);
 
       if (chosenCountryISO) {
-        await updateChosenCountryState();
+        updateChosenCountryState();
       }
 
       $('#country-select-list').attr('aria-disabled', 'true');
@@ -707,12 +705,12 @@ mapPromise.then((map) => {
         try {
           historyInfo = await getHistoryOfCountry(target.textContent);
         } catch (err) {
-          addErrorToMap('Problem fetching history of country');
+          console.log(err);
         }
       }
 
       try {
-        await updateChosenCountryState(target.getAttribute('value'));
+        updateChosenCountryState(target.getAttribute('value'));
 
         const countryInfo = await getCountryDataAndFitBounds(
           target.getAttribute('value')
@@ -724,8 +722,8 @@ mapPromise.then((map) => {
           await createModernCountryPopup(countryInfo);
         }
       } catch (err) {
-        addErrorToMap('Problem fetching country details');
-        await updateChosenCountryState();
+        console.log(err);
+        updateChosenCountryState();
         disableMapInteraction(false);
       } finally {
         disableAllButtons = false;
@@ -734,11 +732,7 @@ mapPromise.then((map) => {
     }
   );
 
-  $('#country-select').on('click', '#country-option', async ({ target }) => {
-    console.log(target);
-    console.log(historyMode);
-    console.log(disableAllButtons);
-
+  $('#country-select').on('change', async function ({ target }) {
     if (disableAllButtons || historyMode) return;
 
     disableAllButtons = true;
@@ -747,56 +741,22 @@ mapPromise.then((map) => {
     expandSidebar(false);
 
     if (chosenCountryISO) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
     }
 
     try {
-      await updateChosenCountryState(target.value);
+      updateChosenCountryState(target.value);
 
       const countryInfo = await getCountryDataAndFitBounds(target.value);
 
       await createModernCountryPopup(countryInfo);
     } catch (err) {
-      addErrorToMap('Problem country info');
-      await updateChosenCountryState();
+      console.log(err);
+      updateChosenCountryState();
       disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
       changePanelSpinners(false);
-    }
-  });
-
-  $('#country-select').on('keydown', '#country-option', async (e) => {
-    if (disableAllButtons || historyMode) return;
-
-    let value = e.target.value;
-
-    console.log(value);
-
-    if (e.key === 'Enter' && value.length) {
-      disableAllButtons = true;
-      changePanelSpinners(true);
-      disableMapInteraction(true);
-      expandSidebar(false);
-
-      if (chosenCountryISO) {
-        await updateChosenCountryState();
-      }
-
-      try {
-        await updateChosenCountryState(value);
-
-        const countryInfo = await getCountryDataAndFitBounds(value);
-
-        await createModernCountryPopup(countryInfo);
-      } catch (err) {
-        addErrorToMap('Problem fetching country details');
-        await updateChosenCountryState();
-        disableMapInteraction(false);
-      } finally {
-        disableAllButtons = false;
-        changePanelSpinners(false);
-      }
     }
   });
 });
