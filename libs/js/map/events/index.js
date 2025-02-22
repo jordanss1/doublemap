@@ -983,9 +983,7 @@ async function changeHistoryMode(map, enabled) {
       selectedPoi = null;
       selectedSearch = null;
 
-      map.once('style.load', async () => {
-        await updateChosenCountryState();
-      });
+      updateChosenCountryState();
     }
   } else {
     expandSidebar(false);
@@ -1047,7 +1045,7 @@ async function changeHistoryMode(map, enabled) {
       removeAllButtons(false);
       disableAllButtons = false;
 
-      map.once('style.load',  async () => {
+      map.once('style.load', async () => {
         await updateChosenCountryState();
       });
     }
