@@ -54,9 +54,6 @@ services:
       - traefik.http.routers.tile-app.tls.certResolver=letsencrypt
       - traefik.http.services.tile-app.loadbalancer.server.port=${TILE_PORT}
       - traefik.http.routers.tile-app.middlewares=deny-frontend,cors-headers
-      - traefik.http.middlewares.deny-frontend.redirectRegex.regex=^https://tiles.double-map.online/$
-      - traefik.http.middlewares.deny-frontend.redirectRegex.replacement=${WEB}
-      - traefik.http.middlewares.deny-frontend.permanent=true
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowOrigin=${WEB}
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowMethods=GET, OPTIONS
       - traefik.http.middlewares.cors-headers.headers.accessControlAllowHeaders=Origin, Content-Type, Accept
