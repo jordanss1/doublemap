@@ -266,9 +266,9 @@ function applyHistoryHtml(enabled) {
     $('#search-container').children().removeClass('animate-start_absolute');
     $('#select-container').removeClass('animate-start_absolute');
     $('#select-container').addClass('animate-end_absolute');
-    $('#history-date-container, #slider-button, #history-date, #history-year').removeClass(
-      'animate-end_absolute'
-    );
+    $(
+      '#history-date-container, #slider-button, #history-date, #history-year'
+    ).removeClass('animate-end_absolute');
     $('#category-container').addClass('animate-end_absolute');
     $('#category-container').attr('aria-expanded', 'false');
     $('#continue-container, #continue-container-sm').addClass(
@@ -1198,8 +1198,12 @@ function addMarkersSourceAndLayer(features) {
       slot: 'top',
       source: 'markers-source',
       layout: {
+        'symbol-sort-key': 1,
+        'icon-allow-overlap': true,
+        'text-allow-overlap': true,
         'icon-image': 'custom-marker',
         'icon-size': 1,
+        'symbol-z-order': 'source',
       },
       paint: {
         'icon-color': 'rgb(168, 85, 247)',
