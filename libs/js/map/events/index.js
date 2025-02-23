@@ -48,10 +48,12 @@ mapPromise.then((map) => {
   $(document).on('click', (e) => {
     const searchContainer = $('#search-container');
     const countrySelect = $('#country-select-button');
+    let searchInput = $('#search');
 
     if (
       !searchContainer.is(e.target) &&
-      searchContainer.has(e.target).length === 0
+      !searchContainer.has(e.target).length &&
+      !searchInput.is(e.target)
     ) {
       $('#search-popout').attr('aria-disabled', 'true');
       $('#search-container-inside')
