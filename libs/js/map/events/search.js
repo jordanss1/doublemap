@@ -84,19 +84,56 @@ mapPromise.then((map) => {
     }
   });
 
+  let ignoreNextClick = false;
+
+  $(document).on('touchstart click', (e) => {
+    const searchContainer = $('#search-container');
+    const countrySelect = $('#country-select-button');
+    let searchInput = $('#search');
+
+    if (ignoreNextClick) {
+      ignoreNextClick = false;
+      return;
+    }
+
+    if (
+      !searchContainer.is(e.target) &&
+      !searchContainer.has(e.target).length &&
+      !searchInput.is(e.target)
+    ) {
+      $('#search-popout').attr('aria-disabled', 'true');
+      $('#search-container-inside')
+        .removeClass('outline-3')
+        .addClass('outline-0');
+
+      // if (window.innerWidth <= 768) {
+      //   $('#search-container').attr('aria-expanded', 'false');
+      // }
+    }
+
+    if (
+      !countrySelect.is(e.target) &&
+      countrySelect.has(e.target).length === 0
+    ) {
+      $('#country-select-list').attr('aria-disabled', 'true');
+    }
+  });
+
   let reverseLookupTimeout;
   let searchTimer;
 
   $('#search').on('focus', ({ target }) => {
     if (disableAllButtons) return;
 
+    $('#search-container').attr('aria-expanded', 'true');
+
     $('#search-container-inside').removeClass('outline-0');
     $('#search-container-inside').addClass('outline-3');
 
+    ignoreNextClick = true;
+
     const isPopoutDisabled =
       $('#search-popout').attr('aria-disabled') === 'true';
-
-    $('#search-container').attr('aria-expanded', 'true');
 
     if (isPopoutDisabled && target.value.length) {
       $('#search-popout').attr('aria-disabled', 'false');
@@ -108,7 +145,7 @@ mapPromise.then((map) => {
       if (!$('#search-container').is(':focus-within')) {
         $('#search-container').attr('aria-expanded', 'false');
       }
-    }, 200); 
+    }, 200);
   });
 
   $('#search').on('input', async (e) => {

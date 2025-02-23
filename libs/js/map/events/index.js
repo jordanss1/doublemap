@@ -45,34 +45,6 @@ mapPromise.then((map) => {
     }
   });
 
-  $(document).on('click', (e) => {
-    const searchContainer = $('#search-container');
-    const countrySelect = $('#country-select-button');
-    let searchInput = $('#search');
-
-    if (
-      !searchContainer.is(e.target) &&
-      !searchContainer.has(e.target).length &&
-      !searchInput.is(e.target)
-    ) {
-      $('#search-popout').attr('aria-disabled', 'true');
-      $('#search-container-inside')
-        .removeClass('outline-3')
-        .addClass('outline-0');
-
-      // if (window.innerWidth <= 768) {
-      //   $('#search-container').attr('aria-expanded', 'false');
-      // }
-    }
-
-    if (
-      !countrySelect.is(e.target) &&
-      countrySelect.has(e.target).length === 0
-    ) {
-      $('#country-select-list').attr('aria-disabled', 'true');
-    }
-  });
-
   map.on('zoom', () => {
     const zoom = map.getZoom();
 
