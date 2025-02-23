@@ -60,9 +60,9 @@ mapPromise.then((map) => {
         .removeClass('outline-3')
         .addClass('outline-0');
 
-      if (window.innerWidth <= 768) {
-        $('#search-container').attr('aria-expanded', 'false');
-      }
+      // if (window.innerWidth <= 768) {
+      //   $('#search-container').attr('aria-expanded', 'false');
+      // }
     }
 
     if (
