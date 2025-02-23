@@ -17,12 +17,15 @@ mapPromise.then((map) => {
 
     $('#day-slider-container-lg').attr('aria-disabled', 'true');
     $('#day-slider-container-sm').attr('aria-disabled', 'true');
-    $('#history-container').removeClass('h-20').removeClass('h-30');
-    $('#history-container').addClass('h-10');
-    $('#history-date-container').attr('aria-disabled', 'true');
-    $('#history-date-container').addClass('animate-end_absolute');
-    $('#history-year').attr('aria-disabled', 'true');
-    $('#history-year').addClass('animate-end_absolute');
+
+    if (window.innerWidth >= 640) {
+      $('#history-container').removeClass('h-20').removeClass('h-30');
+      $('#history-container').addClass('h-10');
+      $('#history-date-container').attr('aria-disabled', 'true');
+      $('#history-date-container').addClass('animate-end_absolute');
+      $('#history-year').attr('aria-disabled', 'true');
+      $('#history-year').addClass('animate-end_absolute');
+    }
   }
 
   $('#slider-button').on('click', async function () {
