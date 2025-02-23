@@ -16,6 +16,10 @@ mapPromise.then((map) => {
     }
   };
 
+  $('#search').on('touchend click', function () {
+    e.stopPropagation();
+  });
+
   $('#search').on('keydown', async (e) => {
     if (disableAllButtons) return;
 
