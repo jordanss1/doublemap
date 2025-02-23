@@ -40,7 +40,9 @@ mapPromise.then((map) => {
     }
   });
 
-  $('#search-button').on('click', async (e) => {
+  $('#search-button').on('touchend click', async (e) => {
+    e.preventDefault();
+
     if (disableAllButtons) return;
 
     clearTimeout(locToCategoryTimer);
