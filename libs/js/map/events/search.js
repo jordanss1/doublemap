@@ -96,6 +96,8 @@ mapPromise.then((map) => {
     const isPopoutDisabled =
       $('#search-popout').attr('aria-disabled') === 'true';
 
+    $('#search-container').attr('aria-expanded', 'true');
+
     if (isPopoutDisabled && target.value.length) {
       $('#search-popout').attr('aria-disabled', 'false');
     }
