@@ -45,6 +45,32 @@ mapPromise.then((map) => {
     }
   });
 
+  $(document).on('click', (e) => {
+    const searchContainer = $('#search-container');
+    const countrySelect = $('#country-select-button');
+
+    if (
+      !searchContainer.is(e.target) &&
+      searchContainer.has(e.target).length === 0
+    ) {
+      $('#search-popout').attr('aria-disabled', 'true');
+      $('#search-container-inside')
+        .removeClass('outline-3')
+        .addClass('outline-0');
+
+      if (window.innerWidth <= 768) {
+        $('#search-container').attr('aria-expanded', 'false');
+      }
+    }
+
+    if (
+      !countrySelect.is(e.target) &&
+      countrySelect.has(e.target).length === 0
+    ) {
+      $('#country-select-list').attr('aria-disabled', 'true');
+    }
+  });
+
   map.on('zoom', () => {
     const zoom = map.getZoom();
 
@@ -145,7 +171,7 @@ mapPromise.then((map) => {
   });
 
   map.on('click', 'hovered-country-fill', async (e) => {
-    if (disableAllButtons && map.getZoom() >= 7) return;
+    if (disableAllButtons) return;
 
     clearTimeout(wikipediaTimer);
 
@@ -155,7 +181,7 @@ mapPromise.then((map) => {
     expandSidebar(false);
 
     if (chosenCountryISO) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
     }
 
     const iso_a2 = e.features[0].properties.iso_a2;
@@ -165,12 +191,12 @@ mapPromise.then((map) => {
       try {
         historyInfo = await getHistoryOfCountry(e.features[0].properties.name);
       } catch (err) {
-        addErrorToMap('Problem fetching country history');
+        console.log(err);
       }
     }
 
     try {
-      await updateChosenCountryState(iso_a2);
+      updateChosenCountryState(iso_a2);
 
       const countryInfo = await getCountryDataAndFitBounds(iso_a2);
 
@@ -183,7 +209,7 @@ mapPromise.then((map) => {
         await createModernCountryPopup(countryInfo);
       }
     } catch (err) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
       disableMapInteraction(false);
       addErrorToMap('Error retrieving country details');
     } finally {
@@ -259,19 +285,14 @@ mapPromise.then((map) => {
   });
 
   ['mouseenter', 'touchstart'].forEach((eventType) => {
-    map.on(eventType, ['hovered-country-fill'], () => {
-      if (map.getZoom() >= 7) {
-        map.getCanvas().style.cursor = '';
-      } else {
-        map.getCanvas().style.cursor = 'pointer';
-      }
-    });
-  });
-
-  ['mouseenter', 'touchstart'].forEach((eventType) => {
     map.on(
       eventType,
-      ['chosen-pois', 'default-pois', 'modern-markers-layer'],
+      [
+        'hovered-country-fill',
+        'chosen-pois',
+        'default-pois',
+        'modern-markers-layer',
+      ],
       () => {
         map.getCanvas().style.cursor = 'pointer';
       }
@@ -368,24 +389,22 @@ mapPromise.then((map) => {
     $(this).closest('.mapboxgl-marker').css('z-index', '');
   });
 
-  $(document).on('click', '#history-marker', function () {});
-
-  $('#zoom-in').on('click', async () => {
+  $('#zoom-in').on('click', () => {
     if (disableAllButtons) return;
 
     if (chosenCountryISO) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
     }
 
     let currentZoom = map.getZoom();
     map.easeTo({ zoom: currentZoom + 0.3 });
   });
 
-  $('#zoom-out').on('click', async () => {
+  $('#zoom-out').on('click', () => {
     if (disableAllButtons) return;
 
     if (chosenCountryISO) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
     }
 
     let currentZoom = map.getZoom();
@@ -401,7 +420,7 @@ mapPromise.then((map) => {
     disableAllButtons = true;
 
     if (chosenCountryISO) {
-      await updateChosenCountryState();
+      updateChosenCountryState();
     }
 
     changePanelSpinners(true);
@@ -410,7 +429,7 @@ mapPromise.then((map) => {
       try {
         await getToken();
       } catch (err) {
-        addErrorToMap('Problem fetching map styles');
+        console.log(err);
         disableAllButtons = false;
         changePanelSpinners(false);
         return;
@@ -432,7 +451,7 @@ mapPromise.then((map) => {
     try {
       await getToken();
     } catch {
-      addErrorToMap('Problem fetching map styles');
+      // make notification message
       disableAllButtons = false;
       changePanelSpinners(false);
       disableMapInteraction(false);
@@ -486,7 +505,8 @@ mapPromise.then((map) => {
         }
       });
     } catch (err) {
-      addErrorToMap('Problem fetching map styles');
+      // make notification message
+      console.log(err);
     } finally {
       disableAllButtons = false;
       disableMapInteraction(false);
@@ -501,7 +521,7 @@ mapPromise.then((map) => {
       clearSidebarContent();
       currentPoiCategory = 'default';
 
-      await updateChosenCountryState();
+      updateChosenCountryState();
 
       await flyToPromise({
         speed: 0.5,
@@ -586,6 +606,7 @@ mapPromise.then((map) => {
           changeExitButton(false, `Exit events from ${currentDate}`);
         } catch (err) {
           addErrorToMap('Problem loading map date - try again');
+          console.log(err);
         } finally {
           changePanelSpinners(false);
           disableAllButtons = false;
@@ -969,17 +990,16 @@ async function changeHistoryMode(map, enabled) {
         }, 2000);
       });
     } catch (err) {
-      addErrorToMap('Problem fetching historical map');
+      console.log(err);
       disableMapInteraction(false);
     } finally {
       disableAllButtons = false;
+      updateChosenCountryState();
       removeAllButtons(false);
       currentPois = [];
       currentMarker = null;
       selectedPoi = null;
       selectedSearch = null;
-
-      updateChosenCountryState();
     }
   } else {
     expandSidebar(false);
@@ -1035,15 +1055,12 @@ async function changeHistoryMode(map, enabled) {
         pausingPoiSearch(false);
       });
     } catch (err) {
-      addErrorToMap('Problem fetching map styles');
+      console.log(err);
       disableMapInteraction(false);
     } finally {
       removeAllButtons(false);
       disableAllButtons = false;
-
-      map.once('style.load', async () => {
-        await updateChosenCountryState();
-      });
+      updateChosenCountryState();
     }
   }
 }
