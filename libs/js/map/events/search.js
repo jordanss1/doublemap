@@ -103,6 +103,14 @@ mapPromise.then((map) => {
     }
   });
 
+  $('#search').on('blur', (e) => {
+    setTimeout(() => {
+      if (!$('#search-container').is(':focus-within')) {
+        $('#search-container').attr('aria-expanded', 'false');
+      }
+    }, 200); 
+  });
+
   $('#search').on('input', async (e) => {
     if (disableAllButtons) return;
 
