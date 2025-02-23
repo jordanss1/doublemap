@@ -237,9 +237,7 @@ mapPromise.then((map) => {
 
     clearTimeout(timeout);
 
-    if (window.innerWidth >= 640) {
-      expandSidebar(true);
-    }
+    expandSidebar(true);
 
     const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
 
@@ -602,7 +600,7 @@ mapPromise.then((map) => {
           $('#content-subtitle-container').removeClass('invisible');
 
           $('#content-subtitle').text(`${historicalEvents.length} results`);
-          
+
           if (window.innerWidth >= 640) {
             expandSidebar(true);
           }
