@@ -695,6 +695,28 @@ mapPromise.then((map) => {
         return;
       }
 
+      if (
+        currentPoiCategory === 'default' &&
+        $('#content-results').find('#search-content-item').length !== 0
+      ) {
+        clearSidebarContent();
+        pausingPoiSearch(false);
+
+        if (searchResults.length) {
+          appendSearchResults(searchResults);
+        }
+
+        changeExitButton(true);
+
+        await flyToPromise({
+          speed: 0.5,
+          zoom: map.getZoom() - 0.5,
+          duration: 1000,
+        });
+
+        return;
+      }
+
       if (currentPoiCategory !== 'default') {
         currentPoiCategory = 'default';
         changeExitButton(true);
