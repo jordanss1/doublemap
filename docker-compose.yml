@@ -55,28 +55,6 @@ services:
       - traefik.http.services.tile-app.loadbalancer.server.port=${TILE_PORT}
 
 
-#   db:
-#     build:
-#       context: ./db/
-#       dockerfile: Dockerfile
-#       args: {}
-#     environment:
-#       MYSQL_PASSWORD: ${DB_PASS}
-#       MYSQL_USER: ${DB_USERNAME}
-#       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-#     restart: always
-#     volumes:
-#       - db_data:/var/lib/mysql
-#     expose:
-#       - ${DB_PORT}
-#     env_file:
-#       - .env
-#     networks:
-#       - dokploy-network
-
-# volumes:
-#   db_data:
-
 networks:
   dokploy-network:
     external: true
