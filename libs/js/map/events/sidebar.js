@@ -324,6 +324,10 @@ function expandItem(this1, id) {
 function markPoiFromSidebar(newId) {
   if (disableAllButtons) return;
 
+  if (window.innerWidth <= 900) {
+    expandSidebar(false);
+  }
+
   const poi = currentPois.find((poi) => poi.properties.id === newId);
 
   flyToDelayed({
