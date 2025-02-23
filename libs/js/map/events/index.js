@@ -695,10 +695,18 @@ mapPromise.then((map) => {
         return;
       }
 
+      console.log(
+        currentPoiCategory === 'default' &&
+          $('#content-results').find('#search-content-item').length !== 0
+      );
+
+      console.log(currentPoiCategory);
+
       if (
         currentPoiCategory === 'default' &&
         $('#content-results').find('#search-content-item').length !== 0
       ) {
+        console.log('in');
         clearSidebarContent();
         pausingPoiSearch(false);
 
