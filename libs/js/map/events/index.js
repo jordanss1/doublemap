@@ -237,7 +237,9 @@ mapPromise.then((map) => {
 
     clearTimeout(timeout);
 
-    expandSidebar(true);
+    if (window.innerWidth >= 640) {
+      expandSidebar(true);
+    }
 
     const exitEnabled = $('#exit-container').attr('aria-disabled') === 'false';
 
@@ -600,57 +602,15 @@ mapPromise.then((map) => {
           $('#content-subtitle-container').removeClass('invisible');
 
           $('#content-subtitle').text(`${historicalEvents.length} results`);
-
-          expandSidebar(true);
+          
+          if (window.innerWidth >= 640) {
+            expandSidebar(true);
+          }
 
           changeExitButton(false, `Exit events from ${currentDate}`);
         } catch (err) {
           addErrorToMap('Problem loading map date - try again');
           console.log(err);
-        } finally {
-          changePanelSpinners(false);
-          disableAllButtons = false;
-          disableMapInteraction(false);
-        }
-
-        return;
-      }
-
-      if (historicalEvents.length) {
-        disableAllButtons = true;
-        disableMapInteraction(true);
-        changePanelSpinners(true);
-
-        try {
-          let zoom = 2;
-
-          if (map.getZoom() <= 2) zoom = map.getZoom() - 0.5;
-
-          await flyToPromise({
-            speed: 0.5,
-            zoom,
-            duration: 1500,
-          });
-
-          await returnToDefaultHistoryMap();
-
-          changeExitButton(true);
-        } catch {
-          if (historicalEvents.length) {
-            addHistoricalEventsToSidebar(historicalEvents);
-
-            await createMarkersFromHistoricalEvents(historicalEvents);
-
-            addHistoricalEventsToSidebar(historicalEvents);
-
-            $('#content-subtitle-container').removeClass('invisible');
-
-            $('#content-subtitle').text(`${historicalEvents.length} results`);
-
-            expandSidebar(true);
-
-            changeExitButton(false, `Exit events from ${currentDate}`);
-          }
         } finally {
           changePanelSpinners(false);
           disableAllButtons = false;

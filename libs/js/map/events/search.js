@@ -87,7 +87,7 @@ mapPromise.then((map) => {
   let reverseLookupTimeout;
   let searchTimer;
 
-  $('#search').on('focus', ({ target }) => {
+  $('#search').on('focusin', ({ target }) => {
     if (disableAllButtons) return;
 
     $('#search-container-inside').removeClass('outline-0');
@@ -102,6 +102,8 @@ mapPromise.then((map) => {
       $('#search-popout').attr('aria-disabled', 'false');
     }
   });
+
+
 
   $('#search').on('input', async (e) => {
     if (disableAllButtons) return;

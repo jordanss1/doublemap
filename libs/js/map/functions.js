@@ -1124,7 +1124,9 @@ async function changeYearAndMapEvent(event) {
 
     await createMarkersFromHistoricalEvents(historicalEvents);
     addHistoricalEventsToSidebar(historicalEvents);
-    expandSidebar(true);
+    if (window.innerWidth >= 640) {
+      expandSidebar(true);
+    }
   }
 }
 

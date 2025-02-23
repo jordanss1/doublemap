@@ -221,13 +221,13 @@ mapPromise.then((map) => {
       if (window.innerWidth <= 640) {
         $('#day-slider-container-lg').attr('aria-disabled', 'true');
         $('#day-slider-container-sm').attr('aria-disabled', 'true');
-        $('#history-container').removeClass('h-20');
-        $('#history-container').removeClass('h-30');
-        $('#history-container').addClass('h-10');
-        $('#history-date-container').attr('aria-disabled', 'true');
-        $('#history-date-container').addClass('animate-end_absolute');
-        $('#history-year').attr('aria-disabled', 'true');
-        $('#history-year').addClass('animate-end_absolute');
+        // $('#history-container').removeClass('h-20');
+        // $('#history-container').removeClass('h-30');
+        // $('#history-container').addClass('h-10');
+        // $('#history-date-container').attr('aria-disabled', 'true');
+        // $('#history-date-container').addClass('animate-end_absolute');
+        // $('#history-year').attr('aria-disabled', 'true');
+        // $('#history-year').addClass('animate-end_absolute');
       }
 
       if (selectedHistoricalEvent) {
@@ -263,8 +263,10 @@ mapPromise.then((map) => {
 
             $('#content-subtitle').text(`${historicalEvents.length} results`);
 
-            expandSidebar(true);
-
+            if (window.innerWidth >= 640) {
+              expandSidebar(true);
+            }
+            
             changeExitButton(false, `Exit events from ${currentDate}`);
           }
         } finally {
@@ -526,7 +528,10 @@ async function getWikipediaEvents(day, month) {
   selectedHistoricalEvent = null;
   await updateChosenCountryState();
   disableMapInteraction(true);
-  expandSidebar(true);
+
+  if (window.innerWidth >= 640) {
+    expandSidebar(true);
+  }
   changePanelSpinners(true);
   appendHistoricalEventsSpinner('Gathering events...');
 
