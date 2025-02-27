@@ -1,5 +1,5 @@
 services:
-  web:
+  web2:
     build:
       context: .
       dockerfile: Dockerfile
@@ -19,7 +19,7 @@ services:
     env_file:
       - .env
 
-  api:
+  api2:
     build:
       context: ./libs/php
       dockerfile: Dockerfile
@@ -34,12 +34,6 @@ services:
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
         MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
     restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.api2-app.rule=Host(${API})
-      - traefik.http.routers.api2-app.entrypoints=websecure
-      - traefik.http.routers.api2-app.tls.certResolver=letsencrypt
-      - traefik.http.services.api2-app.loadbalancer.server.port=${API_PORT}
     env_file:
       - .env
     networks:
