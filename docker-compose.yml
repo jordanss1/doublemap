@@ -13,7 +13,7 @@ services:
       - traefik.http.services.web-app.loadbalancer.server.port=${WEB_PORT}
     depends_on:
       - api
-    restart: always
+    restart: unless-stopped
     networks:
       - dokploy-network
     env_file:
@@ -33,7 +33,7 @@ services:
         DB_PASS: ${DB_PASS}
         MAPBOX_TOKEN_PHP: ${MAPBOX_TOKEN_PHP}
         MAPBOX_TOKEN_DEFAULT: ${MAPBOX_TOKEN_DEFAULT}
-    restart: always
+    restart: unless-stopped
     env_file:
       - .env
     networks:
@@ -44,7 +44,7 @@ services:
       context: ./tileserver/
       dockerfile: Dockerfile
       args: {}
-    restart: always
+    restart: unless-stopped
     networks:
       - dokploy-network
     labels:
