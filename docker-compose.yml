@@ -7,10 +7,10 @@ services:
       - ${WEB_PORT}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.web-app.rule=Host(${WEB})
-      - traefik.http.routers.web-app.entrypoints=websecure
-      - traefik.http.routers.web-app.tls.certResolver=letsencrypt
-      - traefik.http.services.web-app.loadbalancer.server.port=${WEB_PORT}
+      - traefik.http.routers.web2-app.rule=Host(${WEB})
+      - traefik.http.routers.web2-app.entrypoints=websecure
+      - traefik.http.routers.web2-app.tls.certResolver=letsencrypt
+      - traefik.http.services.web2-app.loadbalancer.server.port=${WEB_PORT}
     depends_on:
       - api
     restart: unless-stopped
