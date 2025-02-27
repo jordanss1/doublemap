@@ -12,7 +12,7 @@ services:
       - traefik.http.routers.web2-app.tls.certResolver=letsencrypt
       - traefik.http.services.web2-app.loadbalancer.server.port=${WEB_PORT}
     depends_on:
-      - api
+      - api2
     restart: unless-stopped
     networks:
       - dokploy-network
