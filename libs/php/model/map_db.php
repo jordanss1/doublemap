@@ -35,7 +35,7 @@
         
         switch ($api_name) {
             case "mapboxgljs":
-                $limit = 46000;
+                $limit = 40000;
                 $rejectRequest = $requests >= $limit - 1;  
 
 
@@ -48,7 +48,7 @@
 
                 break;
             case "search":
-                $limit = 46000;
+                $limit = 20000;
                 $rejectRequest = $requests >= $limit - 1;  
 
 
