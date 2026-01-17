@@ -20,7 +20,7 @@
         $response = null;
 
         do {
-            $response = fetchApiCall($url, false);
+            $response = fetchApiCall($url, false, true);
             $attempt++;
 
             if (!isset($response['error'])) {

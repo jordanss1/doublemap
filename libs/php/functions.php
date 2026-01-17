@@ -34,7 +34,7 @@
 
    
 
-    function fetchApiCall ($url, $endOnError) {
+     function fetchApiCall ($url, $endOnError, $wikipedia = false) {
         $ch = null;
 
         try {
@@ -45,13 +45,16 @@
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+             if ($wikipedia) {
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
             
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "User-Agent: MyApp/1.0 (myemail@example.com)",
-                "Accept: application/json"
-            ]);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "User-Agent: MyApp/1.0 (myemail@example.com)",
+                    "Accept: application/json"
+                ]);
+            }
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
