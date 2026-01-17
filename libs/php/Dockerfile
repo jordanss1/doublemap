@@ -10,6 +10,10 @@ RUN apt-get update && \
     apt-get install -y libzip-dev unzip git zip && \
     docker-php-ext-install pdo_mysql zip
 
+RUN mkdir -p /var/log && \
+    touch /var/log/php_errors.log && \
+    chown php-fpm:php-fpm /var/log /var/log/php_errors.log
+    
 USER php-fpm
 
 WORKDIR /var/www/html   
