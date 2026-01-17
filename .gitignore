@@ -1,0 +1,6 @@
+.env
+tailwindcss-linux-x64
+.vscode
+vendor/
+tileserver-vector/
+node_modules/
