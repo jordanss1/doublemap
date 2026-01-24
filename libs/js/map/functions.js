@@ -59,7 +59,9 @@ async function applyCountryLayers() {
   if (!map.getSource('country-borders')) {
     map.addSource('country-borders', {
       type: 'vector',
-      tiles: ['http://localhost:3000/data/countries/{z}/{x}/{y}.pbf'],
+      tiles: [
+        'http://localhost:8080/tileserver/data/countries/{z}/{x}/{y}.pbf',
+      ],
       promoteId: 'iso_a2',
     });
   }
@@ -843,10 +845,10 @@ function formatEventDate(event) {
     day % 10 === 1 && day !== 11
       ? 'st'
       : day % 10 === 2 && day !== 12
-      ? 'nd'
-      : day % 10 === 3 && day !== 13
-      ? 'rd'
-      : 'th';
+        ? 'nd'
+        : day % 10 === 3 && day !== 13
+          ? 'rd'
+          : 'th';
 
   let month = date.toLocaleString('en-GB', { month: 'long' });
 
@@ -878,8 +880,8 @@ function renderHistoricalEventItem(event) {
       aria-disabled="${
         noCoords ? 'true' : 'false'
       }" role='button' aria-label='Highlight event and change time' title='Highlight event and change time' class='relative ${
-    currentlySelected ? 'hidden' : 'block'
-  } bg-gradient-to-r p-1 aria-disabled:cursor-default group/button from-blue-300 font-abel via-purple-500 to-pink-500 aria-disabled:group-hover/whole:text-white-50 text-white-300 z-[25] border-white-300 border rounded-md'>
+        currentlySelected ? 'hidden' : 'block'
+      } bg-gradient-to-r p-1 aria-disabled:cursor-default group/button from-blue-300 font-abel via-purple-500 to-pink-500 aria-disabled:group-hover/whole:text-white-50 text-white-300 z-[25] border-white-300 border rounded-md'>
         <span >Time travel</span>
         <div class='absolute inset-0  group-hover/event:group-aria-disabled/button:bg-slate-700/60 group-aria-disabled/button:hover:bg-slate-700/40 w-full h-full rounded-md bg-slate-700/0 z-30'></div>
       </div>
