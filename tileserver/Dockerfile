@@ -22,8 +22,13 @@ RUN curl -L https://github.com/felt/tippecanoe/archive/refs/tags/2.79.0.zip -o t
 COPY --chown=node:node . /app/
 
 RUN mkdir -p /app/borders && \
-    chown -R node:node /app/borders && \
-    sudo -u node tippecanoe -o /app/borders/countries.mbtiles -Z1 -z7 --drop-densest-as-needed --force ./country_borders.geo.json
+    chown -R node:node /app/borders
+
+RUN tippecanoe -o /app/borders/countries.mbtiles \
+    -Z1 -z7 \
+    --drop-densest-as-needed \
+    --force \
+    ./country_borders.geo.json
 
 USER node
 
