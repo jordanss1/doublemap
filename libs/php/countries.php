@@ -16,10 +16,12 @@
             $restISO = strtolower($countryISO);
             
             $geonamesUrl = "https://secure.geonames.org/countryInfo?country=$countryISO&username={$_ENV['GEO_USERNAME']}";
-            $restCountriesUrl = "https://restcountries.com/v3.1/alpha?codes=$restISO";
+            $restCountriesUrl = "https://api.restcountries.com/countries/v5/codes.alpha_2/$restISO?pretty=1";
 
             $geonamesResponse = fetchApiCall($geonamesUrl, false);
-            $restCountriesResponse = fetchApiCall($restCountriesUrl, false);
+            $restCountriesResponse = fetchApiCall($restCountriesUrl, false, false, 
+            ["Authorization: Bearer {$_ENV['REST_COUNTRY_KEY']}"]);
+
 
             $decodedGeonamesResponse = decodeResponse($geonamesResponse, 'xml');
             $decodedRestResponse = decodeResponse($restCountriesResponse);
@@ -28,11 +30,11 @@
                 $decodedGeonamesResponse['country']['apiName'] = 'geonames';
             }
             if (!isset($decodedRestResponse['error'])) {
-                $decodedRestResponse['0']['apiName'] = 'rest-countries';
+                $decodedRestResponse['data']['objects'][0]['apiName'] = 'rest-countries';
             }
 
             http_response_code(200);
-            echo json_encode(["data" => [$decodedRestResponse['0'], $decodedGeonamesResponse['country']]]);
+            echo json_encode(["data" => [$decodedRestResponse['data']['objects'][0], $decodedGeonamesResponse['country']]]);
             exit;
         }  
         

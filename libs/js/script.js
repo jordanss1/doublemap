@@ -7,13 +7,13 @@ mapPromise.then(async (map) => {
     disableAllButtons = true;
 
     const { data } = await $.ajax({
-      url: '/api/ipinfo',
-      method: 'GET',
-      data: 'json',
+      url: "/api/ipinfo",
+      method: "GET",
+      data: "json",
     });
 
     userGeo = data;
-    const latLong = userGeo.loc.split(',');
+    const latLong = userGeo.loc.split(",");
     const latitude = parseFloat(latLong[0]);
     const longitude = parseFloat(latLong[1]);
 
@@ -47,8 +47,8 @@ mapPromise.then(async (map) => {
 
   $.ajax({
     url: `/api/countries?country=all`,
-    method: 'GET',
-    dataType: 'json',
+    method: "GET",
+    dataType: "json",
     success: ({ data }) => {
       countryList = data
         .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
@@ -57,12 +57,12 @@ mapPromise.then(async (map) => {
         });
 
       countryList.forEach(({ name, iso_a2 }) => {
-        $('#country-select').append(
-          `<option id="country-option" class="text-lg font-sans" value="${iso_a2}">${name}</option>`
+        $("#country-select").append(
+          `<option id="country-option" class="text-lg font-sans" value="${iso_a2}">${name}</option>`,
         );
 
-        $('#country-select-list').append(
-          `<option role='option' id='country-list-option' class='text-lg font-light cursor-pointer hover:bg-blue-300 hover:text-white-100 hover:font-normal w-full rounded-md truncate' value='${iso_a2}'>${name}</option>`
+        $("#country-select-list").append(
+          `<option role='option' id='country-list-option' class='text-lg font-light cursor-pointer hover:bg-blue-300 hover:text-white-100 hover:font-normal w-full rounded-md truncate' value='${iso_a2}'>${name}</option>`,
         );
       });
     },
@@ -74,13 +74,13 @@ mapPromise.then(async (map) => {
   });
 
   $.ajax({
-    url: '/api/mapboxgljs/category?list=true',
-    method: 'GET',
-    dataType: 'json',
+    url: "/api/mapboxgljs/category?list=true",
+    method: "GET",
+    dataType: "json",
     success: (res) => {
       categoryList = res.data;
       addMarkersSourceAndLayer([]);
-      addPoiSourceAndLayer([], 'default-pois');
+      addPoiSourceAndLayer([], "default-pois");
     },
     error: (xhr) => {
       const res = JSON.parse(xhr.responseText);
@@ -94,16 +94,16 @@ async function getCountryDataAndFitBounds(iso_a2) {
   try {
     const { data } = await $.ajax({
       url: `/api/countries?country=${iso_a2}`,
-      method: 'GET',
-      dataType: 'json',
+      method: "GET",
+      dataType: "json",
     });
 
     const [restCountries, geonames] = data.map((countryData) => {
       return countryData;
     });
 
-    const bangladesh = iso_a2 === 'BD';
-    const russia = iso_a2 === 'RU';
+    const bangladesh = iso_a2 === "BD";
+    const russia = iso_a2 === "RU";
     let bbox;
 
     if (geonames && !russia && !bangladesh) {
