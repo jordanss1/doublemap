@@ -34,7 +34,44 @@
 
    
 
-     function fetchApiCall ($url, $endOnError, $wikipedia = false) {
+         function fetchOverpassQuery($query) { 
+        $url = 'https://overpass.kumi.systems/api/interpreter'; 
+        $ch = curl_init($url); 
+
+        if (!$ch) { 
+                return [ 'error' => 'Failed to initialise Overpass cURL', 'details' => 'curl_init() failed' ]; 
+        } 
+            
+        curl_setopt_array($ch, [ CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => 
+        
+        http_build_query([ 'data' => $query ]), CURLOPT_HTTPHEADER => [ 'Content-Type: application/x-www-form-urlencoded', 'Accept: application/json', 'User-Agent: MyApp/1.0' ], CURLOPT_CONNECTTIMEOUT => 10, CURLOPT_TIMEOUT => 60, ]); 
+        
+        $response = curl_exec($ch); 
+        
+        if ($response === false) { $error = curl_error($ch); curl_close($ch); 
+            return [ 'error' => 'Overpass request failed', 'details' => $error ]; 
+            } 
+        
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch); 
+        
+        if ($httpCode !== 200) { 
+            return [ 'error' => "Overpass API error (HTTP $httpCode)", 'details' => $response ]; 
+        } 
+        $decoded = json_decode($response, true); 
+        
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) { 
+            return [ 'error' => 'Failed to decode Overpass response', 'details' => json_last_error_msg() ]; 
+        } 
+        
+        if (isset($decoded['remark'])) { 
+            return [ 'error' => 'Overpass returned an error', 'details' => $decoded['remark'] ]; 
+                
+        } 
+                
+        return $decoded; 
+    }
+
+     function fetchApiCall ($url, $endOnError, $wikipedia = false, $headers = []) {
         $ch = null;
 
         try {
@@ -46,36 +83,32 @@
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
-             if ($wikipedia) {
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
+            if ($wikipedia) {
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-            
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                    "User-Agent: MyApp/1.0 (myemail@example.com)",
-                    "Accept: application/json"
-                ]);
+
+                $headers[] = "User-Agent: MyApp/1.0 (myemail@example.com)";
+                $headers[] = "Accept: application/json";
+            }
+
+            if (!empty($headers)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             }
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
             
-            if ($response === false) {
-                error_log("Problem retrieving data: " . curl_error($ch));
-                throw new Exception("An issue occurred while processing the request.");
-            }
+            if ($response === false) throw new Error("Problem retrieving data: " . curl_error($ch));
     
             if ($httpCode !== 200) {
-                error_log("API error (HTTP $httpCode): $url");
-                throw new Exception("API request failed. Please try again later.");
+                throw new Exception("API error (HTTP $httpCode): $response");
             }
 
             return $response;
         } catch (Exception $e) {
             $parsedUrl = parse_url($url);
-            $errorResponse = ["error" => "Error in request to external service", "details" => "An error occurred. Please try again later."];
-
-            error_log("Error making request to API: {$parsedUrl['host']}" . $e->getMessage());
+            $errorResponse = ["error" => $e->getMessage(), "details" => "Error making request to {$parsedUrl['host']} API"];
 
             if ($endOnError) {
                 http_response_code(500);
