@@ -1,4 +1,4 @@
-FROM php:8.3-fpm
+FROM php:8.3.36-fpm
 
 RUN groupadd -g 101 php-fpm \
     && useradd --no-log-init -u 101 -g 101 php-fpm \
